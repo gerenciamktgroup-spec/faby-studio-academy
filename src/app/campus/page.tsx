@@ -124,21 +124,44 @@ export default async function CampusPage() {
             <span className="text-xs text-slate-500 font-semibold">6 Módulos • 50h Activas</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-rose-600 uppercase">Lección en curso</span>
                 <h3 className="text-sm font-bold text-slate-900">
                   Lección 1.2: Anatomía de la Pestaña Natural & Fases de Crecimiento
                 </h3>
-                <p className="text-xs text-slate-500">Módulo 1: Fundamentos Profesionales & Bioseguridad</p>
+                <p className="text-xs text-slate-500">Módulo 1: Fundamentos Profesionales & Bioseguridad (Progreso: 68%)</p>
               </div>
 
               <Link
                 href="/campus/cursos/c1000000-0000-0000-0000-000000000001"
                 className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center space-x-1 shrink-0 self-start sm:self-auto shadow-xs"
               >
-                <span>Reanudar</span>
+                <span>Reanudar Pestañas</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="p-4 bg-rose-50/50 rounded-2xl border border-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <span className="text-[10px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded uppercase">
+                    ▶ Master Class YouTube HD
+                  </span>
+                  <span className="text-[10px] font-bold text-rose-700 uppercase">Nuevo Máster Matriculado</span>
+                </div>
+                <h3 className="text-sm font-bold text-slate-900">
+                  Máster Profesional en Uñas de Gel y Acrílico Premium
+                </h3>
+                <p className="text-xs text-slate-600">Módulo 1: Manicura Rusa Combinada & Esculpido Estructural</p>
+              </div>
+
+              <Link
+                href="/campus/cursos/c2000000-0000-0000-0000-000000000002"
+                className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center space-x-1 shrink-0 self-start sm:self-auto shadow-xs"
+              >
+                <span>Ver Master Class Uñas</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

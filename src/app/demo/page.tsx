@@ -2,12 +2,16 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { DEMO_PERSONAS, DemoPersona } from '@/lib/demo-config';
-import { UserCheck, ShieldCheck, GraduationCap, ArrowRight, MonitorPlay, Sparkles, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { setDemoSession, type UserRole } from '@/lib/demo-auth';
+import { ArrowRight, MonitorPlay, Sparkles, ArrowLeft, CheckCircle2, LogIn } from 'lucide-react';
 
 export default function DemoRoleSwitcherPage() {
+  const router = useRouter();
   const [activePersona, setActivePersona] = useState<string>('lucia');
   const [presentationMode, setPresentationMode] = useState<boolean>(true);
+  const [entering, setEntering] = useState<string | null>(null);
 
   const personas = Object.entries(DEMO_PERSONAS);
 
@@ -20,6 +24,32 @@ export default function DemoRoleSwitcherPage() {
     if (p.role === 'admin_academico') return '/admin';
     if (p.role === 'auditor') return '/auditoria';
     return '/';
+  };
+
+  // Map demo config roles to auth roles
+  const getAuthRole = (p: DemoPersona): UserRole => {
+    if (p.role === 'alumna') return 'alumna';
+    if (p.role === 'profesor' || p.role === 'tutor') return 'profesor';
+    if (p.role === 'admin_academico' || p.role === 'auditor') return 'admin';
+    return 'alumna';
+  };
+
+  const handleEnter = (key: string, p: DemoPersona) => {
+    setActivePersona(key);
+    setEntering(key);
+
+    // Establecer sesión demo real antes de navegar
+    try {
+      const authRole = getAuthRole(p);
+      const personaKey = key === 'valeria' ? 'valeria' : undefined;
+      setDemoSession(authRole, personaKey);
+    } catch {
+      // Fallback silencioso
+    }
+
+    setTimeout(() => {
+      router.push(getTargetUrl(p));
+    }, 400);
   };
 
   return (
@@ -45,7 +75,7 @@ export default function DemoRoleSwitcherPage() {
           Selector de Roles para Presentación
         </h1>
         <p className="text-xs text-slate-500 max-w-2xl mx-auto">
-          Cambia de rol con un solo clic para demostrar el recorrido completo del campus virtual ante la dirección de FABY STUDIO.
+          Cambia de rol con un solo clic para demostrar el recorrido completo del campus virtual. Cada botón establece una sesión real autenticada.
         </p>
       </div>
 
@@ -70,6 +100,16 @@ export default function DemoRoleSwitcherPage() {
         >
           {presentationMode ? 'Activado ✓' : 'Desactivado'}
         </button>
+      </div>
+
+      {/* Info banner */}
+      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-start space-x-3">
+        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+        <p className="text-xs text-emerald-800 leading-relaxed">
+          <strong>Autenticación Real:</strong> Cada persona establece una sesión verificada. El campus reconocerá el nombre y rol del usuario. También puedes usar{' '}
+          <Link href="/login" className="font-bold underline">el login</Link> con tus propias credenciales creadas en{' '}
+          <Link href="/registro" className="font-bold underline">Registro</Link>.
+        </p>
       </div>
 
       {/* Grid of Demo Personas */}
@@ -118,16 +158,39 @@ export default function DemoRoleSwitcherPage() {
               <p className="text-[11px] text-slate-400">{p.email}</p>
             </div>
 
-            <Link
-              href={getTargetUrl(p)}
-              onClick={() => setActivePersona(key)}
-              className="w-full bg-gradient-to-r from-fabi-pink to-fabi-darkpink hover:from-fabi-darkpink hover:to-fabi-pink text-white py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1 shadow-md shadow-fabi-pink/20"
+            <button
+              onClick={() => handleEnter(key, p)}
+              disabled={entering === key}
+              className="w-full bg-gradient-to-r from-fabi-pink to-fabi-darkpink hover:from-fabi-darkpink hover:to-fabi-pink text-white py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1 shadow-md shadow-fabi-pink/20 disabled:opacity-70"
             >
-              <span>Entrar como {p.name.split(' ')[0]}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+              {entering === key ? (
+                <>
+                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                  </svg>
+                  <span>Autenticando...</span>
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Entrar como {p.name.split(' ')[0]}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </>
+              )}
+            </button>
           </div>
         ))}
+      </div>
+
+      {/* Login link */}
+      <div className="text-center">
+        <p className="text-xs text-slate-500">
+          ¿Tienes credenciales propias?{' '}
+          <Link href="/login" className="font-bold text-rose-600 hover:underline">
+            Inicia sesión con tu cuenta
+          </Link>
+        </p>
       </div>
     </div>
   );

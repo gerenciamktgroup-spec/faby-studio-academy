@@ -198,8 +198,8 @@ export default function HomePage() {
             {/* Course 2 */}
             <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xs hover:shadow-md transition-shadow">
               <img
-                src="https://images.unsplash.com/photo-1583001809873-a1284a5da677?q=80&w=800&auto=format&fit=crop"
-                alt="Pestañas"
+                src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800&auto=format&fit=crop"
+                alt="Especialización en Pestañas"
                 className="w-full h-48 object-cover"
               />
               <div className="p-6 space-y-4">

@@ -25,7 +25,7 @@ export default function CursosPage() {
       hours: 50,
       rating: 4.85,
       students: 320,
-      image: 'https://images.unsplash.com/photo-1583001809873-a1284a5da677?q=80&w=800&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800&auto=format&fit=crop',
       description: 'Técnica pelo a pelo, creación de abanicos 2D-6D y diseño personalizado según la mirada.',
       price: '380€',
       href: '/cursos/extensiones-de-pestanas',

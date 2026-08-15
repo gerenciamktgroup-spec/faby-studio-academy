@@ -25,9 +25,9 @@ export function PublicFooter() {
             <p className="font-bold text-slate-900 uppercase tracking-wider">Programas</p>
             <ul className="space-y-1.5 text-slate-600">
               <li><Link href="/cursos/extensiones-de-pestanas" className="hover:text-fabi-pink transition-colors">Extensiones de Pestañas</Link></li>
-              <li><Link href="/cursos" className="hover:text-fabi-pink transition-colors">Uñas de Gel & Acrílico</Link></li>
-              <li><Link href="/cursos" className="hover:text-fabi-pink transition-colors">Cosmetología Facial</Link></li>
-              <li><Link href="/cursos" className="hover:text-fabi-pink transition-colors">Lash Lifting & Laminado</Link></li>
+              <li><Link href="/cursos/unas-de-gel-y-acrilico" className="hover:text-fabi-pink transition-colors">Uñas de Gel & Acrílico</Link></li>
+              <li><Link href="/cursos/cosmetologia-facial" className="hover:text-fabi-pink transition-colors">Cosmetología Facial</Link></li>
+              <li><Link href="/cursos" className="hover:text-fabi-pink transition-colors">Catálogo Completo</Link></li>
             </ul>
           </div>
 
@@ -36,8 +36,8 @@ export function PublicFooter() {
             <ul className="space-y-1.5 text-slate-600">
               <li><Link href="/verificar-certificado/CERT-FS-DEMO-9988" className="hover:text-fabi-pink transition-colors">Verificación de Diplomas</Link></li>
               <li><Link href="/auditoria" className="hover:text-fabi-pink transition-colors">Auditoría & Trazabilidad</Link></li>
-              <li><span className="text-slate-400">Política de Privacidad (RGPD)</span></li>
-              <li><span className="text-slate-400">Términos y Condiciones</span></li>
+              <li><Link href="/privacidad" className="hover:text-fabi-pink transition-colors">Política de Privacidad (RGPD)</Link></li>
+              <li><Link href="/terminos" className="hover:text-fabi-pink transition-colors">Términos y Condiciones</Link></li>
             </ul>
           </div>
         </div>

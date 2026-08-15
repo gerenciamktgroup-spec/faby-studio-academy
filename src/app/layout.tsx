@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://images.unsplash.com/photo-1583001809873-a1284a5da677?q=80&w=1200&auto=format&fit=crop',
+        url: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=1200&auto=format&fit=crop',
         width: 1200,
         height: 630,
         alt: 'FABY STUDIO ACADEMY Master Classes',

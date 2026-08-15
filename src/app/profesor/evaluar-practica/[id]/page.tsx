@@ -104,7 +104,7 @@ export default function EvaluarPracticaPage() {
               <div className="space-y-3">
                 <div className="rounded-xl overflow-hidden border border-slate-200 relative">
                   <img
-                    src="https://images.unsplash.com/photo-1583001809873-a1284a5da677?q=80&w=800&auto=format&fit=crop"
+                    src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800&auto=format&fit=crop"
                     alt="Foto Práctica"
                     className="w-full h-48 object-cover"
                   />

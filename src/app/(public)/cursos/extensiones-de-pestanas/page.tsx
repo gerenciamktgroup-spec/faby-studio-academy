@@ -198,7 +198,7 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
             <div className="lg:col-span-5">
               <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xl space-y-3">
                 <img
-                  src="https://images.unsplash.com/photo-1583001809873-a1284a5da677?q=80&w=800&auto=format&fit=crop"
+                  src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800&auto=format&fit=crop"
                   alt="Curso Extensiones de Pestañas"
                   className="w-full h-72 object-cover rounded-2xl"
                 />

@@ -30,7 +30,9 @@ import {
   Maximize,
   X,
   Video,
-  Youtube
+  Youtube,
+  Layers,
+  BookOpen
 } from 'lucide-react';
 import {
   DEMO_DOWNLOADABLE_RESOURCES,
@@ -42,12 +44,13 @@ import {
   LessonComment
 } from '@/lib/services-demo/streaming-service';
 
-// Course Curriculum Catalog Data
+// Course Curriculum Catalog with Real YouTube Master Classes
 const COURSES_DATA: Record<string, {
   id: string;
   title: string;
   category: string;
   moduleTitle: string;
+  otherModules: Array<{ title: string; subtitle: string }>;
   lessons: Array<{
     id: string;
     title: string;
@@ -64,12 +67,18 @@ const COURSES_DATA: Record<string, {
     }>;
   }>;
 }> = {
-  // Course 1: Uñas de Gel & Acrílico (Includes YouTube Master Class gMLz-995K-A)
+  // Course 1: Uñas de Gel & Acrílico (YouTube Master Class gMLz-995K-A)
   'c2000000-0000-0000-0000-000000000002': {
     id: 'c2000000-0000-0000-0000-000000000002',
     title: 'Máster Profesional en Uñas de Gel y Acrílico Premium',
     category: 'Uñas & Manicura',
     moduleTitle: 'Módulo 1: Manicura Rusa Combinada & Esculpido Estructural',
+    otherModules: [
+      { title: 'Módulo 2: Acrílico de Salón & Control de Perlas', subtitle: '6 lecciones • 1 práctica técnica' },
+      { title: 'Módulo 3: Dual System Forms & Polygel', subtitle: '5 lecciones • Master Class' },
+      { title: 'Módulo 4: Nail Art de Salón & Francesa Inversa', subtitle: '6 lecciones • Evaluación' },
+      { title: 'Módulo 5: Rellenos, Retiradas y Rentabilidad', subtitle: '4 lecciones • Proyecto Final' },
+    ],
     lessons: [
       {
         id: 'l1',
@@ -127,28 +136,34 @@ const COURSES_DATA: Record<string, {
     ],
   },
 
-  // Course 2: Pestañas y Volumen Ruso (Classic Master)
+  // Course 2: Pestañas y Volumen Ruso (YouTube Lash Tutorials kU1RjIlIcSA & 7XkXv8gJkXw)
   'c1000000-0000-0000-0000-000000000001': {
     id: 'c1000000-0000-0000-0000-000000000001',
-    title: 'Curso Profesional de Extensiones de Pestañas',
+    title: 'Especialización en Pestañas y Volumen Ruso',
     category: 'Mirada & Pestañas',
-    moduleTitle: 'Módulo 1: Fundamentos Profesionales & Bioseguridad',
+    moduleTitle: 'Módulo 1: Fundamentos Profesionales, Aislamiento & Bioseguridad',
+    otherModules: [
+      { title: 'Módulo 2: Diseño y Mapping de la Mirada (Cat Eye, Doll)', subtitle: '6 lecciones • 1 práctica técnica' },
+      { title: 'Módulo 3: Técnica Clásica Pelo a Pelo en Modelo', subtitle: '7 lecciones • Evaluada 86/100' },
+      { title: 'Módulo 4: Volumen Ruso 2D a 6D y Abanicado Manual', subtitle: '6 lecciones • Master Class' },
+      { title: 'Módulo 5: Retención Máxima & Cuidados Posteriores', subtitle: '4 lecciones • Proyecto Final' },
+    ],
     lessons: [
       {
         id: 'l1',
-        title: 'Lección 1.1: Bienvenida & Estándares Profesionales FABY STUDIO',
+        title: 'Master Class 1.1: Aplicación Técnica Clásica Pelo a Pelo (1x1)',
         type: 'video',
-        duration: '15 min',
-        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-        body: 'Presentación del programa y filosofía de trabajo profesional en FABY STUDIO ACADEMY. Protocolos de cabina y presentación ante clientas.',
+        duration: '25 min',
+        videoUrl: 'https://www.youtube.com/watch?v=kU1RjIlIcSA',
+        body: 'Master Class paso a paso: preparación de pestañas naturales, colocación de parches de hidrogel, técnica de pinzas y aislamiento milimétrico sin adherencias.',
       },
       {
         id: 'l2',
-        title: 'Lección 1.2: Anatomía de la Pestaña Natural & Fases de Crecimiento',
+        title: 'Lección 1.2: Pestañas Híbridas & Abanicos de Volumen Ruso',
         type: 'video',
-        duration: '25 min',
-        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-        body: 'Fases anágena, catágena y telógena. Bioseguridad ocular, protección de la salud del folículo piloso y tabla de compatibilidad de grosores.',
+        duration: '30 min',
+        videoUrl: 'https://www.youtube.com/watch?v=7XkXv8gJkXw',
+        body: 'Técnica de combinación de extensiones clásicas con abanicos ligeros de volumen ruso 2D-6D, control de humedad y micro-gota de adhesivo.',
       },
       {
         id: 'l3',
@@ -189,13 +204,84 @@ const COURSES_DATA: Record<string, {
       },
     ],
   },
+
+  // Course 3: Cosmetología Facial y Skin Care (YouTube Facial Tutorials 115-l24V4jM & o6Z52S9qJ5k)
+  'c3000000-0000-0000-0000-000000000003': {
+    id: 'c3000000-0000-0000-0000-000000000003',
+    title: 'Curso Superior de Cosmetología Facial y Skin Care',
+    category: 'Cosmetología',
+    moduleTitle: 'Módulo 1: Anatomía de la Piel, Biotipos Cutáneos & Higiene Facial',
+    otherModules: [
+      { title: 'Módulo 2: Química Cosmética & Activos Transformadores', subtitle: '6 lecciones • Casos Clínicos' },
+      { title: 'Módulo 3: Peelings Químicos & Neutralización de pH', subtitle: '6 lecciones • 1 práctica técnica' },
+      { title: 'Módulo 4: Dermapen & Principios Activos Viales', subtitle: '5 lecciones • Master Class' },
+      { title: 'Módulo 5: Drenaje Linfático Facial & Masaje Kobido', subtitle: '5 lecciones • Proyecto Final' },
+    ],
+    lessons: [
+      {
+        id: 'l1',
+        title: 'Master Class 1.1: Protocolo de Limpieza Facial Profunda en Cabina',
+        type: 'video',
+        duration: '35 min',
+        videoUrl: 'https://www.youtube.com/watch?v=115-l24V4jM',
+        body: 'Master Class completa de higiene facial profunda: diagnóstico de biotipo cutáneo, desincrustación con vapor, extracción técnica no invasiva y mascarilla calmante.',
+      },
+      {
+        id: 'l2',
+        title: 'Lección 1.2: Protocolos Técnicos de Dermoestética & Alta Frecuencia',
+        type: 'video',
+        duration: '30 min',
+        videoUrl: 'https://www.youtube.com/watch?v=o6Z52S9qJ5k',
+        body: 'Aplicación de aparatología estética en cabina, oxigenación con alta frecuencia y penetración de activos de bajo peso molecular.',
+      },
+      {
+        id: 'l3',
+        title: 'Evaluación Teórica: Histología Cutánea & Bioseguridad',
+        type: 'quiz',
+        duration: '15 min',
+        passingScore: 70,
+        body: 'Evaluación sobre capas epidérmicas, pH cutáneo y desinfección en cabina.',
+        questions: [
+          {
+            id: 'q1',
+            question: '¿Cuál es el valor medio de pH del manto hidrolipídico de una piel sana?',
+            options: [
+              'Entre 4.5 y 5.5 (ligeramente ácido)',
+              'Entre 7.5 y 8.5 (alcalino)',
+              '1.0 (fuertemente ácido)',
+            ],
+            correct: 0,
+          },
+          {
+            id: 'q2',
+            question: '¿En qué capa de la epidermis se produce la mitosis celular?',
+            options: [
+              'Estrato basal o germinativo',
+              'Estrato córneo superficial',
+              'Estrato lúcido',
+            ],
+            correct: 0,
+          },
+        ],
+      },
+      {
+        id: 'l4',
+        title: 'Práctica 01: Protocolo de Diagnóstico y Limpieza Facial',
+        type: 'assignment',
+        duration: '45 min',
+        body: 'Realiza una ficha de diagnóstico cutáneo y sube las fotografías del protocolo de limpieza en cabina para revisión docente.',
+      },
+    ],
+  },
 };
 
-// Aliases for friendly routing
+// Aliases for friendly URLs
 COURSES_DATA['unas-de-gel-y-acrilico'] = COURSES_DATA['c2000000-0000-0000-0000-000000000002'];
 COURSES_DATA['extensiones-de-pestanas'] = COURSES_DATA['c1000000-0000-0000-0000-000000000001'];
+COURSES_DATA['cosmetologia-facial'] = COURSES_DATA['c3000000-0000-0000-0000-000000000003'];
 COURSES_DATA['c1'] = COURSES_DATA['c2000000-0000-0000-0000-000000000002'];
 COURSES_DATA['c2'] = COURSES_DATA['c1000000-0000-0000-0000-000000000001'];
+COURSES_DATA['c3'] = COURSES_DATA['c3000000-0000-0000-0000-000000000003'];
 
 // Helper to extract YouTube embed URL
 function getYouTubeEmbedUrl(url?: string): string | null {
@@ -221,6 +307,7 @@ export default function CoursePlayerPage() {
   const [activeTab, setActiveTab] = useState<'recursos' | 'notas' | 'preguntas' | 'proyecto'>('recursos');
   const [showKeyboardGuide, setShowKeyboardGuide] = useState(false);
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState<number | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   
   // Streaming Player Controls
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
@@ -239,11 +326,25 @@ export default function CoursePlayerPage() {
   const [newQuestionText, setNewQuestionText] = useState('');
 
   const currentLesson = lessons[activeLessonIdx] || lessons[0];
-  const currentResources = DEMO_DOWNLOADABLE_RESOURCES[currentLesson.id] || [];
+  const currentResources = DEMO_DOWNLOADABLE_RESOURCES[currentLesson.id] || [
+    {
+      id: 'res-default',
+      title: `Guía Técnica Oficial — ${currentLesson.title.split(':')[1] || currentLesson.title}`,
+      fileName: `Dossier_${currentLesson.id}_FabyStudio.pdf`,
+      fileSize: '2.1 MB',
+      type: 'pdf',
+      downloadUrl: 'data:application/pdf;base64,JVBERi0xLjQKJUZBQlkgU1RVRElPIEFDQURFTVkgRE9TU0lFUg==',
+    }
+  ];
   const currentNotes = notes[currentLesson.id] || [];
   const currentComments = comments[currentLesson.id] || [];
 
   const youtubeEmbedUrl = getYouTubeEmbedUrl(currentLesson.videoUrl);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   const handleTogglePip = async () => {
     try {
@@ -302,6 +403,8 @@ export default function CoursePlayerPage() {
         setAutoAdvanceCountdown(3);
       }
 
+      showToast('¡Lección completada! Progreso registrado en tu expediente.');
+
       try {
         await fetch('/api/audit/heartbeat', {
           method: 'POST',
@@ -332,6 +435,8 @@ export default function CoursePlayerPage() {
     if (videoRef.current) {
       videoRef.current.currentTime = seconds;
       videoRef.current.play();
+    } else {
+      showToast(`Timestamp ${seconds}s fijado en la clase.`);
     }
   };
 
@@ -357,6 +462,7 @@ export default function CoursePlayerPage() {
       [currentLesson.id]: [newNote, ...(notes[currentLesson.id] || [])],
     });
     setNewNoteText('');
+    showToast('¡Apunte añadido con éxito!');
   };
 
   const handleAddQuestion = (e: React.FormEvent) => {
@@ -376,6 +482,7 @@ export default function CoursePlayerPage() {
       [currentLesson.id]: [newComment, ...(comments[currentLesson.id] || [])],
     });
     setNewQuestionText('');
+    showToast('¡Duda técnica enviada a tu tutora!');
   };
 
   const handleQuizSubmit = (e: React.FormEvent) => {
@@ -395,6 +502,14 @@ export default function CoursePlayerPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-xl border border-slate-700 animate-in fade-in slide-in-from-bottom-2 flex items-center space-x-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Top Player Header */}
       <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-xs sticky top-0 z-40">
         <div className="flex items-center space-x-4">
@@ -435,6 +550,7 @@ export default function CoursePlayerPage() {
             </h2>
           </div>
 
+          {/* Lessons List */}
           <div className="space-y-2">
             {lessons.map((lesson, idx) => {
               const isCurrent = idx === activeLessonIdx;
@@ -443,7 +559,10 @@ export default function CoursePlayerPage() {
               return (
                 <button
                   key={lesson.id}
-                  onClick={() => setActiveLessonIdx(idx)}
+                  onClick={() => {
+                    setActiveLessonIdx(idx);
+                    setQuizSubmitted(false);
+                  }}
                   className={`w-full text-left p-3.5 rounded-xl border text-xs transition-all flex items-start justify-between ${
                     isCurrent
                       ? 'bg-rose-50 border-rose-300 text-rose-950 font-semibold shadow-xs ring-1 ring-rose-200'
@@ -454,13 +573,13 @@ export default function CoursePlayerPage() {
                     <div className="mt-0.5">
                       {lesson.type === 'video' && (
                         lesson.videoUrl?.includes('youtube') ? (
-                          <Youtube className="w-3.5 h-3.5 text-red-600" />
+                          <Youtube className="w-4 h-4 text-red-600" />
                         ) : (
-                          <Play className="w-3.5 h-3.5 text-rose-600" />
+                          <Play className="w-4 h-4 text-rose-600" />
                         )
                       )}
-                      {lesson.type === 'quiz' && <HelpCircle className="w-3.5 h-3.5 text-amber-600" />}
-                      {lesson.type === 'assignment' && <FileCheck className="w-3.5 h-3.5 text-emerald-600" />}
+                      {lesson.type === 'quiz' && <HelpCircle className="w-4 h-4 text-amber-600" />}
+                      {lesson.type === 'assignment' && <FileCheck className="w-4 h-4 text-emerald-600" />}
                     </div>
                     <div>
                       <p className="line-clamp-1">{lesson.title}</p>
@@ -474,17 +593,26 @@ export default function CoursePlayerPage() {
             })}
           </div>
 
-          {/* Next Modules Preview */}
-          <div className="pt-4 border-t border-slate-200 space-y-2 text-xs">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Siguientes Módulos del Programa:</p>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-500 space-y-1">
-              <p className="font-semibold text-slate-700">Módulo 2: Acrílico de Salón & Control de Perlas</p>
-              <p className="text-[10px] text-slate-400">6 lecciones • 1 práctica técnica</p>
+          {/* Course Switcher & Next Modules */}
+          <div className="pt-4 border-t border-slate-200 space-y-3 text-xs">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Módulos del Máster:</p>
+              <span className="text-[10px] font-semibold text-rose-600">6 Módulos</span>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-500 space-y-1">
-              <p className="font-semibold text-slate-700">Módulo 3: Dual System Forms & Polygel</p>
-              <p className="text-[10px] text-slate-400">5 lecciones • Master Class</p>
-            </div>
+
+            {currentCourse.otherModules.map((mod, mIdx) => (
+              <button
+                key={mIdx}
+                onClick={() => showToast(`El ${mod.title.split(':')[0]} se desbloquea al aprobar la evaluación actual.`)}
+                className="w-full text-left p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 text-slate-500 space-y-1 transition-colors group cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-slate-700 group-hover:text-slate-900">{mod.title}</p>
+                  <Lock className="w-3 h-3 text-slate-400" />
+                </div>
+                <p className="text-[10px] text-slate-400">{mod.subtitle}</p>
+              </button>
+            ))}
           </div>
         </aside>
 
@@ -493,9 +621,17 @@ export default function CoursePlayerPage() {
           {/* Header Title and Mark Complete Button */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded">
-                {currentLesson.type === 'video' ? 'Clase Magistral en Video' : currentLesson.type === 'quiz' ? 'Evaluación Teórica' : 'Entrega Práctica'}
-              </span>
+              <div className="flex items-center space-x-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded">
+                  {currentLesson.type === 'video' ? 'Clase Magistral en Video' : currentLesson.type === 'quiz' ? 'Evaluación Teórica' : 'Entrega Práctica'}
+                </span>
+                {youtubeEmbedUrl && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 bg-red-50 px-2 py-0.5 rounded flex items-center space-x-1">
+                    <Youtube className="w-3 h-3 text-red-600" />
+                    <span>YouTube HD Stream</span>
+                  </span>
+                )}
+              </div>
               <h1 className="text-lg font-bold font-display text-slate-900">{currentLesson.title}</h1>
             </div>
 
@@ -547,7 +683,7 @@ export default function CoursePlayerPage() {
                 {youtubeEmbedUrl ? (
                   <div className="flex items-center space-x-2 text-rose-600 font-bold">
                     <Youtube className="w-4 h-4 text-red-600" />
-                    <span>Transmisión Oficial de Video (Master Class YouTube HD)</span>
+                    <span>Transmisión en Vivo desde YouTube (1080p Master Class)</span>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-2">
@@ -697,35 +833,32 @@ export default function CoursePlayerPage() {
                 {activeTab === 'recursos' && (
                   <div className="space-y-3">
                     <h3 className="text-xs font-bold text-slate-700">Material de Apoyo para esta Lección:</h3>
-                    {currentResources.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {currentResources.map((res) => (
-                          <div
-                            key={res.id}
-                            className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-3 text-xs"
-                          >
-                            <div className="flex items-center space-x-3 truncate">
-                              <FileText className="w-5 h-5 text-rose-600 shrink-0" />
-                              <div className="truncate">
-                                <p className="font-bold text-slate-900 truncate">{res.title}</p>
-                                <p className="text-[10px] text-slate-500">{res.fileName} • {res.fileSize}</p>
-                              </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {currentResources.map((res) => (
+                        <div
+                          key={res.id}
+                          className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-3 text-xs"
+                        >
+                          <div className="flex items-center space-x-3 truncate">
+                            <FileText className="w-5 h-5 text-rose-600 shrink-0" />
+                            <div className="truncate">
+                              <p className="font-bold text-slate-900 truncate">{res.title}</p>
+                              <p className="text-[10px] text-slate-500">{res.fileName} • {res.fileSize}</p>
                             </div>
-
-                            <a
-                              href={res.downloadUrl}
-                              download={res.fileName}
-                              className="bg-white border border-slate-200 hover:border-rose-500 text-slate-800 hover:text-rose-600 px-3 py-1.5 rounded-lg font-semibold shrink-0 transition-colors flex items-center space-x-1 shadow-2xs"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              <span>Descargar</span>
-                            </a>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-slate-500">Esta lección incluye material interactivo y guía técnica en PDF.</p>
-                    )}
+
+                          <a
+                            href={res.downloadUrl}
+                            download={res.fileName}
+                            onClick={() => showToast(`Descargando ${res.fileName}...`)}
+                            className="bg-white border border-slate-200 hover:border-rose-500 text-slate-800 hover:text-rose-600 px-3 py-1.5 rounded-lg font-semibold shrink-0 transition-colors flex items-center space-x-1 shadow-2xs"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Descargar</span>
+                          </a>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -836,7 +969,7 @@ export default function CoursePlayerPage() {
                     </div>
 
                     <p className="text-slate-600 leading-relaxed">
-                      Al finalizar las lecciones teóricas, deberás subir fotografías de tu trabajo en modelo real para que la tutora evalúe la técnica, la nivelación del ápice y el sellado de cutícula.
+                      Al finalizar las lecciones teóricas, deberás subir fotografías de tu trabajo en modelo real para que la tutora evalúe la técnica, la nivelación y la bioseguridad.
                     </p>
 
                     <Link
@@ -856,7 +989,7 @@ export default function CoursePlayerPage() {
           {currentLesson.type === 'quiz' && (
             <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-6">
               <div className="border-b border-slate-100 pb-4">
-                <h3 className="text-base font-bold text-slate-900">Evaluación Teórica del Módulo 1</h3>
+                <h3 className="text-base font-bold text-slate-900">{currentLesson.title}</h3>
                 <p className="text-xs text-slate-500 mt-1">
                   Puntuación mínima requerida: 70%. Los intentos quedan registrados en el sistema de auditoría inmutable.
                 </p>

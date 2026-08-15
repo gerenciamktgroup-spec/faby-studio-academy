@@ -180,13 +180,14 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
                   <span>Matricularme en el Curso (590€)</span>
                   <ArrowRight className="w-5 h-5" />
                 </Link>
-                <button
-                  onClick={handleDownloadDossier}
-                  className="inline-flex items-center justify-center space-x-2 bg-slate-50 border border-slate-200 text-slate-800 px-6 py-4 rounded-xl font-semibold text-base hover:border-rose-300 transition-colors"
+                <Link
+                  href="/cursos/cosmetologia-facial/dossier"
+                  target="_blank"
+                  className="inline-flex items-center justify-center space-x-2 bg-slate-50 border border-slate-200 text-slate-800 px-6 py-4 rounded-xl font-semibold text-base hover:border-rose-300 hover:text-rose-600 transition-colors shadow-2xs"
                 >
                   <Download className="w-4 h-4 text-rose-600" />
-                  <span>{downloadedDossier ? '¡Dossier Descargado!' : 'Descargar Dossier PDF'}</span>
-                </button>
+                  <span>Ver Dossier Oficial PDF</span>
+                </Link>
               </div>
             </div>
 

@@ -6,6 +6,19 @@ import { Award, ShieldCheck, Download, Lock, CheckCircle2, QrCode, ExternalLink,
 
 export default function CertificadoPage() {
   const [activePersona, setActivePersona] = useState<'camila' | 'lucia'>('camila');
+  const [surveyCompleted, setSurveyCompleted] = useState(false);
+  const [showSurveyModal, setShowSurveyModal] = useState(false);
+  const [ratingContent, setRatingContent] = useState(5);
+  const [ratingTutor, setRatingTutor] = useState(5);
+  const [ratingPlatform, setRatingPlatform] = useState(5);
+  const [ratingCabin, setRatingCabin] = useState(5);
+  const [surveyFeedback, setSurveyFeedback] = useState('Excelente formación, las explicaciones de química de adhesivos y la atención de la tutora han sido de 10.');
+
+  const handleCompleteSurvey = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSurveyCompleted(true);
+    setShowSurveyModal(false);
+  };
 
   return (
     <div className="space-y-8 max-w-5xl">
@@ -58,12 +71,13 @@ export default function CertificadoPage() {
                 <span>Página de Verificación Pública</span>
               </Link>
 
-              <button
-                onClick={() => {
-                  const content = `
+              {surveyCompleted ? (
+                <button
+                  onClick={() => {
+                    const content = `
 ═══════════════════════════════════════════════════════════
                FABY STUDIO ACADEMY
-        CERTIFICADO DEMOSTRATIVO DE FINALIZACIÓN
+        CERTIFICADO OFICIAL DE FINALIZACIÓN
 ═══════════════════════════════════════════════════════════
 
 Se otorga el presente reconocimiento a:
@@ -78,6 +92,7 @@ de 50 horas lectivas activas correspondiente al:
 Código de Verificación: CERT-FS-DEMO-9988
 Fecha de Emisión: 08 de Agosto de 2026
 Calificación Final: 92% (Excelente)
+Encuesta de Calidad SEPE / FUNDAE: APROBADA (5/5)
 Firmado por: Profesora Faby — Dirección Académica
 Huella de Integridad SHA-256:
 9a8f4c2e1b7d5e6a3f0c8b9d4e2a1f7c5e6d8a9b0c1e2f3a4b5c6d7e8f9a0b1c
@@ -86,21 +101,45 @@ Validación Pública: https://fabystudio.academy/verificar-certificado/CERT-FS-D
 
 ═══════════════════════════════════════════════════════════
 `;
-                  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `CERTIFICADO_DEMO_CAMILA_TORRES_${Date.now()}.txt`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center space-x-2 shadow-md shadow-emerald-600/20"
-              >
-                <Download className="w-4 h-4" />
-                <span>Descargar Diploma Demo</span>
-              </button>
+                    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `CERTIFICADO_OFICIAL_CAMILA_TORRES_${Date.now()}.txt`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center space-x-2 shadow-md shadow-emerald-600/20"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Descargar Diploma Oficial</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowSurveyModal(true)}
+                  className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center space-x-2 shadow-md shadow-amber-500/20"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Cuestionario de Calidad SEPE (Obligatorio)</span>
+                </button>
+              )}
             </div>
           </div>
+
+          {/* Quality Survey Completed Badge */}
+          {surveyCompleted && (
+            <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-center justify-between text-xs text-emerald-900">
+              <div className="flex items-center space-x-2.5">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span>
+                  <strong>Cuestionario de Calidad & Auditoría Superado:</strong> Tu expediente cumple con los requisitos de la Orden TMS/369/2019 y estándares de acreditación europea.
+                </span>
+              </div>
+              <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 px-2 py-1 rounded-md font-bold uppercase shrink-0">
+                AUDIT COMPLIANT
+              </span>
+            </div>
+          )}
 
           {/* Certificate Design Card (Clean White Luxury with Gold Border) */}
           <div className="bg-white border-2 border-amber-300 p-8 sm:p-12 rounded-3xl space-y-8 text-center relative overflow-hidden shadow-xl">
@@ -174,6 +213,159 @@ Validación Pública: https://fabystudio.academy/verificar-certificado/CERT-FS-D
             >
               <span>Continuar con el Módulo 4</span>
             </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Quality Satisfaction Survey Modal (SEPE / FUNDAE / ISO 9001 Compliance) */}
+      {showSurveyModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm font-display">
+                    Cuestionario Oficial de Calidad y Satisfacción
+                  </h3>
+                  <p className="text-[10px] text-slate-500">
+                    Requisito de la Orden TMS/369/2019 previo a la emisión del título oficial
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSurveyModal(false)}
+                className="text-slate-400 hover:text-slate-700 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCompleteSurvey} className="space-y-4 text-xs">
+              {/* Question 1 */}
+              <div className="space-y-1">
+                <label className="font-bold text-slate-800 block">
+                  1. Calidad técnica y pedagógica de los videos y manuales:
+                </label>
+                <div className="flex space-x-2">
+                  {[1, 2, 3, 4, 5].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setRatingContent(val)}
+                      className={`flex-1 py-1.5 rounded-lg border font-bold text-xs transition-colors ${
+                        ratingContent === val
+                          ? 'bg-amber-500 border-amber-600 text-white shadow-2xs'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {val} ★
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Question 2 */}
+              <div className="space-y-1">
+                <label className="font-bold text-slate-800 block">
+                  2. Atención, rapidez y feedback de la tutora docente:
+                </label>
+                <div className="flex space-x-2">
+                  {[1, 2, 3, 4, 5].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setRatingTutor(val)}
+                      className={`flex-1 py-1.5 rounded-lg border font-bold text-xs transition-colors ${
+                        ratingTutor === val
+                          ? 'bg-amber-500 border-amber-600 text-white shadow-2xs'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {val} ★
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Question 3 */}
+              <div className="space-y-1">
+                <label className="font-bold text-slate-800 block">
+                  3. Facilidad de uso del Campus Virtual y herramientas interactivas:
+                </label>
+                <div className="flex space-x-2">
+                  {[1, 2, 3, 4, 5].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setRatingPlatform(val)}
+                      className={`flex-1 py-1.5 rounded-lg border font-bold text-xs transition-colors ${
+                        ratingPlatform === val
+                          ? 'bg-amber-500 border-amber-600 text-white shadow-2xs'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {val} ★
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Question 4 */}
+              <div className="space-y-1">
+                <label className="font-bold text-slate-800 block">
+                  4. Utilidad para rentabilizar y fijar precios en tu salón/cabina:
+                </label>
+                <div className="flex space-x-2">
+                  {[1, 2, 3, 4, 5].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setRatingCabin(val)}
+                      className={`flex-1 py-1.5 rounded-lg border font-bold text-xs transition-colors ${
+                        ratingCabin === val
+                          ? 'bg-amber-500 border-amber-600 text-white shadow-2xs'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {val} ★
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Open Feedback */}
+              <div className="space-y-1">
+                <label className="font-bold text-slate-800 block">
+                  Comentarios y sugerencias de mejora:
+                </label>
+                <textarea
+                  value={surveyFeedback}
+                  onChange={(e) => setSurveyFeedback(e.target.value)}
+                  rows={2}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowSurveyModal(false)}
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 flex items-center space-x-1.5"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Enviar y Desbloquear Diploma</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

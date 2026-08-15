@@ -16,6 +16,7 @@ import {
   Trophy
 } from 'lucide-react';
 import { getDynamicDashboardMetrics } from '@/lib/demo-analytics';
+import { FabySkillGraph } from '@/components/shared/FabySkillGraph';
 
 export default async function CampusPage() {
   const metrics = await getDynamicDashboardMetrics();
@@ -216,6 +217,9 @@ export default async function CampusPage() {
           </div>
         </div>
       </div>
+
+      {/* Faby Skill Graph & Multi-Factor Evidence */}
+      <FabySkillGraph />
     </div>
   );
 }

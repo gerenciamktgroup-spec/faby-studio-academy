@@ -4,6 +4,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ActiveLearningTracker } from '@/components/shared/ActiveLearningTracker';
+import { FabyAIAssistant } from '@/components/shared/FabyAIAssistant';
+import { StreakTracker } from '@/components/shared/StreakTracker';
+import { NotificationCenter } from '@/components/layout/NotificationCenter';
 import { getSession, signOut, type DemoSession } from '@/lib/demo-auth';
 import {
   LayoutDashboard,
@@ -25,6 +28,11 @@ import {
   LogOut,
   Menu,
   X,
+  Zap,
+  Calculator,
+  Flame,
+  Bot,
+  Eye,
 } from 'lucide-react';
 
 export default function CampusLayout({
@@ -105,6 +113,10 @@ export default function CampusLayout({
     { label: 'Mis Cursos', href: '/campus/cursos/c1000000-0000-0000-0000-000000000001', icon: BookOpen },
     { label: 'Prácticas & Rúbrica', href: '/campus/practicas', icon: FileCheck },
     { label: 'Proyectos & Galería', href: '/campus/proyectos', icon: Layers },
+    { label: 'Flashcards 3 Min', href: '/campus/flashcards', icon: Zap, color: 'text-amber-500' },
+    { label: 'Copiloto IA Estudio', href: '/campus/ai-copilot', icon: Bot, color: 'text-rose-600' },
+    { label: 'Calculadora Salón', href: '/campus/calculadora', icon: Calculator, color: 'text-emerald-600' },
+    { label: 'Estudio Visagismo', href: '/campus/studio', icon: Eye, color: 'text-rose-600' },
     { label: 'Mensajes con Tutora', href: '/campus/mensajes', icon: MessageSquare },
     { label: 'Comunidad Beauty', href: '/campus/comunidad', icon: Users },
     { label: 'Tutorías 1 a 1', href: '/campus/tutorias', icon: Video },
@@ -259,61 +271,8 @@ export default function CampusLayout({
             </div>
 
             <div className="flex items-center space-x-3">
-              {/* Notification Bell */}
-              <div className="relative" ref={notifRef}>
-                <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="w-9 h-9 rounded-xl border border-slate-200 hover:border-slate-300 bg-slate-50 flex items-center justify-center text-slate-600 hover:text-slate-900 relative transition-colors"
-                  title="Notificaciones"
-                >
-                  <Bell className="w-4 h-4" />
-                  <span className="w-2 h-2 rounded-full bg-rose-600 absolute top-2 right-2 ring-2 ring-white" />
-                </button>
-
-                {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl border border-slate-200 shadow-xl p-4 space-y-3 z-50 animate-in fade-in slide-in-from-top-2">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                      <span className="text-xs font-bold text-slate-900">Notificaciones Recientes</span>
-                      <span className="text-[10px] text-rose-600 font-semibold">1 nueva</span>
-                    </div>
-
-                    <div className="space-y-2">
-                      {notifications.map((n) => (
-                        <Link
-                          key={n.id}
-                          href={n.href}
-                          onClick={() => setShowNotifications(false)}
-                          className={`block p-2.5 rounded-xl text-xs transition-colors ${
-                            n.unread ? 'bg-rose-50/60 border border-rose-100' : 'hover:bg-slate-50'
-                          }`}
-                        >
-                          <div className="flex justify-between items-start">
-                            <p className="font-bold text-slate-900">{n.title}</p>
-                            <span className="text-[9px] text-slate-400 shrink-0 ml-2">{n.time}</span>
-                          </div>
-                          <p className="text-[11px] text-slate-600 mt-0.5">{n.text}</p>
-                          {n.unread && (
-                            <div className="flex items-center space-x-1 mt-1">
-                              <CheckCircle2 className="w-3 h-3 text-rose-500" />
-                              <span className="text-[10px] text-rose-600 font-medium">Marcar como leída</span>
-                            </div>
-                          )}
-                        </Link>
-                      ))}
-                    </div>
-
-                    <div className="border-t border-slate-100 pt-2 text-center">
-                      <button
-                        onClick={() => setShowNotifications(false)}
-                        className="text-[11px] text-slate-500 hover:text-slate-900 font-semibold transition-colors"
-                      >
-                        Ver todas las notificaciones
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
+              <StreakTracker currentStreak={5} longestStreak={12} />
+              <NotificationCenter />
               <ActiveLearningTracker userId={demoStudentId} />
             </div>
           </header>
@@ -323,6 +282,9 @@ export default function CampusLayout({
           </main>
         </div>
       </div>
+
+      {/* Floating 24/7 Faby AI Tutor */}
+      <FabyAIAssistant />
     </div>
   );
 }

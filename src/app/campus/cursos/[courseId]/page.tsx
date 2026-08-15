@@ -32,7 +32,10 @@ import {
   Video,
   Youtube,
   Layers,
-  BookOpen
+  BookOpen,
+  ListOrdered,
+  BookmarkCheck,
+  Search,
 } from 'lucide-react';
 import {
   DEMO_DOWNLOADABLE_RESOURCES,
@@ -335,6 +338,86 @@ COURSES_DATA['c1'] = COURSES_DATA['c2000000-0000-0000-0000-000000000002'];
 COURSES_DATA['c2'] = COURSES_DATA['c1000000-0000-0000-0000-000000000001'];
 COURSES_DATA['c3'] = COURSES_DATA['c3000000-0000-0000-0000-000000000003'];
 
+export interface VideoChapter {
+  id: string;
+  timeSeconds: number;
+  timeFormatted: string;
+  title: string;
+  description: string;
+  keyTakeaway: string;
+}
+
+const LESSON_CHAPTERS_MAP: Record<string, VideoChapter[]> = {
+  l1: [
+    {
+      id: 'c1',
+      timeSeconds: 0,
+      timeFormatted: '00:00',
+      title: '1. Introducción & Preparación del Protocolo',
+      description: 'Presentación de instrumental, desinfección con glutaraldehído y organización de mesa de trabajo.',
+      keyTakeaway: 'Desinfección obligatoria 20 min antes de la clienta.',
+    },
+    {
+      id: 'c2',
+      timeSeconds: 245,
+      timeFormatted: '04:05',
+      title: '2. Colocación de Parches de Hidrogel & Aislamiento Inferior',
+      description: 'Técnica de colocación sin presionar la conjuntiva ni tapar la línea de agua.',
+      keyTakeaway: 'Distancia de 1mm del lagrimal inferior para no irritar.',
+    },
+    {
+      id: 'c3',
+      timeSeconds: 615,
+      timeFormatted: '10:15',
+      title: '3. Dosificación y Control de la Micro-Gota de Adhesivo',
+      description: 'Inmersión a 45° a 2mm de profundidad para retención óptima sin pegotes.',
+      keyTakeaway: 'Renovación de gota cada 15-20 minutos.',
+    },
+    {
+      id: 'c4',
+      timeSeconds: 1120,
+      timeFormatted: '18:40',
+      title: '4. Técnica de Aislamiento 1x1 en Pestaña Anágena',
+      description: 'Separación milimétrica con pinza curva y acople sin tensión folicular.',
+      keyTakeaway: 'Distancia fija de 0.5 a 1.0 mm de la raíz.',
+    },
+    {
+      id: 'c5',
+      timeSeconds: 1680,
+      timeFormatted: '28:00',
+      title: '5. Sellado con Nanomister y Peinado Final',
+      description: 'Polimerización controlada y verificación de stickies.',
+      keyTakeaway: 'Nanomister a mínimo 25 cm de distancia.',
+    },
+  ],
+  l2: [
+    {
+      id: 'c21',
+      timeSeconds: 0,
+      timeFormatted: '00:00',
+      title: '1. Diagnóstico de la Mirada & Mapping Doll Eye',
+      description: 'Morfología ocular, elección de curvatura C/D y mapa de longitudes.',
+      keyTakeaway: 'Longitud máxima en centro pupilar.',
+    },
+    {
+      id: 'c22',
+      timeSeconds: 420,
+      timeFormatted: '07:00',
+      title: '2. Creación de Abanicos de Volumen 3D en Tira',
+      description: 'Técnica de pellizco y abanicado en banda adhesiva.',
+      keyTakeaway: 'Base cristalizada ultrafina.',
+    },
+    {
+      id: 'c23',
+      timeSeconds: 1200,
+      timeFormatted: '20:00',
+      title: '3. Dirección y Envoltura del Adhesivo',
+      description: 'Acople magnético del abanico envolviendo la pestaña natural.',
+      keyTakeaway: 'Retención de hasta 8 semanas.',
+    },
+  ],
+};
+
 // Helper to extract YouTube embed URL
 function getYouTubeEmbedUrl(url?: string): string | null {
   if (!url) return null;
@@ -356,7 +439,8 @@ export default function CoursePlayerPage() {
 
   const [activeLessonIdx, setActiveLessonIdx] = useState(0);
   const [completedLessons, setCompletedLessons] = useState<string[]>(['l1']);
-  const [activeTab, setActiveTab] = useState<'recursos' | 'notas' | 'preguntas' | 'proyecto'>('recursos');
+  const [activeTab, setActiveTab] = useState<'capitulos' | 'recursos' | 'notas' | 'preguntas' | 'proyecto'>('capitulos');
+  const [chapterSearchQuery, setChapterSearchQuery] = useState('');
   const [showKeyboardGuide, setShowKeyboardGuide] = useState(false);
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState<number | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -833,6 +917,18 @@ export default function CoursePlayerPage() {
               <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-xs">
                 <div className="flex border-b border-slate-200 space-x-4 text-xs font-bold overflow-x-auto">
                   <button
+                    onClick={() => setActiveTab('capitulos')}
+                    className={`pb-3 transition-colors flex items-center space-x-1.5 whitespace-nowrap border-b-2 ${
+                      activeTab === 'capitulos'
+                        ? 'border-rose-600 text-rose-600'
+                        : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <ListOrdered className="w-4 h-4" />
+                    <span>Capítulos & Minutaje ({LESSON_CHAPTERS_MAP[currentLesson.id]?.length || 4})</span>
+                  </button>
+
+                  <button
                     onClick={() => setActiveTab('recursos')}
                     className={`pb-3 transition-colors flex items-center space-x-1.5 whitespace-nowrap border-b-2 ${
                       activeTab === 'recursos'
@@ -880,6 +976,74 @@ export default function CoursePlayerPage() {
                     <span>Proyecto & Práctica</span>
                   </button>
                 </div>
+
+                {/* Tab 0: Searchable Video Chapters & Index */}
+                {activeTab === 'capitulos' && (
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <div className="relative w-full sm:w-80">
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={chapterSearchQuery}
+                          onChange={(e) => setChapterSearchQuery(e.target.value)}
+                          placeholder="Buscar tema técnico en el video (ej. adhesivo, parches)..."
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-rose-500"
+                        />
+                      </div>
+                      <span className="text-[11px] text-slate-400 self-start sm:self-center">
+                        Haz clic en el tiempo para saltar al segundo exacto
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {(LESSON_CHAPTERS_MAP[currentLesson.id] || LESSON_CHAPTERS_MAP['l1'])
+                        .filter(
+                          (ch) =>
+                            !chapterSearchQuery ||
+                            ch.title.toLowerCase().includes(chapterSearchQuery.toLowerCase()) ||
+                            ch.description.toLowerCase().includes(chapterSearchQuery.toLowerCase()) ||
+                            ch.keyTakeaway.toLowerCase().includes(chapterSearchQuery.toLowerCase())
+                        )
+                        .map((ch) => (
+                          <div
+                            key={ch.id}
+                            className="p-4 bg-slate-50 rounded-2xl border border-slate-200 hover:border-rose-300 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs group"
+                          >
+                            <div className="space-y-1">
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => handleJumpToTimestamp(ch.timeSeconds)}
+                                  className="inline-flex items-center space-x-1.5 bg-white border border-rose-200 hover:bg-rose-600 hover:text-white text-rose-700 font-mono font-bold text-xs px-2.5 py-1 rounded-lg transition-colors shadow-2xs"
+                                >
+                                  <Play className="w-3 h-3 fill-current" />
+                                  <span>{ch.timeFormatted}</span>
+                                </button>
+                                <span className="font-bold text-slate-900 text-sm font-display">
+                                  {ch.title}
+                                </span>
+                              </div>
+                              <p className="text-slate-600 text-[11px] leading-relaxed">
+                                {ch.description}
+                              </p>
+                              <div className="flex items-center space-x-1 text-[10px] text-slate-400 pt-0.5">
+                                <BookmarkCheck className="w-3 h-3 text-emerald-600" />
+                                <span>Punto Clave: <strong className="text-slate-700">{ch.keyTakeaway}</strong></span>
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => handleJumpToTimestamp(ch.timeSeconds)}
+                              className="self-end sm:self-center bg-white group-hover:bg-rose-600 group-hover:text-white border border-slate-200 group-hover:border-rose-600 text-slate-700 px-3 py-1.5 rounded-xl font-bold text-xs transition-colors shrink-0 flex items-center space-x-1"
+                            >
+                              <span>Ver Sección</span>
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Tab 1: Downloadable PDF Resources */}
                 {activeTab === 'recursos' && (

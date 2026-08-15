@@ -39,9 +39,31 @@ export default function RootLayout({
   return (
     <html lang="es" className="scroll-smooth">
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#e11d48" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Faby Academy" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'EducationalOrganization',
+              name: 'FABY STUDIO ACADEMY',
+              url: 'https://fabystudio.academy',
+              logo: 'https://fabystudio.academy/favicon.ico',
+              description: 'Academia oficial de formación avanzada en extensiones de pestañas, uñas de gel y estética con certificación verificable SHA-256.',
+              sameAs: [
+                'https://instagram.com/fabystudio',
+                'https://tiktok.com/@fabystudio',
+              ],
+            }),
+          }}
+        />
       </head>
       <body className="min-h-screen bg-slate-50 text-slate-800 selection:bg-rose-600 selection:text-white antialiased">
         {children}

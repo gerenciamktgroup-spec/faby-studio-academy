@@ -20,8 +20,11 @@ import {
   ZoomOut,
   Maximize2,
   X,
-  Search
+  Search,
+  MoveHorizontal,
+  Sliders,
 } from 'lucide-react';
+import { BeforeAfterSlider } from '@/components/shared/BeforeAfterSlider';
 
 interface ProjectItem {
   id: number;
@@ -32,6 +35,7 @@ interface ProjectItem {
   title: string;
   description: string;
   image: string;
+  beforeImage?: string;
   grade: string;
   feedback: string;
   likes: number;
@@ -40,7 +44,47 @@ interface ProjectItem {
   likedByMe?: boolean;
 }
 
+const BEFORE_AFTER_TRANSFORMATIONS = [
+  {
+    id: 101,
+    studentName: 'Lucía Martínez',
+    studentAvatar: 'LM',
+    title: 'Transformación Pestaña Recta a Volumen Ruso 3D Efecto Fox',
+    subtitle: 'Modelo con pestaña natural fina recta, curvatura C 0.07mm de 8 a 13mm.',
+    tag: 'Volumen Ruso',
+    grade: '96 / 100',
+    beforeImage: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop',
+    afterImage: 'https://images.unsplash.com/photo-1583001809873-a1284a5da677?q=80&w=800&auto=format&fit=crop',
+    feedback: 'Laura Gómez: "Excelente nivelación del puente de la mirada y simetría en lagrimales."',
+  },
+  {
+    id: 102,
+    studentName: 'Camila Torres',
+    studentAvatar: 'CT',
+    title: 'Reconstrucción Ungueal: De Uña Mordida a Estructura Ballerina en Gel',
+    subtitle: 'Alargamiento con molde de salón, deshidratación con primer sin ácido y builder gel.',
+    tag: 'Uñas de Gel',
+    grade: '98 / 100',
+    beforeImage: 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?q=80&w=800&auto=format&fit=crop',
+    afterImage: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=800&auto=format&fit=crop',
+    feedback: 'Profesora Faby: "El ápice ha quedado perfectamente ubicado en la zona de estrés. Sellado de cutícula impoluto."',
+  },
+  {
+    id: 103,
+    studentName: 'María López',
+    studentAvatar: 'ML',
+    title: 'Corrección de Visagismo: Párpado Encapotado a Doll Eye Abierto',
+    subtitle: 'Técnica clásica 1:1 con longitudes centrales elevadas para proyectar apertura.',
+    tag: 'Técnica Clásica',
+    grade: '92 / 100',
+    beforeImage: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop',
+    afterImage: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=800&auto=format&fit=crop',
+    feedback: 'Laura Gómez: "La mirada se ve completamente rejuvenecida."',
+  },
+];
+
 export default function StudentProjectsPage() {
+  const [activeView, setActiveView] = useState<'grid' | 'before-after'>('before-after');
   const [selectedTag, setSelectedTag] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -178,146 +222,251 @@ export default function StudentProjectsPage() {
       {/* Header and Call to Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold text-rose-600 uppercase tracking-widest bg-rose-50 border border-rose-200 px-3 py-1 rounded-full">
-            Project-Based Learning
-          </span>
+          <div className="inline-flex items-center space-x-2 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full text-xs font-bold text-rose-700">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Portafolio & Evidencias Prácticas</span>
+          </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-slate-900 mt-2">
-            Galería de Proyectos & Prácticas de Alumnas
+            Galería de Proyectos & Transformaciones
           </h1>
           <p className="text-xs text-slate-500 max-w-2xl">
-            Espacio interactivo donde las alumnas de FABY STUDIO ACADEMY suben fotografías de sus trabajos en modelos reales para recibir evaluación por rúbrica docente. Haz clic en cualquier imagen para abrir el visor de alta resolución con zoom.
+            Espacio de aprendizaje práctico donde examinamos el detalle técnico milimétrico con comparadores deslizables Antes/Después e imágenes de alta resolución evaluadas por rúbrica docente.
           </p>
         </div>
 
         <button
           onClick={() => setShowUploadModal(true)}
-          className="bg-gradient-to-r from-fabi-pink to-fabi-darkpink hover:from-fabi-darkpink hover:to-fabi-pink text-white px-5 py-3 rounded-xl font-bold text-xs shadow-md shadow-rose-600/20 transition-all flex items-center space-x-2 self-start hover:scale-[1.02]"
+          className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white px-5 py-3 rounded-xl font-bold text-xs shadow-md shadow-rose-600/20 transition-all flex items-center space-x-2 self-start hover:scale-[1.02]"
         >
           <UploadCloud className="w-4 h-4" />
           <span>Subir Nueva Práctica</span>
         </button>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="flex space-x-2 overflow-x-auto w-full sm:w-auto pb-1">
-          {tags.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setSelectedTag(t.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                selectedTag === t.id
-                  ? 'bg-rose-600 text-white shadow-xs'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por técnica o alumna..."
-            className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-rose-500 shadow-2xs"
-          />
-        </div>
-      </div>
-
-      {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProjects.map((proj) => (
-          <div
-            key={proj.id}
-            className="bg-white rounded-2xl overflow-hidden border border-slate-200 flex flex-col justify-between group hover:border-rose-300 transition-all shadow-xs"
+      {/* View Switcher Tabs */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-slate-200 pb-3">
+        <div className="flex items-center space-x-2 bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
+          <button
+            onClick={() => setActiveView('before-after')}
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-2 ${
+              activeView === 'before-after'
+                ? 'bg-white text-rose-700 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
           >
-            <div>
-              {/* Project Image with Zoom Button */}
-              <div className="relative h-48 overflow-hidden bg-slate-100 cursor-pointer" onClick={() => openLightbox(proj)}>
-                <img
-                  src={proj.image}
-                  alt={proj.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="bg-white/90 text-slate-900 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center space-x-1">
-                    <Maximize2 className="w-3.5 h-3.5 text-rose-600" />
-                    <span>Zoom de Alta Resolución</span>
-                  </span>
-                </div>
+            <MoveHorizontal className="w-3.5 h-3.5 text-rose-600" />
+            <span>Comparador Antes / Después ({BEFORE_AFTER_TRANSFORMATIONS.length})</span>
+          </button>
 
-                <span className="absolute top-3 left-3 bg-white/95 text-rose-700 font-bold text-[10px] px-2.5 py-1 rounded-full shadow-xs border border-rose-100">
-                  {proj.tagLabel}
-                </span>
+          <button
+            onClick={() => setActiveView('grid')}
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-2 ${
+              activeView === 'grid'
+                ? 'bg-white text-rose-700 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5 text-rose-600" />
+            <span>Muro de Proyectos ({projectsList.length})</span>
+          </button>
+        </div>
 
-                {proj.isEvaluated ? (
-                  <span className="absolute top-3 right-3 bg-emerald-600 text-white font-bold text-[10px] px-2.5 py-1 rounded-full shadow">
-                    Nota: {proj.grade}
-                  </span>
-                ) : (
-                  <span className="absolute top-3 right-3 bg-amber-500 text-white font-bold text-[10px] px-2.5 py-1 rounded-full shadow">
-                    En Revisión
-                  </span>
-                )}
-              </div>
-
-              {/* Body */}
-              <div className="p-5 space-y-3">
-                <div className="flex items-center space-x-2.5">
-                  <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center border border-rose-200">
-                    {proj.studentAvatar}
-                  </div>
-                  <span className="text-xs font-bold text-slate-900">{proj.studentName}</span>
-                </div>
-
-                <h3 className="text-sm font-bold text-slate-900 font-display line-clamp-1">{proj.title}</h3>
-                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">{proj.description}</p>
-
-                {proj.feedback && (
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
-                    <p className="text-[10px] font-bold text-emerald-700 flex items-center">
-                      <CheckCircle2 className="w-3 h-3 mr-1 inline text-emerald-600" /> Feedback Docente:
-                    </p>
-                    <p className="text-[11px] text-slate-700 italic">{proj.feedback}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Footer Stats & Rubric Link */}
-            <div className="p-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-              <div className="flex items-center space-x-4">
-                <button
-                  type="button"
-                  onClick={() => handleToggleLike(proj.id)}
-                  className={`flex items-center space-x-1 transition-colors ${
-                    proj.likedByMe ? 'text-rose-600 font-bold' : 'text-slate-500 hover:text-rose-600'
-                  }`}
-                >
-                  <Heart className={`w-3.5 h-3.5 ${proj.likedByMe ? 'fill-rose-600 text-rose-600' : ''}`} />
-                  <span>{proj.likes}</span>
-                </button>
-                <span className="flex items-center space-x-1">
-                  <Eye className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="text-slate-600">{proj.views}</span>
-                </span>
-              </div>
-
-              <Link
-                href="/campus/practicas"
-                className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors flex items-center space-x-1"
-              >
-                <span>Ver Rúbrica</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
+        {activeView === 'grid' && (
+          <div className="relative w-full sm:w-72">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar por técnica o alumna..."
+              className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-rose-500 shadow-2xs"
+            />
           </div>
-        ))}
+        )}
       </div>
+
+      {/* VIEW 1: BEFORE / AFTER SLIDER SHOWCASE */}
+      {activeView === 'before-after' && (
+        <div className="space-y-6">
+          <div className="bg-gradient-to-r from-rose-50 via-white to-rose-50/30 p-5 rounded-2xl border border-rose-200/70 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="space-y-1 text-center sm:text-left">
+              <h3 className="text-sm font-extrabold font-display text-slate-900 flex items-center justify-center sm:justify-start gap-2">
+                <Sparkles className="w-4 h-4 text-rose-600" />
+                <span>Visor Deslizante de Transformaciones Reales</span>
+              </h3>
+              <p className="text-xs text-slate-600">
+                Arrastra la barra vertical en cualquier tarjeta para evaluar la simetría, la retención y la transformación de la mirada.
+              </p>
+            </div>
+            <Link
+              href="/campus/practicas"
+              className="bg-white border border-rose-200 hover:border-rose-400 text-rose-700 px-4 py-2 rounded-xl text-xs font-bold shadow-2xs whitespace-nowrap transition-colors"
+            >
+              Ver Rúbricas Docentes
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {BEFORE_AFTER_TRANSFORMATIONS.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-4 hover:border-rose-300 transition-all flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center border border-rose-200">
+                        {item.studentAvatar}
+                      </div>
+                      <span className="text-xs font-bold text-slate-900">{item.studentName}</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                      Nota: {item.grade}
+                    </span>
+                  </div>
+
+                  {/* Interactive Slider */}
+                  <BeforeAfterSlider
+                    beforeImage={item.beforeImage}
+                    afterImage={item.afterImage}
+                    title={item.title}
+                    subtitle={item.subtitle}
+                    aspectRatio="aspect-[4/3]"
+                  />
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-1">
+                  <p className="text-[10px] font-bold text-rose-800 flex items-center">
+                    <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-600" /> Dictamen de Corrección:
+                  </p>
+                  <p className="text-[11px] text-slate-700 italic">{item.feedback}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* VIEW 2: STANDARD PROJECTS GRID */}
+      {activeView === 'grid' && (
+        <div className="space-y-6">
+          {/* Tags */}
+          <div className="flex space-x-2 overflow-x-auto pb-1">
+            {tags.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setSelectedTag(t.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                  selectedTag === t.id
+                    ? 'bg-rose-600 text-white shadow-xs'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProjects.map((proj) => (
+              <div
+                key={proj.id}
+                className="bg-white rounded-2xl overflow-hidden border border-slate-200 flex flex-col justify-between group hover:border-rose-300 transition-all shadow-xs"
+              >
+                <div>
+                  <div
+                    className="relative h-48 overflow-hidden bg-slate-100 cursor-pointer"
+                    onClick={() => openLightbox(proj)}
+                  >
+                    <img
+                      src={proj.image}
+                      alt={proj.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="bg-white/90 text-slate-900 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center space-x-1">
+                        <Maximize2 className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Zoom de Alta Resolución</span>
+                      </span>
+                    </div>
+
+                    <span className="absolute top-3 left-3 bg-white/95 text-rose-700 font-bold text-[10px] px-2.5 py-1 rounded-full shadow-xs border border-rose-100">
+                      {proj.tagLabel}
+                    </span>
+
+                    {proj.isEvaluated ? (
+                      <span className="absolute top-3 right-3 bg-emerald-600 text-white font-bold text-[10px] px-2.5 py-1 rounded-full shadow">
+                        Nota: {proj.grade}
+                      </span>
+                    ) : (
+                      <span className="absolute top-3 right-3 bg-amber-500 text-white font-bold text-[10px] px-2.5 py-1 rounded-full shadow">
+                        En Revisión
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="p-5 space-y-3">
+                    <div className="flex items-center space-x-2.5">
+                      <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center border border-rose-200">
+                        {proj.studentAvatar}
+                      </div>
+                      <span className="text-xs font-bold text-slate-900">{proj.studentName}</span>
+                    </div>
+
+                    <h3 className="text-sm font-bold text-slate-900 font-display line-clamp-1">
+                      {proj.title}
+                    </h3>
+                    <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                      {proj.description}
+                    </p>
+
+                    {proj.feedback && (
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
+                        <p className="text-[10px] font-bold text-emerald-700 flex items-center">
+                          <CheckCircle2 className="w-3 h-3 mr-1 inline text-emerald-600" /> Feedback Docente:
+                        </p>
+                        <p className="text-[11px] text-slate-700 italic">{proj.feedback}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                  <div className="flex items-center space-x-4">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleLike(proj.id)}
+                      className={`flex items-center space-x-1 transition-colors ${
+                        proj.likedByMe ? 'text-rose-600 font-bold' : 'text-slate-500 hover:text-rose-600'
+                      }`}
+                    >
+                      <Heart
+                        className={`w-3.5 h-3.5 ${
+                          proj.likedByMe ? 'fill-rose-600 text-rose-600' : ''
+                        }`}
+                      />
+                      <span>{proj.likes}</span>
+                    </button>
+                    <span className="flex items-center space-x-1">
+                      <Eye className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-slate-600">{proj.views}</span>
+                    </span>
+                  </div>
+
+                  <Link
+                    href="/campus/practicas"
+                    className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors flex items-center space-x-1"
+                  >
+                    <span>Ver Rúbrica</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Lightbox Modal with Zoom */}
       {lightboxProject && (
@@ -330,7 +479,9 @@ export default function StudentProjectsPage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-900 text-sm">{lightboxProject.title}</h3>
-                  <p className="text-[11px] text-slate-500">{lightboxProject.studentName} • {lightboxProject.tagLabel}</p>
+                  <p className="text-[11px] text-slate-500">
+                    {lightboxProject.studentName} • {lightboxProject.tagLabel}
+                  </p>
                 </div>
               </div>
 
@@ -395,7 +546,9 @@ export default function StudentProjectsPage() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center space-x-2">
                 <UploadCloud className="w-5 h-5 text-rose-600" />
-                <h3 className="text-lg font-bold font-display text-slate-900">Subir Práctica para Rúbrica</h3>
+                <h3 className="text-lg font-bold font-display text-slate-900">
+                  Subir Práctica para Rúbrica
+                </h3>
               </div>
               <button
                 onClick={() => setShowUploadModal(false)}
@@ -442,7 +595,9 @@ export default function StudentProjectsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Descripción y Materiales Utilizados</label>
+                  <label className="block text-slate-700 font-bold mb-1">
+                    Descripción y Materiales Utilizados
+                  </label>
                   <textarea
                     rows={3}
                     value={uploadDescription}
@@ -468,7 +623,7 @@ export default function StudentProjectsPage() {
                   </button>
                   <button
                     type="submit"
-                    className="bg-gradient-to-r from-fabi-pink to-fabi-darkpink hover:from-fabi-darkpink hover:to-fabi-pink text-white px-6 py-2.5 rounded-xl font-bold shadow-md shadow-rose-600/20"
+                    className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white px-6 py-2.5 rounded-xl font-bold shadow-md shadow-rose-600/20"
                   >
                     Enviar a Corrección Docente
                   </button>

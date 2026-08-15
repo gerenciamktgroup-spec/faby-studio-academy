@@ -16,6 +16,7 @@ import {
   Sparkles,
   Plus
 } from 'lucide-react';
+import { EarlyWarningRetention } from '@/components/shared/EarlyWarningRetention';
 
 export default function ProfesorPage() {
   const students = [
@@ -138,6 +139,9 @@ export default function ProfesorPage() {
             <p className="text-[11px] text-slate-500">Validados con SHA-256</p>
           </div>
         </div>
+
+        {/* Early Warning Retention Detector */}
+        <EarlyWarningRetention />
 
         {/* Student Directory Table */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">

@@ -164,11 +164,41 @@ export default function TutoriasPage() {
 
                   <Link
                     href={ses.link || '/campus/mensajes'}
-                    className="w-full bg-gradient-to-r from-fabi-pink to-fabi-darkpink text-white py-2.5 rounded-xl font-bold text-xs shadow-md shadow-rose-600/20 flex items-center justify-center space-x-2 hover:from-fabi-darkpink hover:to-fabi-pink transition-all"
+                    className="w-full bg-gradient-to-r from-rose-600 to-rose-700 text-white py-2.5 rounded-xl font-bold text-xs shadow-md shadow-rose-600/20 flex items-center justify-center space-x-2 hover:from-rose-700 hover:to-rose-800 transition-all"
                   >
                     <Video className="w-4 h-4" />
-                    <span>Entrar a Sala Virtual Demo</span>
+                    <span>Entrar a Sala Virtual Directo</span>
                   </Link>
+
+                  <div className="flex gap-2 pt-1">
+                    <a
+                      href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+                        `Tutoría 1 a 1: ${ses.title} - Fabi Studio`
+                      )}&details=${encodeURIComponent(
+                        `Tutoría personalizada con ${ses.tutor}. Campus Virtual Fabi Studio.`
+                      )}&location=Campus%20Virtual%20Fabi%20Studio`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 py-1.5 rounded-lg text-center font-bold text-[11px] transition-colors"
+                    >
+                      + Google Calendar
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const icsData = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Tutoría 1 a 1: ${ses.title}\nDESCRIPTION:Tutoría con ${ses.tutor}\nLOCATION:Campus Virtual Fabi Studio\nEND:VEVENT\nEND:VCALENDAR`;
+                        const blob = new Blob([icsData], { type: 'text/calendar' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `tutoria-${ses.id}.ics`;
+                        a.click();
+                      }}
+                      className="flex-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 py-1.5 rounded-lg text-center font-bold text-[11px] transition-colors"
+                    >
+                      Descargar .ICS
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

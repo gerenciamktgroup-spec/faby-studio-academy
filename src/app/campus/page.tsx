@@ -149,7 +149,7 @@ export default async function CampusPage() {
                   <span className="text-[10px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded uppercase">
                     ▶ Master Class YouTube HD
                   </span>
-                  <span className="text-[10px] font-bold text-rose-700 uppercase">Nuevo Máster Matriculado</span>
+                  <span className="text-[10px] font-bold text-rose-700 uppercase">Máster Matriculado</span>
                 </div>
                 <h3 className="text-sm font-bold text-slate-900">
                   Máster Profesional en Uñas de Gel y Acrílico Premium
@@ -162,6 +162,29 @@ export default async function CampusPage() {
                 className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center space-x-1 shrink-0 self-start sm:self-auto shadow-xs"
               >
                 <span>Ver Master Class Uñas</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded uppercase">
+                    ▶ Master Class Cabina
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-800 uppercase">Especialización Activa</span>
+                </div>
+                <h3 className="text-sm font-bold text-slate-900">
+                  Curso Superior de Cosmetología Facial y Skin Care
+                </h3>
+                <p className="text-xs text-slate-600">Módulo 1: Anatomía de la Piel, Biotipos Cutáneos & Higiene Facial</p>
+              </div>
+
+              <Link
+                href="/campus/cursos/c3000000-0000-0000-0000-000000000003"
+                className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center space-x-1 shrink-0 self-start sm:self-auto shadow-xs"
+              >
+                <span>Ver Cosmetología</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

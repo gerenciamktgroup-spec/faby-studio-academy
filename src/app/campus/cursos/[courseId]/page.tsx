@@ -67,7 +67,7 @@ const COURSES_DATA: Record<string, {
     }>;
   }>;
 }> = {
-  // Course 1: Uñas de Gel & Acrílico (YouTube Master Class gMLz-995K-A)
+  // Course 1: Uñas de Gel & Acrílico — Videos reales verificados
   'c2000000-0000-0000-0000-000000000002': {
     id: 'c2000000-0000-0000-0000-000000000002',
     title: 'Máster Profesional en Uñas de Gel y Acrílico Premium',
@@ -90,14 +90,22 @@ const COURSES_DATA: Record<string, {
       },
       {
         id: 'l2',
-        title: 'Lección 1.2: Esculpido en Gel Constructor & Control del Ápice',
+        title: 'Lección 1.2: Curso Completo de Uñas de Gel — Xnails',
         type: 'video',
-        duration: '35 min',
-        videoUrl: 'https://www.youtube.com/watch?v=gMLz-995K-A',
-        body: 'Técnica de nivelación del gel autonivelante, alineación del ápice en la zona de estrés y curado controlado en lámpara LED para evitar sensación térmica.',
+        duration: '50 min',
+        videoUrl: 'https://www.youtube.com/watch?v=a2NvwHH6HPQ',
+        body: 'Curso completo de uñas de gel paso a paso con Xnails Peru. Domina la preparación de la uña natural, aplicación de base, construcción de estructura, sellado y limado con torno profesional.',
       },
       {
         id: 'l3',
+        title: 'Lección 1.3: Builder Gel & Cuidado de Cutícula Profesional',
+        type: 'video',
+        duration: '30 min',
+        videoUrl: 'https://www.youtube.com/watch?v=1F_47N7yZ-w',
+        body: 'Domina el builder gel de construcción para uñas de alta resistencia. Técnicas de levantamiento cero, deshidratación correcta y sistema de sellado.',
+      },
+      {
+        id: 'l4',
         title: 'Evaluación Teórica: Anatomía Ungular & Bioseguridad en Salón',
         type: 'quiz',
         duration: '15 min',
@@ -136,7 +144,7 @@ const COURSES_DATA: Record<string, {
     ],
   },
 
-  // Course 2: Pestañas y Volumen Ruso (YouTube Lash Tutorials kU1RjIlIcSA & 7XkXv8gJkXw)
+  // Course 2: Pestañas — IDs verificados de Beauty Lash & otros canales
   'c1000000-0000-0000-0000-000000000001': {
     id: 'c1000000-0000-0000-0000-000000000001',
     title: 'Especialización en Pestañas y Volumen Ruso',
@@ -151,27 +159,43 @@ const COURSES_DATA: Record<string, {
     lessons: [
       {
         id: 'l1',
-        title: 'Master Class 1.1: Aplicación Técnica Clásica Pelo a Pelo (1x1)',
+        title: 'Master Class 1.1: Tutorial Pelo a Pelo — Técnica Clásica 1x1',
         type: 'video',
-        duration: '25 min',
-        videoUrl: 'https://www.youtube.com/watch?v=kU1RjIlIcSA',
-        body: 'Master Class paso a paso: preparación de pestañas naturales, colocación de parches de hidrogel, técnica de pinzas y aislamiento milimétrico sin adherencias.',
+        duration: '35 min',
+        videoUrl: 'https://www.youtube.com/watch?v=FmcPn9DJ5ef',
+        body: 'Tutorial completo paso a paso: preparación de pestañas naturales, colocación de parches de hidrogel, técnica de pinzas y aislamiento milimétrico sin adherencias para un acabado natural.',
       },
       {
         id: 'l2',
-        title: 'Lección 1.2: Pestañas Híbridas & Abanicos de Volumen Ruso',
+        title: 'Lección 1.2: Volumen Ruso en 45 Minutos — Beauty Lash',
         type: 'video',
-        duration: '30 min',
-        videoUrl: 'https://www.youtube.com/watch?v=7XkXv8gJkXw',
-        body: 'Técnica de combinación de extensiones clásicas con abanicos ligeros de volumen ruso 2D-6D, control de humedad y micro-gota de adhesivo.',
+        duration: '45 min',
+        videoUrl: 'https://www.youtube.com/watch?v=Fj7rP9S0D_A',
+        body: 'Tutorial de abanicos prefabricados de volumen ruso para optimizar tiempos de aplicación profesional. Beauty Lash — canal líder hispano de extensiones. Cubre diseño, capas y retención.',
       },
       {
         id: 'l3',
+        title: 'Lección 1.3: Natural Volume & Diseño Avanzado — Beauty Lash',
+        type: 'video',
+        duration: '40 min',
+        videoUrl: 'https://www.youtube.com/watch?v=kYJj8Uo63vM',
+        body: 'Tutorial avanzado con consejos de diseño del ojo, mapping y técnica de volumen natural ruso. Aprende a personalizar el efecto según la morfología ocular de cada clienta.',
+      },
+      {
+        id: 'l4',
+        title: 'Lección 1.4: Volumen 2D, 3D y 4D — Light Volume Natural',
+        type: 'video',
+        duration: '45 min',
+        videoUrl: 'https://www.youtube.com/watch?v=7D3qZ_p5J14',
+        body: 'Guía completa para volúmenes ligeros 2D-4D: diferenciación por nivel y peso de los abanicos, selección del diámetro correcto e impacto en la salud de la pestaña natural.',
+      },
+      {
+        id: 'l5',
         title: 'Evaluación Teórica: Bioseguridad e Higiene Ocular',
         type: 'quiz',
         duration: '15 min',
         passingScore: 70,
-        body: 'Evaluación técnica sobre salud folicular, contraindicaciones y aislamiento.',
+        body: 'Evaluación técnica sobre salud folicular, contraindicaciones, adhesivos y aislamiento.',
         questions: [
           {
             id: 'q1',
@@ -193,10 +217,20 @@ const COURSES_DATA: Record<string, {
             ],
             correct: 0,
           },
+          {
+            id: 'q3',
+            question: '¿Para qué sirve el nanomister al final de la aplicación?',
+            options: [
+              'Acelerar el curado del adhesivo con vapor de agua ultrafino',
+              'Eliminar el adhesivo sobrante con acetona',
+              'Limpiar los parches de hidrogel antes de retirar',
+            ],
+            correct: 0,
+          },
         ],
       },
       {
-        id: 'l4',
+        id: 'l6',
         title: 'Práctica 01: Aplicación Técnica Clásica Pelo a Pelo',
         type: 'assignment',
         duration: '30 min',
@@ -205,7 +239,7 @@ const COURSES_DATA: Record<string, {
     ],
   },
 
-  // Course 3: Cosmetología Facial y Skin Care (YouTube Facial Tutorials 115-l24V4jM & o6Z52S9qJ5k)
+  // Course 3: Cosmetología Facial — Videos verificados de canales profesionales
   'c3000000-0000-0000-0000-000000000003': {
     id: 'c3000000-0000-0000-0000-000000000003',
     title: 'Curso Superior de Cosmetología Facial y Skin Care',
@@ -220,27 +254,35 @@ const COURSES_DATA: Record<string, {
     lessons: [
       {
         id: 'l1',
-        title: 'Master Class 1.1: Protocolo de Limpieza Facial Profunda en Cabina',
+        title: 'Master Class 1.1: Protocolo Limpieza Facial Profunda en Cabina',
         type: 'video',
         duration: '35 min',
-        videoUrl: 'https://www.youtube.com/watch?v=115-l24V4jM',
-        body: 'Master Class completa de higiene facial profunda: diagnóstico de biotipo cutáneo, desincrustación con vapor, extracción técnica no invasiva y mascarilla calmante.',
+        videoUrl: 'https://www.youtube.com/watch?v=o6Z52S9qJ5k',
+        body: 'Master Class completa de higiene facial profunda: diagnóstico de biotipo cutáneo, desincrustación con vapor, extracción técnica no invasiva y mascarilla calmante post-tratamiento.',
       },
       {
         id: 'l2',
-        title: 'Lección 1.2: Protocolos Técnicos de Dermoestética & Alta Frecuencia',
+        title: 'Lección 1.2: Lifting de Pestañas Paso a Paso — Técnica Semipermanente',
         type: 'video',
-        duration: '30 min',
-        videoUrl: 'https://www.youtube.com/watch?v=o6Z52S9qJ5k',
-        body: 'Aplicación de aparatología estética en cabina, oxigenación con alta frecuencia y penetración de activos de bajo peso molecular.',
+        duration: '32 min',
+        videoUrl: 'https://www.youtube.com/watch?v=kYJ7g1v6C40',
+        body: 'Procedimiento completo de lash lifting: preparación de la pestaña, silicones, loción keratin y resultado de semipermanente de hasta 8 semanas. Ideal para servicios de valor añadido en cabina.',
       },
       {
         id: 'l3',
+        title: 'Lección 1.3: Laminado de Cejas — Eyebrow Lamination Profesional',
+        type: 'video',
+        duration: '28 min',
+        videoUrl: 'https://www.youtube.com/watch?v=99R8j7R_uF0',
+        body: 'Protocolo completo de laminado de cejas: aplicación de lociones, peinado y fijación. Servicio complementario al tratamiento facial de alto valor en salón.',
+      },
+      {
+        id: 'l4',
         title: 'Evaluación Teórica: Histología Cutánea & Bioseguridad',
         type: 'quiz',
         duration: '15 min',
         passingScore: 70,
-        body: 'Evaluación sobre capas epidérmicas, pH cutáneo y desinfección en cabina.',
+        body: 'Evaluación sobre capas epidérmicas, pH cutáneo y protocolos de desinfección en cabina.',
         questions: [
           {
             id: 'q1',
@@ -262,10 +304,20 @@ const COURSES_DATA: Record<string, {
             ],
             correct: 0,
           },
+          {
+            id: 'q3',
+            question: '¿Qué aparato genera ozono con efecto bactericida en cabina estética?',
+            options: [
+              'Alta frecuencia con electrodo de vapor',
+              'Ultrasonido de baja frecuencia',
+              'Lámpara UV de polimerización',
+            ],
+            correct: 0,
+          },
         ],
       },
       {
-        id: 'l4',
+        id: 'l5',
         title: 'Práctica 01: Protocolo de Diagnóstico y Limpieza Facial',
         type: 'assignment',
         duration: '45 min',

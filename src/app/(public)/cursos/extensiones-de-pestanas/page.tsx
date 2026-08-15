@@ -28,6 +28,9 @@ import {
 export default function LashCourseDetailPage() {
   const [openModule, setOpenModule] = useState<number | null>(1);
   const [downloadedDossier, setDownloadedDossier] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+
+  const youtubeVideoId = 'FmcPn9DJ5ef'; // Tutorial Pelo a Pelo Técnica Clásica 1x1
 
   const modules = [
     {
@@ -197,14 +200,27 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
 
             <div className="lg:col-span-5">
               <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xl space-y-3">
-                <img
-                  src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800&auto=format&fit=crop"
-                  alt="Curso Extensiones de Pestañas"
-                  className="w-full h-72 object-cover rounded-2xl"
-                />
+                <div className="relative group cursor-pointer overflow-hidden rounded-2xl" onClick={() => setShowVideoModal(true)}>
+                  <img
+                    src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800&auto=format&fit=crop"
+                    alt="Curso Extensiones de Pestañas"
+                    className="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex flex-col items-center justify-center space-y-2">
+                    <div className="w-16 h-16 rounded-full bg-white/90 text-rose-600 flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-white transition-all">
+                      <Play className="w-7 h-7 fill-rose-600 ml-1" />
+                    </div>
+                    <span className="text-white text-xs font-bold bg-black/60 px-3 py-1 rounded-full backdrop-blur-xs">
+                      Ver Clase de Muestra (35 min)
+                    </span>
+                  </div>
+                </div>
+
                 <div className="p-2 space-y-2 text-xs">
                   <div className="flex justify-between items-center font-semibold text-slate-500">
-                    <span>Modalidad: Online + Tutoría 1 a 1</span>
+                    <span className="flex items-center text-rose-600 font-bold">
+                      <Video className="w-3.5 h-3.5 mr-1" /> Master Class Pelo a Pelo HD
+                    </span>
                     <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">Cupos Abiertos</span>
                   </div>
                   <p className="text-2xl font-extrabold text-slate-900">
@@ -218,6 +234,51 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
             </div>
           </div>
         </div>
+
+        {/* Video Preview Modal */}
+        {showVideoModal && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-slate-900 rounded-3xl overflow-hidden max-w-4xl w-full border border-slate-800 shadow-2xl space-y-3">
+              <div className="p-4 bg-slate-950 flex items-center justify-between border-b border-slate-800">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                  <h3 className="text-white text-sm font-bold font-display">
+                    Clase de Muestra: Aplicación Técnica Clásica Pelo a Pelo (1x1)
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowVideoModal(false)}
+                  className="text-slate-400 hover:text-white text-xs font-bold bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl transition-colors"
+                >
+                  Cerrar ✕
+                </button>
+              </div>
+
+              <div className="aspect-video w-full">
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${youtubeVideoId}?autoplay=1&rel=0&modestbranding=1`}
+                  title="Lash Master Class Preview"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full border-0"
+                />
+              </div>
+
+              <div className="p-4 bg-slate-950 flex items-center justify-between">
+                <p className="text-xs text-slate-400">
+                  Esta clase forma parte del <strong className="text-white">Módulo 1</strong> de la Especialización Oficial.
+                </p>
+                <Link
+                  href="/checkout"
+                  className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors flex items-center space-x-1"
+                >
+                  <span>Matricularme Ahora</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Curriculum Section with Interactive Accordion */}

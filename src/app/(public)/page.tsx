@@ -1,10 +1,63 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
-import { Sparkles, Award, Clock, Users, ShieldCheck, CheckCircle2, Play, ArrowRight, Star } from 'lucide-react';
+import {
+  Sparkles,
+  Award,
+  Clock,
+  Users,
+  ShieldCheck,
+  CheckCircle2,
+  Play,
+  ArrowRight,
+  Star,
+  Video,
+  Eye,
+  BookOpen,
+  Check
+} from 'lucide-react';
 
 export default function HomePage() {
+  const [activeVideoTab, setActiveVideoTab] = useState<'unas' | 'pestanas' | 'facial'>('unas');
+
+  const demoVideos = {
+    unas: {
+      id: 'gMLz-995K-A',
+      title: 'Master Class 1.1: Manicura Rusa Combinada & Esculpido Estructural',
+      courseTitle: 'Máster Profesional en Uñas de Gel & Acrílico Premium',
+      duration: '45 min',
+      tutor: 'Profesora Faby',
+      campusLink: '/campus/cursos/c2000000-0000-0000-0000-000000000002',
+      detailsLink: '/cursos/unas-de-gel-y-acrilico',
+      description: 'Demostración paso a paso de preparación con torno, deshidratadores, colocación de molde y control del ápice con gel autonivelante.',
+    },
+    pestanas: {
+      id: 'FmcPn9DJ5ef',
+      title: 'Master Class 1.1: Aplicación Técnica Clásica Pelo a Pelo (1x1)',
+      courseTitle: 'Especialización en Pestañas y Volumen Ruso',
+      duration: '35 min',
+      tutor: 'Laura Gómez',
+      campusLink: '/campus/cursos/c1000000-0000-0000-0000-000000000001',
+      detailsLink: '/cursos/extensiones-de-pestanas',
+      description: 'Aislamiento milimétrico pestaña a pestaña, posicionamiento de parches de hidrogel y manejo de micro-gota de adhesivo.',
+    },
+    facial: {
+      id: 'o6Z52S9qJ5k',
+      title: 'Master Class 1.1: Protocolo de Limpieza Facial Profunda en Cabina',
+      courseTitle: 'Curso Superior de Cosmetología Facial y Skin Care',
+      duration: '35 min',
+      tutor: 'Laura Gómez',
+      campusLink: '/campus/cursos/c3000000-0000-0000-0000-000000000003',
+      detailsLink: '/cursos/cosmetologia-facial',
+      description: 'Diagnóstico de biotipo cutáneo, desincrustación con vapor, extracción técnica no invasiva y aplicación de mascarilla calmante.',
+    },
+  };
+
+  const currentVideo = demoVideos[activeVideoTab];
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800">
       <PublicHeader />
@@ -95,13 +148,115 @@ export default function HomePage() {
                   <div className="pt-2 flex items-center justify-between border-t border-slate-100">
                     <span className="text-lg font-extrabold text-slate-900">490€</span>
                     <Link
-                      href="/cursos"
+                      href="/cursos/unas-de-gel-y-acrilico"
                       className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors flex items-center"
                     >
                       Ver temario completo <ArrowRight className="w-3.5 h-3.5 ml-1" />
                     </Link>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Interactive Masterclass Video Showcase Section */}
+      <section className="py-16 bg-slate-900 text-white border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto space-y-3 mb-10">
+            <div className="inline-flex items-center space-x-2 bg-rose-900/60 border border-rose-500/40 px-3.5 py-1 rounded-full text-xs font-bold text-rose-300">
+              <Video className="w-3.5 h-3.5 text-rose-400" />
+              <span>CLASES DE DEMOSTRACIÓN EN DIRECTO</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold font-display">
+              Mira una Master Class Real de Nuestro Campus
+            </h2>
+            <p className="text-xs text-slate-400">
+              Experimenta la calidad pedagógica y definición de vídeo de nuestras clases teóricas y prácticas.
+            </p>
+
+            {/* Video Course Selector Tabs */}
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+              <button
+                onClick={() => setActiveVideoTab('unas')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  activeVideoTab === 'unas'
+                    ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                💅 Uñas de Gel & Acrílico
+              </button>
+              <button
+                onClick={() => setActiveVideoTab('pestanas')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  activeVideoTab === 'pestanas'
+                    ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                👁️ Extensiones de Pestañas
+              </button>
+              <button
+                onClick={() => setActiveVideoTab('facial')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  activeVideoTab === 'facial'
+                    ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                🧴 Cosmetología Facial
+              </button>
+            </div>
+          </div>
+
+          {/* Video Player Card */}
+          <div className="bg-slate-950 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl max-w-5xl mx-auto">
+            <div className="p-4 bg-slate-900 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="space-y-0.5">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400">
+                    {currentVideo.courseTitle}
+                  </span>
+                </div>
+                <h3 className="text-sm font-bold text-white">{currentVideo.title}</h3>
+              </div>
+              <div className="flex items-center space-x-3 text-xs text-slate-400 shrink-0">
+                <span className="bg-slate-800 px-2.5 py-1 rounded-lg">Docente: {currentVideo.tutor}</span>
+                <span className="bg-slate-800 px-2.5 py-1 rounded-lg">{currentVideo.duration}</span>
+              </div>
+            </div>
+
+            <div className="aspect-video w-full bg-black">
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${currentVideo.id}?autoplay=0&rel=0&modestbranding=1&enablejsapi=1`}
+                title={currentVideo.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full border-0"
+              />
+            </div>
+
+            <div className="p-5 bg-slate-900/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-slate-800">
+              <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                {currentVideo.description}
+              </p>
+              <div className="flex items-center space-x-3 shrink-0">
+                <Link
+                  href={currentVideo.detailsLink}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-xl font-bold text-xs transition-colors"
+                >
+                  Ver Temario Completo
+                </Link>
+                <Link
+                  href={currentVideo.campusLink}
+                  className="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md shadow-rose-600/30 transition-all flex items-center space-x-1.5"
+                >
+                  <Play className="w-3.5 h-3.5 fill-white" />
+                  <span>Probar en Campus</span>
+                </Link>
               </div>
             </div>
           </div>

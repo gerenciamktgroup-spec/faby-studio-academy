@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, ShieldCheck, UserCheck, BookOpen, GraduationCap, LogIn, Award } from 'lucide-react';
+import { Sparkles, ShieldCheck, BookOpen, GraduationCap, LogIn, Award } from 'lucide-react';
 
 export function PublicHeader() {
   return (
@@ -31,10 +31,6 @@ export function PublicHeader() {
               <BookOpen className="w-4 h-4 text-slate-500" />
               <span>Cursos & Másteres</span>
             </Link>
-            <Link href="/perfil-profesional" className="hover:text-fabi-pink transition-colors flex items-center space-x-1.5">
-              <Sparkles className="w-4 h-4 text-rose-600" />
-              <span>Pasaportes Pro</span>
-            </Link>
             <Link href="/verificar-certificado" className="hover:text-fabi-pink transition-colors flex items-center space-x-1.5">
               <Award className="w-4 h-4 text-emerald-600" />
               <span>Validar Título</span>
@@ -42,10 +38,6 @@ export function PublicHeader() {
             <Link href="/auditoria" className="hover:text-fabi-pink transition-colors flex items-center space-x-1.5">
               <ShieldCheck className="w-4 h-4 text-slate-500" />
               <span>Auditoría TMS/369</span>
-            </Link>
-            <Link href="/demo" className="text-fabi-pink font-bold hover:underline flex items-center space-x-1.5">
-              <Sparkles className="w-4 h-4" />
-              <span>Demo Roles</span>
             </Link>
           </nav>
 

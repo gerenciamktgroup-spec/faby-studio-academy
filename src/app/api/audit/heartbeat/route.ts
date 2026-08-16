@@ -1,32 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
+import { STUDENT_ROLES } from '@/lib/auth/roles';
+import { requireAuthPrincipal } from '@/lib/auth/server';
 import { processHeartbeat } from '@/lib/active-learning-calculator';
+import { apiErrorResponse } from '@/lib/http/errors';
+import { heartbeatSchema, validationError } from '@/lib/validation/api-schemas';
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
-    const { userId, sessionId, isTabVisible, isVideoPlaying, courseId, lessonId } = body;
-
-    if (!userId || !sessionId) {
-      return NextResponse.json({ error: 'Missing required parameters: userId or sessionId' }, { status: 400 });
+    const principal = await requireAuthPrincipal(STUDENT_ROLES);
+    const payload = heartbeatSchema.safeParse(await request.json());
+    if (!payload.success) {
+      return NextResponse.json(validationError(payload.error), { status: 400 });
     }
 
-    const ipAddress = req.headers.get('x-forwarded-for') || '127.0.0.1';
-    const userAgent = req.headers.get('user-agent') || 'Unknown';
-
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const ipAddress = forwardedFor?.split(',')[0]?.trim() ?? 'unknown';
     const result = await processHeartbeat({
-      userId,
-      sessionId,
-      isTabVisible: Boolean(isTabVisible),
-      isVideoPlaying: Boolean(isVideoPlaying),
-      courseId,
-      lessonId,
+      ...payload.data,
+      userId: principal.id,
       ipAddress,
-      userAgent,
+      userAgent: request.headers.get('user-agent') ?? 'unknown',
     });
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('[API /audit/heartbeat] Internal Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse(error);
   }
 }

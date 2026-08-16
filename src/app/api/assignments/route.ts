@@ -1,96 +1,109 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { requireAuthPrincipal } from '@/lib/auth/server';
+import { STUDENT_ROLES, TEACHING_ROLES } from '@/lib/auth/roles';
+import { apiErrorResponse } from '@/lib/http/errors';
+import {
+  assignmentOperationSchema,
+  validationError,
+} from '@/lib/validation/api-schemas';
 import { recordActivityEvent } from '@/lib/audit-logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
-    const {
-      studentId = '22222222-2222-2222-2222-222222222222',
-      assignmentId = 'asg-01',
-      title,
-      description,
-      fileUrl,
-      grade,
-      feedback,
-      gradedBy,
-      action = 'submit', // 'submit' | 'grade'
-    } = body;
-
-    const supabase = createClient();
-    const submissionId = 'sub_' + Math.random().toString(36).substring(2, 10);
-
-    if (action === 'submit') {
-      try {
-        await supabase.from('assignment_submissions').upsert([
-          {
-            id: submissionId,
-            student_id: studentId,
-            assignment_id: assignmentId,
-            submission_text: description,
-            file_url: fileUrl || 'https://images.unsplash.com/photo-1583001809873-a1284a5da677',
-            submitted_at: new Date().toISOString(),
-          },
-        ]);
-
-        await recordActivityEvent({
-          userId: studentId,
-          sessionId: 'sess_practice_' + Date.now(),
-          eventType: 'ASSIGNMENT_SUBMITTED',
-          metadata: {
-            title,
-            assignmentId,
-            submissionId,
-          },
-        });
-      } catch (err) {
-        console.warn('[Assignments API] Running in sandbox mode:', err);
-      }
-
-      return NextResponse.json({
-        success: true,
-        submissionId,
-        message: 'Práctica técnica recibida y puesta en cola para evaluación docente por rúbrica.',
-      });
+    const payload = assignmentOperationSchema.safeParse(await request.json());
+    if (!payload.success) {
+      return NextResponse.json(validationError(payload.error), { status: 400 });
     }
 
-    if (action === 'grade') {
-      try {
-        await supabase.from('assignment_submissions').update({
-          grade,
-          feedback,
-          graded_by: gradedBy || '44444444-4444-4444-4444-444444444444',
-          graded_at: new Date().toISOString(),
-        }).match({ student_id: studentId, assignment_id: assignmentId });
+    const supabase = await createClient();
 
-        await recordActivityEvent({
-          userId: studentId,
-          sessionId: 'sess_grade_' + Date.now(),
-          eventType: 'TUTOR_FEEDBACK_RECEIVED',
-          metadata: {
-            grade,
-            feedback,
-            assignmentId,
-            gradedBy,
-          },
-        });
-      } catch (err) {
-        console.warn('[Assignments API] Running in sandbox mode:', err);
-      }
+    if (payload.data.action === 'submit') {
+      const principal = await requireAuthPrincipal(STUDENT_ROLES);
+      const { data: assignment, error: assignmentError } = await supabase
+        .from('assignments')
+        .select('id')
+        .eq('id', payload.data.assignmentId)
+        .single();
+      if (assignmentError || !assignment) throw assignmentError ?? new Error('Práctica no disponible.');
 
-      return NextResponse.json({
-        success: true,
-        grade,
-        feedback,
-        message: 'Calificación por rúbrica guardada en el expediente de la alumna.',
+      const admin = createAdminClient();
+      const { data: submission, error } = await admin
+        .from('assignment_submissions')
+        .insert({
+          assignment_id: payload.data.assignmentId,
+          student_id: principal.id,
+          submission_text: payload.data.description ?? null,
+          file_url: payload.data.filePath ?? null,
+        })
+        .select('id, assignment_id, submitted_at')
+        .single();
+
+      if (error) throw error;
+
+      await recordActivityEvent({
+        userId: principal.id,
+        sessionId: `sess_assignment_${crypto.randomUUID()}`,
+        eventType: 'ASSIGNMENT_SUBMITTED',
+        metadata: {
+          assignmentId: submission.assignment_id,
+          submissionId: submission.id,
+        },
       });
+
+      return NextResponse.json({ success: true, submission }, { status: 201 });
     }
 
-    return NextResponse.json({ error: 'Acción no válida' }, { status: 400 });
+    const principal = await requireAuthPrincipal(TEACHING_ROLES);
+    const { data: existing, error: lookupError } = await supabase
+      .from('assignment_submissions')
+      .select('id, student_id, assignment_id')
+      .eq('id', payload.data.submissionId)
+      .single();
+
+    if (lookupError) throw lookupError;
+
+    const admin = createAdminClient();
+    const { data: submission, error: gradeError } = await admin
+      .from('assignment_submissions')
+      .update({
+        grade: payload.data.grade,
+        feedback: payload.data.feedback,
+        graded_by: principal.id,
+        graded_at: new Date().toISOString(),
+      })
+      .eq('id', payload.data.submissionId)
+      .select('id, student_id, assignment_id, grade, feedback, graded_at')
+      .single();
+
+    if (gradeError) throw gradeError;
+
+    const { error: notificationError } = await admin.from('notifications').insert({
+      user_id: existing.student_id,
+      title: 'Práctica evaluada',
+      message: `Tu práctica recibió una calificación de ${payload.data.grade}/100.`,
+      type: 'feedback',
+      link_url: '/campus/practicas',
+    });
+    if (notificationError) console.error('[Notifications] grade:', notificationError.message);
+
+    await recordActivityEvent({
+      userId: principal.id,
+      sessionId: `sess_grading_${crypto.randomUUID()}`,
+      eventType: 'TUTOR_FEEDBACK_RECEIVED',
+      metadata: {
+        studentId: existing.student_id,
+        assignmentId: existing.assignment_id,
+        submissionId: existing.id,
+        grade: payload.data.grade,
+      },
+    });
+
+    return NextResponse.json({ success: true, submission });
   } catch (error) {
-    console.error('Error in assignments API:', error);
-    return NextResponse.json({ error: 'Error procesando la entrega' }, { status: 500 });
+    return apiErrorResponse(error);
   }
 }

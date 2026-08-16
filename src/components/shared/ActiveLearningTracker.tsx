@@ -3,18 +3,19 @@
 import React, { useEffect, useState, useRef } from 'react';
 
 interface ActiveLearningTrackerProps {
-  userId: string;
   courseId?: string;
   lessonId?: string;
 }
 
-export function ActiveLearningTracker({ userId, courseId, lessonId }: ActiveLearningTrackerProps) {
+export function ActiveLearningTracker({ courseId, lessonId }: ActiveLearningTrackerProps) {
   const [isTabVisible, setIsTabVisible] = useState(true);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [lastUserAction, setLastUserAction] = useState<number>(Date.now());
   const [activeSeconds, setActiveSeconds] = useState(0);
 
   const sessionIdRef = useRef<string>('');
+  const lastUserActionRef = useRef<number>(Date.now());
+  const tabVisibleRef = useRef(true);
+  const videoPlayingRef = useRef(false);
 
   useEffect(() => {
     // Generate or retrieve session ID for current browser tab
@@ -27,17 +28,19 @@ export function ActiveLearningTracker({ userId, courseId, lessonId }: ActiveLear
 
     // Track tab visibility changes
     const handleVisibilityChange = () => {
-      setIsTabVisible(!document.hidden);
+      const visible = !document.hidden;
+      tabVisibleRef.current = visible;
+      setIsTabVisible(visible);
     };
 
     // Track user mouse/keyboard activity
     const handleUserInteraction = () => {
-      setLastUserAction(Date.now());
+      lastUserActionRef.current = Date.now();
     };
 
     // Video play/pause detectors
-    const handleVideoPlay = () => setIsVideoPlaying(true);
-    const handleVideoPause = () => setIsVideoPlaying(false);
+    const handleVideoPlay = () => { videoPlayingRef.current = true; setIsVideoPlaying(true); };
+    const handleVideoPause = () => { videoPlayingRef.current = false; setIsVideoPlaying(false); };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('mousemove', handleUserInteraction);
@@ -53,26 +56,25 @@ export function ActiveLearningTracker({ userId, courseId, lessonId }: ActiveLear
 
     // Send heartbeat every 45 seconds
     const interval = setInterval(async () => {
-      const timeSinceLastAction = Date.now() - lastUserAction;
-      const isUserActive = isTabVisible && (timeSinceLastAction < 120000 || isVideoPlaying);
-
-      if (isUserActive) {
-        setActiveSeconds(prev => prev + 45);
-      }
-
+      const timeSinceLastAction = Date.now() - lastUserActionRef.current;
+      const hasRecentInteraction = timeSinceLastAction < 120000;
       try {
-        await fetch('/api/audit/heartbeat', {
+        const response = await fetch('/api/audit/heartbeat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId,
             sessionId: sessionIdRef.current,
-            isTabVisible,
-            isVideoPlaying,
+            isTabVisible: tabVisibleRef.current,
+            isVideoPlaying: videoPlayingRef.current,
+            hasRecentInteraction,
             courseId,
             lessonId,
           }),
         });
+        if (response.ok) {
+          const result = (await response.json()) as { activeSecondsAdded?: number };
+          setActiveSeconds((value) => value + (result.activeSecondsAdded ?? 0));
+        }
       } catch (err) {
         console.error('Heartbeat transmission error:', err);
       }
@@ -85,12 +87,12 @@ export function ActiveLearningTracker({ userId, courseId, lessonId }: ActiveLear
       window.removeEventListener('scroll', handleUserInteraction);
       clearInterval(interval);
     };
-  }, [userId, courseId, lessonId, isTabVisible, isVideoPlaying, lastUserAction]);
+  }, [courseId, lessonId]);
 
   const activeMinutes = Math.floor(activeSeconds / 60);
 
   return (
-    <div className="flex items-center space-x-2 bg-fabi-charcoal/80 border border-fabi-border px-3 py-1.5 rounded-full text-xs font-medium">
+    <div className="flex items-center space-x-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium">
       <span className="relative flex h-2.5 w-2.5">
         <span
           className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
@@ -103,11 +105,11 @@ export function ActiveLearningTracker({ userId, courseId, lessonId }: ActiveLear
           }`}
         ></span>
       </span>
-      <span className="text-gray-300">
-        Active Training:{' '}
-        <strong className="text-fabi-pink">{activeMinutes}m active</strong>
+      <span className="text-slate-600">
+        Estudio activo:{' '}
+        <strong className="text-rose-600">{activeMinutes} min</strong>
       </span>
-      <span className="text-gray-500 text-[10px]">TMS/369 Compliance</span>
+      <span className="text-slate-400 text-[10px]">trazable</span>
     </div>
   );
 }

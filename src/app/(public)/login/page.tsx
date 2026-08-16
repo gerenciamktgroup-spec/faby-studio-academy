@@ -5,56 +5,54 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
-import { Lock, Mail, ArrowRight, Sparkles, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { signIn, DEMO_CREDENTIALS, type UserRole } from '@/lib/demo-auth';
+import { Lock, Mail, ArrowRight, Sparkles, Eye, EyeOff, AlertCircle, ShieldCheck } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { getRoleLandingPage, isAppRole } from '@/lib/auth/roles';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [role, setRole] = useState<UserRole>('alumna');
-  const [email, setEmail] = useState(DEMO_CREDENTIALS.alumna.email);
-  const [password, setPassword] = useState(DEMO_CREDENTIALS.alumna.password);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const handleRoleSelect = (selected: UserRole) => {
-    setRole(selected);
-    setEmail(DEMO_CREDENTIALS[selected].email);
-    setPassword(DEMO_CREDENTIALS[selected].password);
-    setError('');
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    // Pequeño delay para simular llamada de red
-    await new Promise((r) => setTimeout(r, 600));
+    try {
+      const supabase = createClient();
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
 
-    const result = signIn(email, password);
-    setLoading(false);
+      if (signInError || !data.user) {
+        setError('Correo o contraseña incorrectos.');
+        return;
+      }
 
-    if (!result.success) {
-      setError(result.error || 'Error al iniciar sesión.');
-      return;
+      const { data: roleRows, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', data.user.id);
+
+      if (roleError) {
+        await supabase.auth.signOut();
+        setError('No fue posible verificar los permisos de la cuenta.');
+        return;
+      }
+
+      const roles = (roleRows ?? []).map((row) => row.role).filter(isAppRole);
+      router.replace(getRoleLandingPage(roles));
+      router.refresh();
+    } catch {
+      setError('El servicio de acceso todavía no está configurado.');
+    } finally {
+      setLoading(false);
     }
-
-    // Redirigir según el rol real del usuario autenticado
-    const userRole = result.session!.user.role;
-    if (userRole === 'alumna') {
-      router.push('/campus');
-    } else if (userRole === 'profesor') {
-      router.push('/profesor');
-    } else {
-      router.push('/admin');
-    }
-  };
-
-  const roleColors = {
-    alumna: 'text-rose-600',
-    profesor: 'text-purple-600',
-    admin: 'text-slate-900',
   };
 
   return (
@@ -74,24 +72,6 @@ export default function LoginPage() {
           <p className="text-xs text-slate-500">
             Introduce tus credenciales para acceder a tus másteres y tutorías.
           </p>
-        </div>
-
-        {/* Role Selector Tabs */}
-        <div className="bg-slate-200/70 p-1 rounded-2xl grid grid-cols-3 gap-1 text-xs font-bold">
-          {(['alumna', 'profesor', 'admin'] as const).map((r) => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => handleRoleSelect(r)}
-              className={`py-2 rounded-xl transition-all ${
-                role === r
-                  ? `bg-white ${roleColors[r]} shadow-xs`
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {r === 'alumna' ? 'Alumna' : r === 'profesor' ? 'Profesora' : 'Dirección'}
-            </button>
-          ))}
         </div>
 
         {/* Login Form */}
@@ -150,13 +130,11 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Demo credentials hint */}
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Credenciales de demo autocompletadas</p>
-            <div className="flex items-center space-x-2 text-[11px] text-slate-600">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              <span className="font-mono">{DEMO_CREDENTIALS[role].email}</span>
-            </div>
+          <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-emerald-800">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+            <p className="text-[11px] leading-relaxed">
+              Acceso seguro con sesión cifrada y permisos verificados según tu rol.
+            </p>
           </div>
 
           <button
@@ -180,17 +158,6 @@ export default function LoginPage() {
             )}
           </button>
 
-          {/* Quick Demo Access Bar */}
-          <div className="pt-3 border-t border-slate-100 text-center space-y-2">
-            <p className="text-[11px] text-slate-400">¿Probando la presentación comercial?</p>
-            <Link
-              href="/demo"
-              className="inline-flex items-center space-x-1.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Abrir Demo Role Switcher con 1 Clic</span>
-            </Link>
-          </div>
         </form>
 
         {/* Register link */}

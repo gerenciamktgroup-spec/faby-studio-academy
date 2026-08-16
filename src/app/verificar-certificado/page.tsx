@@ -2,18 +2,11 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import {
   ShieldCheck,
   Award,
   Search,
-  CheckCircle2,
-  QrCode,
-  ArrowRight,
-  Sparkles,
-  FileCheck,
   Clock,
-  ExternalLink,
 } from 'lucide-react';
 import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
@@ -22,11 +15,6 @@ export default function PublicCertificateSearchPage() {
   const router = useRouter();
   const [certCode, setCertCode] = useState('');
   const [error, setError] = useState<string | null>(null);
-
-  const DEMO_CODES = [
-    { code: 'CERT-FS-DEMO-9988', name: 'Lucía Martínez', course: 'Extensiones de Pestañas' },
-    { code: 'CERT-FS-2026-4412', name: 'Camila Torres', course: 'Uñas de Gel & Acrílico' },
-  ];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +63,7 @@ export default function PublicCertificateSearchPage() {
                     setCertCode(e.target.value);
                     if (error) setError(null);
                   }}
-                  placeholder="Ej. CERT-FS-DEMO-9988"
+                  placeholder="Ej. FABY-2026-1A2B3C4D5E6F"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-xs text-slate-900 font-mono font-bold focus:outline-none focus:border-emerald-500 uppercase"
                 />
               </div>
@@ -94,28 +82,6 @@ export default function PublicCertificateSearchPage() {
             )}
           </form>
 
-          {/* Demo Certificate Shortcuts */}
-          <div className="pt-4 border-t border-slate-100 space-y-2">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              O prueba con un código de diploma verificado:
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {DEMO_CODES.map((d, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => router.push(`/verificar-certificado/${d.code}`)}
-                  className="p-3 bg-slate-50 hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-300 rounded-2xl text-left text-xs transition-all flex items-center justify-between group"
-                >
-                  <div>
-                    <p className="font-mono font-bold text-slate-900 group-hover:text-emerald-800">{d.code}</p>
-                    <p className="text-[11px] text-slate-500">{d.name} • {d.course}</p>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-transform group-hover:translate-x-0.5" />
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Verification Guarantee Grid */}

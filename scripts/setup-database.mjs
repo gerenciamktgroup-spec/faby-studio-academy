@@ -1,6 +1,7 @@
 /**
  * FABY STUDIO ACADEMY — Database Migration & Verification Runner
- * Ejecuta y valida el esquema PostgreSQL 15+ y los datos Seed en Supabase.
+ * Audita localmente los archivos de esquema PostgreSQL 15+ y seed.
+ * No aplica migraciones ni sustituye `supabase db lint` contra un proyecto real.
  */
 
 import fs from 'fs';
@@ -47,7 +48,7 @@ if (fs.existsSync(migrationsDir)) {
 }
 
 const seedSQL = auditSQLFile(seedPath, 'Datos Oficiales Seed (seed.sql)');
-const demoSeedSQL = auditSQLFile(demoSeedPath, 'Datos de Auditoría Demo (demo_seed.sql)');
+auditSQLFile(demoSeedPath, 'Seed demo deshabilitado (demo_seed.sql)');
 
 // 2. Extraer catálogo de tablas creadas en el esquema
 if (combinedSchemaSQL) {
@@ -59,9 +60,9 @@ if (combinedSchemaSQL) {
   }
 
   const rlsPolicies = [];
-  const rlsRegex = /CREATE\s+POLICY\s+"([^"]+)"\s+ON\s+public\.([a-zA-Z0-9_]+)/gi;
+  const rlsRegex = /CREATE\s+POLICY\s+(?:"([^"]+)"|([a-zA-Z0-9_]+))\s+ON\s+public\.([a-zA-Z0-9_]+)/gi;
   while ((match = rlsRegex.exec(combinedSchemaSQL)) !== null) {
-    rlsPolicies.push({ policy: match[1], table: match[2] });
+    rlsPolicies.push({ policy: match[1] ?? match[2], table: match[3] });
   }
 
   const tablesArray = Array.from(tables);
@@ -86,9 +87,8 @@ if (supabaseUrl && !supabaseUrl.includes('demo.supabase.co')) {
   console.log(`🟢 Clave Anon: Configurada (${supabaseAnonKey ? supabaseAnonKey.slice(0, 10) + '...' : 'Faltante'})`);
   console.log(`🟢 Service Role: ${serviceRoleKey ? 'Configurado' : 'Pendiente'}`);
 } else {
-  console.log('ℹ️  Modo Sandbox / Local Activo:');
-  console.log('   La aplicación opera con almacenamiento en memoria y fallback instantáneo.');
-  console.log('   Para vincular tu base de datos Supabase en producción, solo necesitas ingresar tu URL y claves en .env.local.');
+  console.log('🔴 Supabase no está configurado. La aplicación fallará de forma segura (sin datos simulados).');
+  console.log('   Configura URL, clave pública y clave secreta de servidor antes de ejecutar pruebas integradas.');
 }
 
 console.log('--------------------------------------------------\n');

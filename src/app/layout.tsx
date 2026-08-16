@@ -36,6 +36,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/\D/g, '');
   return (
     <html lang="es" className="scroll-smooth">
       <head>
@@ -67,7 +68,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-slate-50 text-slate-800 selection:bg-rose-600 selection:text-white antialiased">
         {children}
-        <WhatsAppAdmissionsWidget />
+        {whatsappNumber && whatsappNumber.length >= 8 ? <WhatsAppAdmissionsWidget phone={whatsappNumber} /> : null}
       </body>
     </html>
   );

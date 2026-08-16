@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { recordActivityEvent } from '@/lib/audit-logger';
 
 export interface HeartbeatPayload {
@@ -6,6 +7,7 @@ export interface HeartbeatPayload {
   sessionId: string;
   isTabVisible: boolean;
   isVideoPlaying: boolean;
+  hasRecentInteraction: boolean;
   lessonId?: string;
   courseId?: string;
   ipAddress?: string;
@@ -22,176 +24,179 @@ export interface LearningTimeSummary {
 
 const HEARTBEAT_INTERVAL_SECONDS = 45;
 
-/**
- * Processes a 45-60 second client heartbeat ping.
- * Distinguishes Active Learning Time from passive Logged-in Time.
- */
 export async function processHeartbeat(payload: HeartbeatPayload) {
-  const isActiveLearning = payload.isTabVisible || payload.isVideoPlaying;
-  const activeSecondsToAdd = isActiveLearning ? HEARTBEAT_INTERVAL_SECONDS : 0;
+  const isActiveLearning =
+    payload.isTabVisible && (payload.isVideoPlaying || payload.hasRecentInteraction);
   const now = new Date().toISOString();
+  const accessClient = await createClient();
 
-  try {
-    const isDemo =
-      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      process.env.NEXT_PUBLIC_SUPABASE_URL.includes('demo.supabase.co');
-
-    if (!isDemo) {
-      const supabase = createClient();
-
-      // 1. Fetch or create session log
-      const { data: existingSession } = await supabase
-        .from('session_logs')
-        .select('*')
-        .eq('session_id', payload.sessionId)
-        .single();
-
-      if (existingSession) {
-        const updatedLoggedSeconds = (existingSession.total_logged_seconds || 0) + HEARTBEAT_INTERVAL_SECONDS;
-        const updatedActiveSeconds = (existingSession.total_active_seconds || 0) + activeSecondsToAdd;
-
-        await supabase
-          .from('session_logs')
-          .update({
-            last_heartbeat_at: now,
-            total_logged_seconds: updatedLoggedSeconds,
-            total_active_seconds: updatedActiveSeconds,
-            is_active: true,
-          })
-          .eq('session_id', payload.sessionId);
-      } else {
-        await supabase.from('session_logs').insert([
-          {
-            user_id: payload.userId,
-            session_id: payload.sessionId,
-            started_at: now,
-            last_heartbeat_at: now,
-            total_logged_seconds: HEARTBEAT_INTERVAL_SECONDS,
-            total_active_seconds: activeSecondsToAdd,
-            is_active: true,
-          },
-        ]);
-      }
-
-      // 2. Increment active learning time in lesson_progress if inside a lesson
-      if (payload.lessonId && isActiveLearning) {
-        const { data: progress } = await supabase
-          .from('lesson_progress')
-          .select('*')
-          .eq('student_id', payload.userId)
-          .eq('lesson_id', payload.lessonId)
-          .single();
-
-        if (progress) {
-          await supabase
-            .from('lesson_progress')
-            .update({
-              active_time_seconds: (progress.active_time_seconds || 0) + HEARTBEAT_INTERVAL_SECONDS,
-              status: progress.status === 'completed' ? 'completed' : 'in_progress',
-              updated_at: now,
-            })
-            .eq('id', progress.id);
-        } else {
-          await supabase.from('lesson_progress').insert([
-            {
-              student_id: payload.userId,
-              lesson_id: payload.lessonId,
-              status: 'in_progress',
-              active_time_seconds: HEARTBEAT_INTERVAL_SECONDS,
-            },
-          ]);
-        }
-      }
+  if (payload.lessonId) {
+    const { data: lesson, error: lessonError } = await accessClient
+      .from('lessons')
+      .select('id, modules!inner(course_id)')
+      .eq('id', payload.lessonId)
+      .single();
+    if (lessonError) throw lessonError;
+    const moduleValue = Array.isArray(lesson.modules) ? lesson.modules[0] : lesson.modules;
+    if (!moduleValue?.course_id || (payload.courseId && moduleValue.course_id !== payload.courseId)) {
+      throw new Error('La lección no corresponde al curso activo.');
     }
-
-    // 3. Emit append-only event
-    await recordActivityEvent({
-      userId: payload.userId,
-      sessionId: payload.sessionId,
-      eventType: 'SESSION_HEARTBEAT',
-      courseId: payload.courseId,
-      lessonId: payload.lessonId,
-      durationSeconds: activeSecondsToAdd,
-      ipAddress: payload.ipAddress,
-      userAgent: payload.userAgent,
-      metadata: {
-        is_tab_visible: payload.isTabVisible,
-        is_video_playing: payload.isVideoPlaying,
-        active_seconds_added: activeSecondsToAdd,
-      },
-    });
-
-    return {
-      success: true,
-      activeSecondsAdded: activeSecondsToAdd,
-      loggedSecondsAdded: HEARTBEAT_INTERVAL_SECONDS,
-    };
-  } catch (err) {
-    return {
-      success: true,
-      activeSecondsAdded: activeSecondsToAdd,
-      loggedSecondsAdded: HEARTBEAT_INTERVAL_SECONDS,
-    };
+    payload.courseId = moduleValue.course_id;
+  } else if (payload.courseId) {
+    const { data: enrollment, error: enrollmentError } = await accessClient
+      .from('enrollments')
+      .select('id')
+      .eq('student_id', payload.userId)
+      .eq('course_id', payload.courseId)
+      .in('status', ['active', 'completed'])
+      .maybeSingle();
+    if (enrollmentError) throw enrollmentError;
+    if (!enrollment) throw new Error('La cuenta no está matriculada en este curso.');
   }
+
+  const supabase = createAdminClient();
+
+  const { data: existingSession, error: sessionReadError } = await supabase
+    .from('session_logs')
+    .select('id, user_id, last_heartbeat_at, total_logged_seconds, total_active_seconds')
+    .eq('session_id', payload.sessionId)
+    .maybeSingle();
+
+  if (sessionReadError) throw sessionReadError;
+  if (existingSession && existingSession.user_id !== payload.userId) {
+    throw new Error('La sesión de actividad pertenece a otra cuenta.');
+  }
+
+  const elapsedSeconds = existingSession
+    ? Math.min(
+        HEARTBEAT_INTERVAL_SECONDS,
+        Math.max(0, Math.floor((Date.now() - new Date(existingSession.last_heartbeat_at).getTime()) / 1000))
+      )
+    : 0;
+  const loggedSecondsToAdd = elapsedSeconds >= 30 ? elapsedSeconds : 0;
+  const activeSecondsToAdd = isActiveLearning ? loggedSecondsToAdd : 0;
+
+  if (existingSession) {
+    const { error } = await supabase
+      .from('session_logs')
+      .update({
+        last_heartbeat_at: now,
+        total_logged_seconds:
+          (existingSession.total_logged_seconds ?? 0) + loggedSecondsToAdd,
+        total_active_seconds:
+          (existingSession.total_active_seconds ?? 0) + activeSecondsToAdd,
+        course_id: payload.courseId ?? null,
+        is_active: true,
+      })
+      .eq('id', existingSession.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from('session_logs').insert({
+      user_id: payload.userId,
+      session_id: payload.sessionId,
+      course_id: payload.courseId ?? null,
+      started_at: now,
+      last_heartbeat_at: now,
+      total_logged_seconds: 0,
+      total_active_seconds: 0,
+      is_active: true,
+    });
+    if (error) throw error;
+  }
+
+  if (payload.lessonId && activeSecondsToAdd > 0) {
+    const { data: progress, error: progressReadError } = await supabase
+      .from('lesson_progress')
+      .select('id, status, active_time_seconds')
+      .eq('student_id', payload.userId)
+      .eq('lesson_id', payload.lessonId)
+      .maybeSingle();
+    if (progressReadError) throw progressReadError;
+
+    if (progress) {
+      const { error } = await supabase
+        .from('lesson_progress')
+        .update({
+          active_time_seconds:
+            (progress.active_time_seconds ?? 0) + activeSecondsToAdd,
+          status: progress.status === 'completed' ? 'completed' : 'in_progress',
+          updated_at: now,
+        })
+        .eq('id', progress.id);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from('lesson_progress').insert({
+        student_id: payload.userId,
+        lesson_id: payload.lessonId,
+        status: 'in_progress',
+        active_time_seconds: activeSecondsToAdd,
+      });
+      if (error) throw error;
+    }
+  }
+
+  if (loggedSecondsToAdd > 0) await recordActivityEvent({
+    userId: payload.userId,
+    sessionId: payload.sessionId,
+    eventType: 'SESSION_HEARTBEAT',
+    courseId: payload.courseId,
+    lessonId: payload.lessonId,
+    durationSeconds: activeSecondsToAdd,
+    ipAddress: payload.ipAddress,
+    userAgent: payload.userAgent,
+    metadata: {
+      is_tab_visible: payload.isTabVisible,
+      is_video_playing: payload.isVideoPlaying,
+      has_recent_interaction: payload.hasRecentInteraction,
+      active_seconds_added: activeSecondsToAdd,
+    },
+  });
+
+  return {
+    success: true,
+    activeSecondsAdded: activeSecondsToAdd,
+    loggedSecondsAdded: loggedSecondsToAdd,
+  };
 }
 
-/**
- * Calculates total active learning metrics for inspection/audit reports.
- */
-export async function calculateActiveLearningSummary(userId: string, courseId?: string): Promise<LearningTimeSummary> {
-  const isDemo =
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL.includes('demo.supabase.co');
+export async function calculateActiveLearningSummary(
+  userId: string,
+  courseId?: string
+): Promise<LearningTimeSummary> {
+  const supabase = await createClient();
+  let sessionsQuery = supabase
+    .from('session_logs')
+    .select('total_logged_seconds, total_active_seconds')
+    .eq('user_id', userId);
+  if (courseId) sessionsQuery = sessionsQuery.eq('course_id', courseId);
 
-  if (isDemo) {
-    return {
-      totalLoggedHours: 2.0,
-      totalActiveHours: 1.8,
-      activeRatioPercentage: 90.0,
-      sessionCount: 4,
-      completedLessonsCount: 8,
-    };
-  }
+  const [{ data: sessions, error: sessionsError }, { count, error: progressError }] =
+    await Promise.all([
+      sessionsQuery,
+      supabase
+        .from('lesson_progress')
+        .select('*', { count: 'exact', head: true })
+        .eq('student_id', userId)
+        .eq('status', 'completed'),
+    ]);
 
-  try {
-    const supabase = createClient();
-    const query = supabase.from('session_logs').select('total_logged_seconds, total_active_seconds').eq('user_id', userId);
-    const { data: sessions } = await query;
+  if (sessionsError) throw sessionsError;
+  if (progressError) throw progressError;
 
-    let totalLoggedSecs = 0;
-    let totalActiveSecs = 0;
+  const totals = (sessions ?? []).reduce(
+    (sum, session) => ({
+      logged: sum.logged + (session.total_logged_seconds ?? 0),
+      active: sum.active + (session.total_active_seconds ?? 0),
+    }),
+    { logged: 0, active: 0 }
+  );
 
-    if (sessions && sessions.length > 0) {
-      sessions.forEach(s => {
-        totalLoggedSecs += s.total_logged_seconds || 0;
-        totalActiveSecs += s.total_active_seconds || 0;
-      });
-    }
-
-    const { count: completedCount } = await supabase
-      .from('lesson_progress')
-      .select('*', { count: 'exact', head: true })
-      .eq('student_id', userId)
-      .eq('status', 'completed');
-
-    const totalLoggedHours = parseFloat((totalLoggedSecs / 3600).toFixed(2));
-    const totalActiveHours = parseFloat((totalActiveSecs / 3600).toFixed(2));
-    const activeRatioPercentage = totalLoggedSecs > 0 ? parseFloat(((totalActiveSecs / totalLoggedSecs) * 100).toFixed(1)) : 0;
-
-    return {
-      totalLoggedHours,
-      totalActiveHours,
-      activeRatioPercentage,
-      sessionCount: sessions?.length || 4,
-      completedLessonsCount: completedCount || 8,
-    };
-  } catch {
-    return {
-      totalLoggedHours: 2.0,
-      totalActiveHours: 1.8,
-      activeRatioPercentage: 90.0,
-      sessionCount: 4,
-      completedLessonsCount: 8,
-    };
-  }
+  return {
+    totalLoggedHours: Number((totals.logged / 3600).toFixed(2)),
+    totalActiveHours: Number((totals.active / 3600).toFixed(2)),
+    activeRatioPercentage:
+      totals.logged > 0 ? Number(((totals.active / totals.logged) * 100).toFixed(1)) : 0,
+    sessionCount: sessions?.length ?? 0,
+    completedLessonsCount: count ?? 0,
+  };
 }

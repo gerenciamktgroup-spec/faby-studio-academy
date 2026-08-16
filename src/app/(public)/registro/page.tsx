@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
 import { User, Mail, Lock, Phone, ArrowRight, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
-import { signUp } from '@/lib/demo-auth';
+import { createClient } from '@/lib/supabase/client';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,7 +15,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [course, setCourse] = useState('Curso Profesional de Extensiones de Pestañas');
-  const [acceptTerms, setAcceptTerms] = useState(true);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [registeredSuccess, setRegisteredSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -30,21 +30,41 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
 
-    // Simular delay de red
-    await new Promise((r) => setTimeout(r, 900));
+    try {
+      const supabase = createClient();
+      const appUrl = window.location.origin;
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          emailRedirectTo: `${appUrl}/auth/callback?next=/campus`,
+          data: {
+            full_name: fullName.trim(),
+            phone: phone.trim(),
+            course_interest: course,
+            accepted_terms_at: new Date().toISOString(),
+          },
+        },
+      });
 
-    const result = signUp({ full_name: fullName, email, password, phone, course });
-    setLoading(false);
+      if (signUpError) {
+        setError(
+          signUpError.message.toLowerCase().includes('already')
+            ? 'Ya existe una cuenta con ese correo. Inicia sesión.'
+            : 'No fue posible crear la cuenta. Revisa los datos e inténtalo nuevamente.'
+        );
+        return;
+      }
 
-    if (!result.success) {
-      setError(result.error || 'Error al crear la cuenta.');
-      return;
+      setRegisteredSuccess(true);
+      if (data.session) {
+        window.setTimeout(() => router.replace('/campus'), 1200);
+      }
+    } catch {
+      setError('El servicio de registro todavía no está configurado.');
+    } finally {
+      setLoading(false);
     }
-
-    setRegisteredSuccess(true);
-    setTimeout(() => {
-      router.push('/campus/onboarding');
-    }, 1600);
   };
 
   return (
@@ -71,10 +91,10 @@ export default function RegisterPage() {
             <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
             <h2 className="text-lg font-bold text-slate-900 font-display">¡Cuenta Creada Exitosamente!</h2>
             <p className="text-xs text-slate-600">
-              Tu cuenta ha sido registrada. Generando expediente formativo y asignando tutora pedagógica...
+              Tu cuenta ha sido registrada. Si se requiere confirmación, revisa tu correo para activar el acceso.
             </p>
             <p className="text-[11px] text-slate-400">
-              Redirigiendo al campus en un momento...
+              Después de confirmar podrás completar tu perfil y matrícula.
             </p>
           </div>
         ) : (

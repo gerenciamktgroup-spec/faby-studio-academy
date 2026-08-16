@@ -3,15 +3,14 @@
 import React, { useState } from 'react';
 import { MessageCircle, X, Sparkles, Send, Building2, HelpCircle } from 'lucide-react';
 
-export function WhatsAppAdmissionsWidget() {
+export function WhatsAppAdmissionsWidget({ phone }: { phone: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState('info');
 
   const getWhatsAppLink = () => {
-    const phone = '34600000000';
     let text = 'Hola Faby Studio, quiero información sobre los cursos y másteres oficiales.';
     if (selectedTopic === 'efectivo') {
-      text = 'Hola Faby Studio, quiero acudir a pagar mi matrícula en efectivo en el estudio de Serrano.';
+      text = 'Hola Faby Studio, quiero consultar las opciones de pago de mi matrícula.';
     } else if (selectedTopic === 'tutorias') {
       text = 'Hola Faby Studio, quiero consultar sobre las tutorías 1 a 1 y el diploma oficial.';
     }
@@ -70,7 +69,7 @@ export function WhatsAppAdmissionsWidget() {
                     : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                 }`}
               >
-                🏢 Pagar en efectivo en local Faby Studio
+                🏢 Consultar opciones de pago
               </button>
 
               <button

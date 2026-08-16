@@ -1,7 +1,7 @@
 # ADR 001: Supabase PostgreSQL Append-Only Audit & Learning Event Engine
 
 ## Context & Problem Statement
-Fabi Studio Academy requires an audit-ready learning management system (LMS) capable of meeting Spanish regulatory standards (e.g., Orden TMS/369/2019) for vocational training. Passive login/logout logging is insufficient because students could leave browser tabs open for hours without engaging in actual learning.
+Fabi Studio Academy necesita trazabilidad verificable del aprendizaje. Esta decisión es un control técnico, no una certificación regulatoria. El acceso pasivo no basta porque una pestaña puede permanecer abierta sin interacción.
 
 ## Decision
 1. **Append-Only Event Sourcing**:
@@ -11,4 +11,4 @@ Fabi Studio Academy requires an audit-ready learning management system (LMS) cap
    - Client sends pings checking `document.hidden` (Tab Visibility API), video play state, and active DOM mouse/keyboard events.
    - Server-side calculator (`processHeartbeat`) adds `active_seconds` only when real interaction occurs, maintaining a clear separation between **Active Learning Time** and **Logged-In Time**.
 3. **Inspection Export Signatures**:
-   - Every exported inspection file (CSV, JSON, XLSX, PDF) generates a cryptographic SHA-256 hash stored in `audit_exports` for immutable verification.
+   - Cada exportación implementada (CSV o JSON) genera un hash SHA-256 almacenado en `audit_exports` para verificar integridad.

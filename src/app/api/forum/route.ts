@@ -1,66 +1,54 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
+import { APP_ROLES } from '@/lib/auth/roles';
+import { requireAuthPrincipal } from '@/lib/auth/server';
+import { apiErrorResponse } from '@/lib/http/errors';
 import { createClient } from '@/lib/supabase/server';
+import { forumPostCreateSchema, validationError } from '@/lib/validation/api-schemas';
 import { recordActivityEvent } from '@/lib/audit-logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
-    const {
-      authorId = '22222222-2222-2222-2222-222222222222',
-      courseId = 'c1000000-0000-0000-0000-000000000001',
-      title,
-      content,
-      category = 'Dudas Técnicas',
-    } = body;
-
-    if (!content || !content.trim()) {
-      return NextResponse.json({ error: 'El contenido de la publicación no puede estar vacío' }, { status: 400 });
+    const principal = await requireAuthPrincipal(APP_ROLES);
+    const payload = forumPostCreateSchema.safeParse(await request.json());
+    if (!payload.success) {
+      return NextResponse.json(validationError(payload.error), { status: 400 });
     }
 
-    const supabase = createClient();
-    const postId = 'post_' + Math.random().toString(36).substring(2, 10);
+    const supabase = await createClient();
+    const { data: forum, error: forumError } = await supabase
+      .from('forums')
+      .select('id, course_id')
+      .eq('id', payload.data.forumId)
+      .single();
 
-    try {
-      await supabase.from('forum_posts').insert([
-        {
-          id: postId,
-          author_id: authorId,
-          title: title || 'Consulta técnica en comunidad',
-          content: content.trim(),
-          created_at: new Date().toISOString(),
-        },
-      ]);
+    if (forumError) throw forumError;
 
-      await recordActivityEvent({
-        userId: authorId,
-        sessionId: 'sess_forum_' + Date.now(),
-        eventType: 'FORUM_POSTED',
-        courseId,
-        metadata: {
-          postId,
-          category,
-          title,
-        },
-      });
-    } catch (err) {
-      console.warn('[Forum API] Running in sandbox mode:', err);
-    }
+    const { data: post, error } = await supabase
+      .from('forum_posts')
+      .insert({
+        forum_id: forum.id,
+        author_id: principal.id,
+        title: payload.data.title ?? null,
+        content: payload.data.content,
+        parent_id: payload.data.parentId ?? null,
+      })
+      .select('id, forum_id, author_id, title, content, parent_id, created_at')
+      .single();
 
-    return NextResponse.json({
-      success: true,
-      post: {
-        id: postId,
-        authorId,
-        title,
-        content: content.trim(),
-        category,
-        createdAt: new Date().toISOString(),
-      },
+    if (error) throw error;
+
+    await recordActivityEvent({
+      userId: principal.id,
+      sessionId: `sess_forum_${crypto.randomUUID()}`,
+      eventType: 'FORUM_POSTED',
+      courseId: forum.course_id,
+      metadata: { postId: post.id, forumId: forum.id },
     });
+
+    return NextResponse.json({ success: true, post }, { status: 201 });
   } catch (error) {
-    console.error('Error in forum API:', error);
-    return NextResponse.json({ error: 'Error publicando en el foro' }, { status: 500 });
+    return apiErrorResponse(error);
   }
 }

@@ -1,39 +1,34 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ActiveLearningTracker } from '@/components/shared/ActiveLearningTracker';
-import { FabyAIAssistant } from '@/components/shared/FabyAIAssistant';
 import { StreakTracker } from '@/components/shared/StreakTracker';
 import { NotificationCenter } from '@/components/layout/NotificationCenter';
-import { getSession, signOut, type DemoSession } from '@/lib/demo-auth';
+import { createClient } from '@/lib/supabase/client';
 import {
   LayoutDashboard,
   BookOpen,
   Award,
   MessageSquare,
-  ShieldCheck,
   Users,
-  Calendar,
   Video,
   FileCheck,
-  Sparkles,
-  Layers,
   User,
-  Trophy,
-  HelpCircle,
-  Bell,
-  CheckCircle2,
   LogOut,
   Menu,
   X,
-  Zap,
   Calculator,
-  Flame,
-  Bot,
-  Eye,
 } from 'lucide-react';
+
+interface CampusSession {
+  user: {
+    id: string;
+    email: string;
+    full_name: string;
+    avatar_url: string | null;
+  };
+}
 
 export default function CampusLayout({
   children,
@@ -42,90 +37,73 @@ export default function CampusLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [session, setSession] = useState<DemoSession | null>(null);
+  const [session, setSession] = useState<CampusSession | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const notifRef = useRef<HTMLDivElement>(null);
-  const demoStudentId = '22222222-2222-2222-2222-222222222222';
 
   // ── Auth Guard ────────────────────────────────────────────────────────────
   useEffect(() => {
-    const s = getSession();
-    if (!s) {
-      router.replace('/login');
-      return;
-    }
-    setSession(s);
-    setAuthChecked(true);
-  }, [router]);
+    const loadSession = async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-  // ── Cerrar notificaciones al hacer click fuera ─────────────────────────────
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
-        setShowNotifications(false);
+        if (!user) {
+          router.replace('/login');
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        setSession({
+          user: {
+            id: user.id,
+            email: user.email ?? '',
+            full_name:
+              profile?.full_name ??
+              (typeof user.user_metadata?.full_name === 'string'
+                ? user.user_metadata.full_name
+                : user.email?.split('@')[0] ?? 'Alumna'),
+            avatar_url: profile?.avatar_url ?? null,
+          },
+        });
+        setAuthChecked(true);
+      } catch {
+        router.replace('/login?error=config');
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+
+    void loadSession();
+  }, [router]);
 
   // ── Cerrar sidebar en cambio de ruta ──────────────────────────────────────
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
 
-  const handleSignOut = () => {
-    signOut();
-    router.push('/login');
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.replace('/login');
+    router.refresh();
   };
-
-  const notifications = [
-    {
-      id: 1,
-      title: 'Práctica 01 Evaluada',
-      text: 'Laura Gómez calificó tu entrega de técnica clásica con 86/100.',
-      time: 'Hace 2 horas',
-      href: '/campus/practicas',
-      unread: true,
-    },
-    {
-      id: 2,
-      title: 'Nueva Tutoría Programada',
-      text: 'Sesión 1 a 1 confirmada para el martes a las 18:30h.',
-      time: 'Hace 1 día',
-      href: '/campus/tutorias',
-      unread: false,
-    },
-    {
-      id: 3,
-      title: 'Respuesta en Comunidad',
-      text: 'Laura Gómez respondió a tu duda sobre higrómetros en cabina.',
-      time: 'Hace 2 días',
-      href: '/campus/comunidad',
-      unread: false,
-    },
-  ];
 
   const navItems = [
     { label: 'Mi Panel', href: '/campus', icon: LayoutDashboard },
     { label: 'Mis Cursos', href: '/campus/cursos/c1000000-0000-0000-0000-000000000001', icon: BookOpen },
     { label: 'Prácticas & Rúbrica', href: '/campus/practicas', icon: FileCheck },
-    { label: 'Proyectos & Galería', href: '/campus/proyectos', icon: Layers },
-    { label: 'Flashcards 3 Min', href: '/campus/flashcards', icon: Zap, color: 'text-amber-500' },
-    { label: 'Copiloto IA Estudio', href: '/campus/ai-copilot', icon: Bot, color: 'text-rose-600' },
     { label: 'Calculadora Salón', href: '/campus/calculadora', icon: Calculator, color: 'text-emerald-600' },
-    { label: 'Estudio Visagismo', href: '/campus/studio', icon: Eye, color: 'text-rose-600' },
     { label: 'Mensajes con Tutora', href: '/campus/mensajes', icon: MessageSquare },
     { label: 'Comunidad Beauty', href: '/campus/comunidad', icon: Users },
     { label: 'Tutorías 1 a 1', href: '/campus/tutorias', icon: Video },
-    { label: 'Mis Logros & Badges', href: '/campus/logros', icon: Trophy, color: 'text-amber-500' },
-    { label: 'Calendario', href: '/campus/calendario', icon: Calendar },
-    { label: 'Mi Certificación', href: '/campus/certificado', icon: Award, color: 'text-emerald-600' },
-    { label: 'Mi Perfil & Facturas', href: '/campus/perfil', icon: User },
-    { label: 'Centro de Soporte', href: '/campus/soporte', icon: HelpCircle },
-    { label: 'Inspección Auditoría', href: '/auditoria', icon: ShieldCheck, color: 'text-emerald-600' },
+    { label: 'Mis Certificados', href: '/campus/certificado', icon: Award, color: 'text-emerald-600' },
+    { label: 'Mi Perfil & Seguridad', href: '/campus/perfil', icon: User },
   ];
 
   // ── Loading state while auth checks ───────────────────────────────────────
@@ -144,8 +122,8 @@ export default function CampusLayout({
 
   const user = session?.user;
   const displayName = user?.full_name || 'Alumna';
-  const avatarInitials = user?.avatar || displayName.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
-  const courseLabel = user?.course ? `${user.course.slice(0, 20)}...` : 'Alumna Activa';
+  const avatarInitials = displayName.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
+  const courseLabel = 'Alumna activa';
 
   // ── Shared Sidebar Content ─────────────────────────────────────────────────
   const SidebarContent = () => (
@@ -186,14 +164,6 @@ export default function CampusLayout({
 
       {/* User Profile & Actions Footer */}
       <div className="pt-4 border-t border-slate-200 space-y-3 shrink-0">
-        <Link
-          href="/demo"
-          className="w-full bg-rose-50 border border-rose-200 hover:bg-fabi-pink text-rose-700 hover:text-white px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-xs"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Role Switcher Demo</span>
-        </Link>
-
         <div className="flex items-center justify-between pt-1">
           <Link href="/campus/perfil" className="flex items-center space-x-3 hover:opacity-80 transition-opacity min-w-0">
             <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-700 border border-rose-300 flex items-center justify-center font-bold text-xs shrink-0">
@@ -271,9 +241,8 @@ export default function CampusLayout({
             </div>
 
             <div className="flex items-center space-x-3">
-              <StreakTracker currentStreak={5} longestStreak={12} />
+              <StreakTracker />
               <NotificationCenter />
-              <ActiveLearningTracker userId={demoStudentId} />
             </div>
           </header>
 
@@ -282,9 +251,6 @@ export default function CampusLayout({
           </main>
         </div>
       </div>
-
-      {/* Floating 24/7 Faby AI Tutor */}
-      <FabyAIAssistant />
     </div>
   );
 }

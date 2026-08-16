@@ -1,108 +1,108 @@
-import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, Clock, Award, Star, MessageSquare, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { notFound } from 'next/navigation';
+import { ArrowLeft, Award, CheckCircle2, Clock, FileCheck } from 'lucide-react';
+import { TEACHING_ROLES } from '@/lib/auth/roles';
+import { requirePagePrincipal } from '@/lib/auth/server';
+import { createClient } from '@/lib/supabase/server';
+import { IssueCertificateButton } from './IssueCertificateButton';
 
-export default function StudentDrilldownPage() {
+function relation<T>(value: T | T[] | null): T | null {
+  return Array.isArray(value) ? value[0] ?? null : value;
+}
+
+export const dynamic = 'force-dynamic';
+
+export default async function StudentDrilldownPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  await requirePagePrincipal(TEACHING_ROLES);
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) notFound();
+
+  const supabase = await createClient();
+  const [{ data: profile }, { data: enrollments, error: enrollmentError }] = await Promise.all([
+    supabase.from('profiles').select('id, full_name, email, phone, created_at').eq('id', id).maybeSingle(),
+    supabase.from('enrollments').select('id, course_id, status, enrolled_at, completed_at, courses(title, estimated_hours)').eq('student_id', id).order('enrolled_at', { ascending: false }),
+  ]);
+  if (enrollmentError) throw enrollmentError;
+  if (!profile || !enrollments?.length) notFound();
+
+  const courseIds = enrollments.map((item) => item.course_id);
+  const { data: modules, error: modulesError } = await supabase.from('modules').select('id').in('course_id', courseIds);
+  if (modulesError) throw modulesError;
+  const moduleIds = (modules ?? []).map((item) => item.id);
+  const lessonsResult = moduleIds.length
+    ? await supabase.from('lessons').select('id').in('module_id', moduleIds)
+    : { data: [], error: null };
+  if (lessonsResult.error) throw lessonsResult.error;
+  const lessonIds = (lessonsResult.data ?? []).map((item) => item.id);
+
+  const [progressResult, sessionsResult, submissionsResult, attemptsResult, certificatesResult] = await Promise.all([
+    lessonIds.length ? supabase.from('lesson_progress').select('lesson_id, status, active_time_seconds, completed_at').eq('student_id', id).in('lesson_id', lessonIds) : Promise.resolve({ data: [], error: null }),
+    supabase.from('session_logs').select('total_active_seconds, started_at').eq('user_id', id).in('course_id', courseIds),
+    supabase.from('assignment_submissions').select('id, assignment_id, grade, feedback, submitted_at, graded_at, assignments(title)').eq('student_id', id).order('submitted_at', { ascending: false }),
+    supabase.from('assessment_attempts').select('id, score, passed, submitted_at, assessments(title)').eq('student_id', id).order('submitted_at', { ascending: false }),
+    supabase.from('certificates').select('id, enrollment_id, code, issued_at, courses(title)').eq('student_id', id).order('issued_at', { ascending: false }),
+  ]);
+  for (const result of [progressResult, sessionsResult, submissionsResult, attemptsResult, certificatesResult]) {
+    if (result.error) throw result.error;
+  }
+
+  const completedLessons = (progressResult.data ?? []).filter((item) => item.status === 'completed').length;
+  const totalActiveSeconds = (sessionsResult.data ?? []).reduce((sum, item) => sum + (item.total_active_seconds ?? 0), 0);
+  const graded = (submissionsResult.data ?? []).filter((item) => item.grade != null);
+  const averageGrade = graded.length ? Math.round(graded.reduce((sum, item) => sum + Number(item.grade), 0) / graded.length) : null;
+  const totalLessons = lessonIds.length;
+  const progress = totalLessons ? Math.round((completedLessons / totalLessons) * 100) : 0;
+  const certifiedEnrollments = new Set((certificatesResult.data ?? []).map((item) => item.enrollment_id));
+  const issuableEnrollments = enrollments.filter((item) => item.status === 'completed' && !certifiedEnrollments.has(item.id));
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
-      <header className="h-20 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-xs sticky top-0 z-40">
-        <div className="flex items-center space-x-3">
-          <Link href="/profesor" className="text-slate-500 hover:text-slate-900 transition-colors flex items-center text-xs font-semibold">
-            <ArrowLeft className="w-4 h-4 mr-1" /> Volver al Panel Profesora
-          </Link>
-          <span className="text-slate-300">|</span>
-          <span className="font-display font-bold text-slate-900 text-base">
-            Expediente Individual de Alumna
-          </span>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Link href="/demo" className="text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
-            Demo Role Switcher
-          </Link>
-          <span className="bg-rose-50 border border-rose-200 text-rose-700 text-xs px-3 py-1 rounded-full font-bold">
-            Profesora Faby (Docente)
-          </span>
-        </div>
-      </header>
+    <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6">
+      <div className="mx-auto max-w-6xl space-y-7">
+        <Link href="/profesor/alumnas" className="inline-flex items-center gap-1 text-xs font-bold text-slate-500"><ArrowLeft className="h-4 w-4" /> Alumnas asignadas</Link>
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-8">
-        {/* Student Profile Overview Header */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xs">
-          <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xl flex items-center justify-center">
-              LM
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="text-2xl font-bold font-display text-slate-900">Lucía Martínez</h1>
-                <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
-                  Buen Ritmo
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Curso Profesional de Extensiones de Pestañas • Matrícula: 01/08/2026
-              </p>
+        <section className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
+          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
+            <div><p className="text-xs font-bold uppercase tracking-wider text-rose-600">Expediente académico</p><h1 className="text-3xl font-extrabold text-slate-900">{profile.full_name}</h1><p className="text-sm text-slate-500">{profile.email}{profile.phone ? ` · ${profile.phone}` : ''}</p></div>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <Metric label="Progreso" value={`${progress}%`} />
+              <Metric label="Tiempo activo" value={`${(totalActiveSeconds / 3600).toFixed(1)} h`} />
+              <Metric label="Promedio" value={averageGrade == null ? '—' : `${averageGrade}/100`} />
             </div>
           </div>
+        </section>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <Link
-              href="/auditoria"
-              className="bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-800 px-4 py-2 rounded-xl transition-colors text-xs font-bold"
-            >
-              Inspeccionar Auditoría
-            </Link>
+        <section className="grid gap-6 lg:grid-cols-2">
+          <Panel title="Matrículas" icon={CheckCircle2}>
+            {enrollments.map((enrollment) => { const course = relation(enrollment.courses as unknown as { title: string; estimated_hours: number }); return <Row key={enrollment.id} title={course?.title ?? 'Curso'} detail={`Desde ${new Intl.DateTimeFormat('es', { dateStyle: 'medium' }).format(new Date(enrollment.enrolled_at))}`} value={enrollment.status} />; })}
+          </Panel>
+          <Panel title="Prácticas" icon={FileCheck}>
+            {(submissionsResult.data ?? []).length ? (submissionsResult.data ?? []).map((submission) => { const assignment = relation(submission.assignments as unknown as { title: string }); return <Row key={submission.id} title={assignment?.title ?? 'Práctica'} detail={new Intl.DateTimeFormat('es', { dateStyle: 'medium' }).format(new Date(submission.submitted_at))} value={submission.grade == null ? 'Pendiente' : `${submission.grade}/100`} href={submission.grade == null ? `/profesor/evaluar-practica/${submission.id}` : undefined} />; }) : <Empty text="No hay prácticas entregadas." />}
+          </Panel>
+          <Panel title="Evaluaciones teóricas" icon={Clock}>
+            {(attemptsResult.data ?? []).length ? (attemptsResult.data ?? []).map((attempt) => { const assessment = relation(attempt.assessments as unknown as { title: string }); return <Row key={attempt.id} title={assessment?.title ?? 'Evaluación'} detail={attempt.submitted_at ? new Intl.DateTimeFormat('es', { dateStyle: 'medium' }).format(new Date(attempt.submitted_at)) : 'En curso'} value={`${attempt.score}% ${attempt.passed ? 'Aprobada' : 'No aprobada'}`} />; }) : <Empty text="No hay intentos registrados." />}
+          </Panel>
+          <Panel title="Certificados" icon={Award}>
+            {(certificatesResult.data ?? []).length ? (certificatesResult.data ?? []).map((certificate) => { const course = relation(certificate.courses as unknown as { title: string }); return <Row key={certificate.id} title={course?.title ?? 'Certificado'} detail={certificate.code} value={new Intl.DateTimeFormat('es', { dateStyle: 'medium' }).format(new Date(certificate.issued_at))} href={`/verificar-certificado/${certificate.code}`} />; }) : <Empty text="No hay certificados emitidos." />}
+          </Panel>
+        </section>
 
-            <div className="flex items-center space-x-4 text-center text-xs">
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <span className="text-slate-500 font-medium">Progreso Curso</span>
-                <p className="text-xl font-extrabold text-rose-600 font-display">68%</p>
-              </div>
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <span className="text-slate-500 font-medium">Tiempo Activo</span>
-                <p className="text-xl font-extrabold text-emerald-700 font-display">1.8h</p>
-              </div>
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <span className="text-slate-500 font-medium">Nota Práctica 01</span>
-                <p className="text-xl font-extrabold text-purple-700 font-display">86/100</p>
-              </div>
+        {issuableEnrollments.length > 0 && (
+          <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6">
+            <h2 className="font-bold text-emerald-950">Certificados pendientes de emisión</h2>
+            <div className="mt-3 space-y-3">
+              {issuableEnrollments.map((enrollment) => {
+                const course = relation(enrollment.courses as unknown as { title: string });
+                return <div key={enrollment.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-white border border-emerald-200 p-4"><div><p className="text-sm font-bold text-slate-900">{course?.title ?? 'Curso completado'}</p><p className="text-xs text-slate-500">La emisión genera código y firma definitiva.</p></div><IssueCertificateButton enrollmentId={enrollment.id} /></div>;
+              })}
             </div>
-          </div>
-        </div>
-
-        {/* Detailed Tabs: Evaluaciones, Prácticas, Historial */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-            <h2 className="text-base font-bold font-display text-slate-900">Evaluaciones Teóricas Registradas</h2>
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
-              <div>
-                <p className="font-bold text-slate-900">Evaluación Módulo 1: Bioseguridad</p>
-                <p className="text-slate-500">Completada el 08/08/2026</p>
-              </div>
-              <span className="text-emerald-700 font-extrabold text-sm">100% Aprobada</span>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h2 className="text-base font-bold font-display text-slate-900">Entrega de Prácticas Técnicas</h2>
-              <Link
-                href="/profesor/evaluar-practica/1"
-                className="bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center space-x-1 shadow-xs"
-              >
-                <span>Abrir Evaluador de Rúbrica →</span>
-              </Link>
-            </div>
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
-              <div>
-                <p className="font-bold text-slate-900">Práctica 01: Aplicación Clásica</p>
-                <p className="text-slate-500">Feedback enviado por Laura Gómez</p>
-              </div>
-              <span className="text-rose-600 font-extrabold text-sm">86 / 100</span>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+          </section>
+        )}
+      </div>
+    </main>
   );
 }
+
+function Metric({ label, value }: { label: string; value: string }) { return <div className="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3"><span className="text-[10px] text-slate-500">{label}</span><p className="font-extrabold text-slate-900">{value}</p></div>; }
+function Panel({ title, icon: Icon, children }: { title: string; icon: typeof Award; children: React.ReactNode }) { return <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="mb-4 flex items-center gap-2 font-bold text-slate-900"><Icon className="h-4 w-4 text-rose-600" />{title}</h2><div className="divide-y divide-slate-100">{children}</div></div>; }
+function Row({ title, detail, value, href }: { title: string; detail: string; value: string; href?: string }) { const content = <div className="flex items-center justify-between gap-4 py-3 text-xs"><div><p className="font-bold text-slate-900">{title}</p><p className="text-slate-500">{detail}</p></div><span className="shrink-0 font-bold text-rose-700">{value}</span></div>; return href ? <Link href={href} className="block hover:bg-slate-50">{content}</Link> : content; }
+function Empty({ text }: { text: string }) { return <p className="py-6 text-center text-xs text-slate-500">{text}</p>; }

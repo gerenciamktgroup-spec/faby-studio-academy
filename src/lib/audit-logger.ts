@@ -1,5 +1,6 @@
-import { createClient } from '@/lib/supabase/server';
-import { ActivityEvent } from '@/types';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { getAuditIpSalt } from '@/lib/config/env';
+import type { ActivityEvent } from '@/types';
 
 export const VALID_AUDIT_EVENT_TYPES = [
   'AUTH_LOGIN',
@@ -31,26 +32,14 @@ export const VALID_AUDIT_EVENT_TYPES = [
   'EVENT_CORRECTION',
 ] as const;
 
-export type AuditEventType = typeof VALID_AUDIT_EVENT_TYPES[number];
+export type AuditEventType = (typeof VALID_AUDIT_EVENT_TYPES)[number];
 
-/**
- * Anonymizes client IP address using SHA-256 for RGPD compliance.
- */
 export async function hashIpAddress(ip: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(ip + '_fabi_salt_2026');
-  if (typeof crypto !== 'undefined' && crypto.subtle) {
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-  let hash = 0;
-  for (let i = 0; i < ip.length; i++) {
-    const char = ip.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash |= 0;
-  }
-  return 'ip_hash_' + Math.abs(hash).toString(16);
+  const input = new TextEncoder().encode(`${ip}:${getAuditIpSalt()}`);
+  const digest = await crypto.subtle.digest('SHA-256', input);
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 export interface RecordEventPayload {
@@ -66,64 +55,30 @@ export interface RecordEventPayload {
   metadata?: Record<string, unknown>;
 }
 
-/**
- * Inserts an immutable append-only activity log event.
- * Handles offline / sandbox fallback gracefully in demo mode.
- */
-export async function recordActivityEvent(payload: RecordEventPayload): Promise<ActivityEvent | null> {
-  try {
-    const supabase = createClient();
-    const ipHash = await hashIpAddress(payload.ipAddress || '127.0.0.1');
-
-    const eventRecord = {
-      id: 'ev_' + Math.random().toString(36).substring(2, 11),
+export async function recordActivityEvent(
+  payload: RecordEventPayload
+): Promise<ActivityEvent> {
+  const supabase = createAdminClient();
+  const ipHash = await hashIpAddress(payload.ipAddress ?? 'unknown');
+  const { data, error } = await supabase
+    .from('activity_events')
+    .insert({
       user_id: payload.userId,
       session_id: payload.sessionId,
       event_type: payload.eventType,
-      course_id: payload.courseId || null,
-      module_id: payload.moduleId || null,
-      lesson_id: payload.lessonId || null,
-      duration_seconds: payload.durationSeconds || 0,
+      course_id: payload.courseId ?? null,
+      module_id: payload.moduleId ?? null,
+      lesson_id: payload.lessonId ?? null,
+      duration_seconds: payload.durationSeconds ?? 0,
       ip_hash: ipHash,
-      user_agent: payload.userAgent || 'Web Browser',
-      metadata_json: payload.metadata || {},
+      user_agent: payload.userAgent ?? null,
+      metadata_json: payload.metadata ?? {},
       source: 'web',
       schema_version: 1,
-      occurred_at: new Date().toISOString(),
-      received_at: new Date().toISOString(),
-    };
+    })
+    .select('*')
+    .single();
 
-    const { data, error } = await supabase
-      .from('activity_events')
-      .insert([eventRecord])
-      .select()
-      .single();
-
-    if (error) {
-      // In demo mode without active network connection to Supabase, return generated record payload
-      return eventRecord as ActivityEvent;
-    }
-
-    return (data || eventRecord) as ActivityEvent;
-  } catch (err) {
-    // Return mock event record so heartbeat and tracking continue seamlessly in demo sandbox
-    const ipHash = await hashIpAddress(payload.ipAddress || '127.0.0.1');
-    return {
-      id: 'ev_demo_' + Date.now(),
-      user_id: payload.userId,
-      session_id: payload.sessionId,
-      event_type: payload.eventType,
-      course_id: payload.courseId || null,
-      module_id: payload.moduleId || null,
-      lesson_id: payload.lessonId || null,
-      duration_seconds: payload.durationSeconds || 0,
-      ip_hash: ipHash,
-      user_agent: payload.userAgent || 'Web Browser',
-      metadata_json: payload.metadata || {},
-      source: 'web',
-      schema_version: 1,
-      occurred_at: new Date().toISOString(),
-      received_at: new Date().toISOString(),
-    } as ActivityEvent;
-  }
+  if (error) throw error;
+  return data as ActivityEvent;
 }

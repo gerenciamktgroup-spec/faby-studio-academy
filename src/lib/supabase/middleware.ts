@@ -1,51 +1,60 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import type { User } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
+import type { AppRole } from '@/types';
+import { isAppRole } from '@/lib/auth/roles';
+import { isSupabaseConfigured } from '@/lib/config/env';
 
-export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
+export interface MiddlewareSession {
+  response: NextResponse;
+  user: User | null;
+  roles: AppRole[];
+  configured: boolean;
+}
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+export async function updateSession(request: NextRequest): Promise<MiddlewareSession> {
+  let response = NextResponse.next({ request: { headers: request.headers } });
 
-  // Solo ejecutar si las credenciales de Supabase están configuradas y no son las de demo por defecto
-  if (supabaseUrl && supabaseKey && !supabaseUrl.includes('demo.supabase.co')) {
-    try {
-      const supabase = createServerClient(supabaseUrl, supabaseKey, {
-        cookies: {
-          get(name: string) {
-            return request.cookies.get(name)?.value;
-          },
-          set(name: string, value: string, options: CookieOptions) {
-            request.cookies.set({ name, value, ...options });
-            response = NextResponse.next({
-              request: {
-                headers: request.headers,
-              },
-            });
-            response.cookies.set({ name, value, ...options });
-          },
-          remove(name: string, options: CookieOptions) {
-            request.cookies.set({ name, value: '', ...options });
-            response = NextResponse.next({
-              request: {
-                headers: request.headers,
-              },
-            });
-            response.cookies.set({ name, value: '', ...options });
-          },
-        },
-      });
-
-      // Refresca el token si ha expirado
-      await supabase.auth.getUser();
-    } catch (err) {
-      console.warn('[Supabase Middleware] Session refresh pass-through:', err);
-    }
+  if (!isSupabaseConfigured()) {
+    return { response, user: null, roles: [], configured: false };
   }
 
-  return response;
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({ name, value, ...options });
+          response = NextResponse.next({ request: { headers: request.headers } });
+          response.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({ name, value: '', ...options });
+          response = NextResponse.next({ request: { headers: request.headers } });
+          response.cookies.set({ name, value: '', ...options });
+        },
+      },
+    }
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { response, user: null, roles: [], configured: true };
+
+  const { data: roleRows, error: roleError } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', user.id);
+
+  const roles = roleError
+    ? []
+    : (roleRows ?? []).map((row) => row.role).filter(isAppRole);
+
+  return { response, user, roles, configured: true };
 }

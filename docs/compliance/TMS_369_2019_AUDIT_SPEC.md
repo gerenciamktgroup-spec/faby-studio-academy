@@ -1,21 +1,21 @@
-# Specification: Compliance with Orden TMS/369/2019 & Spanish EdTech Audit Regulations
+# Especificación técnica de trazabilidad (requiere validación legal)
 
-## 1. Concurrency & Operation 24x7
-Fabi Studio Academy runs on Vercel Fluid Compute with Supabase PostgreSQL connection pooling, supporting 40%+ active student concurrency without cold-start bottlenecks.
+Este documento describe controles técnicos inspirados en requisitos de trazabilidad formativa. No certifica por sí solo cumplimiento con la Orden TMS/369/2019, FUNDAE, SEPE ni otra normativa. La aplicabilidad depende del programa, país, modalidad, entidad y revisión jurídica.
 
-## 2. Access Control & Role Models
-Six distinct RBAC roles are enforced via Row Level Security (RLS):
-- `alumna`: Enrolls, views course materials, takes quizzes, submits assignments.
-- `tutor`: Monitors student active time, provides feedback, conducts 1-on-1 tutoring.
-- `profesor`: Manages course content, authoring, and assessment criteria.
-- `admin_academico`: Academic operations, user enrollment, system configuration.
-- `superadmin`: Platform parameters and security policies.
-- `auditor`: Strictly read-only access to all active learning time logs, attempts, and hash-signed export generation.
+## 1. Concurrencia y operación
+La aplicación está preparada para un runtime Node y Supabase PostgreSQL. La capacidad, concurrencia, recuperación y disponibilidad deben validarse mediante pruebas de carga y configuración del proveedor antes del lanzamiento.
 
-## 3. Active Time vs Logged-In Time
-Heartbeats sent every 45s record:
-- Tab visibility state (`isTabVisible`)
-- Active video playback (`isVideoPlaying`)
-- User interaction timestamps
+## 2. Control de acceso y roles
 
-Only validated active interval periods contribute to `total_active_hours` on accredited certificates.
+Seis roles se separan mediante RBAC y RLS:
+
+- `alumna`: consume contenidos, presenta evaluaciones y entrega prácticas.
+- `tutor`: acompaña alumnas asignadas y gestiona tutorías.
+- `profesor`: administra contenidos y criterios de evaluación de sus cursos.
+- `admin_academico`: opera cuentas, matrículas, cursos y asignaciones.
+- `superadmin`: administra permisos elevados.
+- `auditor`: consulta trazabilidad y genera exportaciones con hash de integridad.
+
+## 3. Tiempo activo y tiempo de sesión
+
+Los heartbeats enviados cada 45 segundos incluyen visibilidad, reproducción y actividad reciente. El servidor calcula el tiempo transcurrido, limita el incremento por intervalo y solo suma tiempo activo cuando hay señal de estudio. Estas señales reducen abuso, pero deben complementarse con revisión de evidencias y pruebas de fraude antes de considerarse una garantía regulatoria.

@@ -1,74 +1,65 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
+import type { AppRole } from '@/types';
+import { getRoleLandingPage, hasAnyRole } from '@/lib/auth/roles';
 import { updateSession } from '@/lib/supabase/middleware';
 
-// Known malicious user agent signatures and vulnerability scanners
-const BLOCKED_USER_AGENTS = [
-  'sqlmap',
-  'nikto',
-  'wpscan',
-  'acunetix',
-  'dirbuster',
-  'havij',
-  'masscan',
-  'nmap',
-  'nessus',
-  'openvas',
+const PRIVATE_PAGE_RULES: Array<{ prefix: string; roles: readonly AppRole[] }> = [
+  { prefix: '/campus', roles: ['alumna'] },
+  {
+    prefix: '/profesor',
+    roles: ['tutor', 'profesor', 'admin_academico', 'superadmin'],
+  },
+  { prefix: '/admin', roles: ['admin_academico', 'superadmin'] },
+  { prefix: '/auditoria', roles: ['auditor', 'admin_academico', 'superadmin'] },
 ];
 
+function withSecurityHeaders(response: NextResponse, isPrivate: boolean): NextResponse {
+  if (isPrivate) response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set(
+    'Permissions-Policy',
+    'camera=(self), microphone=(self), geolocation=()'
+  );
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
-  const userAgent = (request.headers.get('user-agent') || '').toLowerCase();
-
-  // 1. Anti-Reconnaissance: Block malicious automated vulnerability scanners
-  for (const botSignature of BLOCKED_USER_AGENTS) {
-    if (userAgent.includes(botSignature)) {
-      return new NextResponse('Access Denied: Malicious scanner signature detected by Fabi Security Guard.', {
-        status: 403,
-        headers: { 'Content-Type': 'text/plain' },
-      });
-    }
-  }
-
-  // 2. Prevent Path Traversal & Suspicious Query Probing
-  const urlString = request.url.toLowerCase();
-  if (
-    urlString.includes('/etc/passwd') ||
-    urlString.includes('..%2f') ||
-    urlString.includes('..\\') ||
-    urlString.includes('.git/') ||
-    urlString.includes('.env')
-  ) {
-    return new NextResponse('Forbidden: Malformed request path.', {
-      status: 403,
-      headers: { 'Content-Type': 'text/plain' },
-    });
-  }
-
-  // 3. Supabase Auth Session Refresh (JWT Cookie handler)
-  const sessionResponse = await updateSession(request);
-
-  // 4. Enforce Security Response Headers
   const pathname = request.nextUrl.pathname;
-  const isPrivateRoute = pathname.startsWith('/campus') || pathname.startsWith('/profesor') || pathname.startsWith('/admin') || pathname.startsWith('/api');
-  if (isPrivateRoute) {
-    sessionResponse.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  const rule = PRIVATE_PAGE_RULES.find(
+    ({ prefix }) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+  const session = await updateSession(request);
+
+  if (!rule) return withSecurityHeaders(session.response, false);
+
+  if (!session.configured) {
+    return withSecurityHeaders(
+      new NextResponse('Servicio de autenticación no configurado.', { status: 503 }),
+      true
+    );
   }
 
-  sessionResponse.headers.set('X-Frame-Options', 'SAMEORIGIN');
-  sessionResponse.headers.set('X-Content-Type-Options', 'nosniff');
+  if (!session.user) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = '/login';
+    loginUrl.searchParams.set('next', pathname);
+    return withSecurityHeaders(NextResponse.redirect(loginUrl), true);
+  }
 
-  return sessionResponse;
+  if (!hasAnyRole(session.roles, rule.roles)) {
+    const destination = request.nextUrl.clone();
+    destination.pathname = getRoleLandingPage(session.roles);
+    destination.search = '';
+
+    if (destination.pathname === pathname) destination.pathname = '/sin-acceso';
+    return withSecurityHeaders(NextResponse.redirect(destination), true);
+  }
+
+  return withSecurityHeaders(session.response, true);
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public assets
-     */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 };

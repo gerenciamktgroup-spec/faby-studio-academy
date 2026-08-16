@@ -2,13 +2,11 @@ name: Staging Live Security & Database Audit
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 4 * * 1' # Weekly security audit
 
 jobs:
   audit-staging:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     environment: staging
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -18,7 +16,10 @@ jobs:
       CERTIFICATE_SIGNING_SECRET: ${{ secrets.CERTIFICATE_SIGNING_SECRET }}
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-      NEXT_PUBLIC_APP_URL: https://faby-studio-academy.vercel.app
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      ENABLE_PUBLIC_REGISTRATION: "true"
+      LIVE_AUTH_E2E: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,19 +27,41 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
+      - name: Fail closed when Staging secrets are missing
+        shell: bash
+        run: |
+          required=(
+            NEXT_PUBLIC_SUPABASE_URL
+            NEXT_PUBLIC_SUPABASE_ANON_KEY
+            SUPABASE_SERVICE_ROLE_KEY
+            AUDIT_IP_HASH_SALT
+            CERTIFICATE_SIGNING_SECRET
+            SUPABASE_PROJECT_REF
+            SUPABASE_ACCESS_TOKEN
+            SUPABASE_DB_PASSWORD
+          )
+          for name in "${required[@]}"; do
+            if [ -z "${!name}" ]; then
+              echo "Missing required Staging secret: ${name}"
+              exit 1
+            fi
+          done
+      - uses: supabase/setup-cli@v1
         with:
-          version: latest
-      - name: Link Supabase Project
-        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      - name: Verify Live Migrations
-        run: supabase migration list --linked
-      - name: Run Supabase Security Advisor Linter
-        run: supabase db lint --linked
-      - name: Run Live Database Audit
+          version: 2.114.0
+      - name: Link the exact Staging project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+      - name: Apply pending Staging migrations
+        run: supabase db push --linked --password "$SUPABASE_DB_PASSWORD"
+      - name: Verify remote migration history
+        run: supabase migration list --linked --password "$SUPABASE_DB_PASSWORD"
+      - name: Lint the linked PostgreSQL schemas
+        run: supabase db lint --linked --fail-on error --schema public,extensions
+      - name: Run Live PostgreSQL 17 Catalog Security Audit
         run: npm run db:audit:live
-      - name: Run Live RBAC & RLS Security Matrix
+      - name: Run Live RBAC and RLS Security Matrix
         run: node scripts/test-roles-real.mjs
+      - name: Install browser for authenticated role E2E
+        run: npx playwright install --with-deps chromium
+      - name: Run authenticated role E2E against Staging
+        run: npx playwright test tests/e2e/authenticated-roles.spec.ts

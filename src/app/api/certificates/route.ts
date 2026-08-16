@@ -56,12 +56,16 @@ export async function POST(request: NextRequest) {
     const admin = createAdminClient();
 
     // 1. Fetch enrollment
-    const { data: enrollment, error: enrollmentError } = await supabase
+    const { data: enrollment, error: enrollmentError } = await admin
       .from('enrollments')
       .select('id, student_id, course_id, status')
       .eq('id', payload.data.enrollmentId)
-      .single();
+      .maybeSingle();
+
     if (enrollmentError) throw enrollmentError;
+    if (!enrollment) {
+      return NextResponse.json({ error: 'Matrícula no encontrada.' }, { status: 404 });
+    }
 
     if (enrollment.status !== 'completed' && enrollment.status !== 'active') {
       return NextResponse.json(

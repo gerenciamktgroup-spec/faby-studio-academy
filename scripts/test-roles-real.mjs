@@ -40,7 +40,9 @@ function strictResult(description, result) {
 async function waitForApplication(baseUrl, child) {
   const deadline = Date.now() + 120_000;
   while (Date.now() < deadline) {
-    if (child?.exitCode !== null) throw new Error(`Next.js terminó antes de estar listo (${child.exitCode}).`);
+    if (child && child.exitCode !== null && child.exitCode !== undefined) {
+      throw new Error(`Next.js terminó antes de estar listo (${child.exitCode}).`);
+    }
     try {
       const response = await fetch(`${baseUrl}/login`, { redirect: 'manual' });
       if (response.status < 500) return;
@@ -55,8 +57,9 @@ async function waitForApplication(baseUrl, child) {
 function startApplication(baseUrl) {
   if (process.env.LIVE_APP_URL) return null;
   const port = new URL(baseUrl).port || '3100';
+  const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   const child = spawn(
-    'npm',
+    npmCmd,
     ['run', 'dev', '--', '--hostname', '127.0.0.1', '--port', port],
     {
       env: {
@@ -65,6 +68,7 @@ function startApplication(baseUrl) {
         NEXT_PUBLIC_APP_URL: baseUrl,
       },
       stdio: ['ignore', 'pipe', 'pipe'],
+      shell: process.platform === 'win32',
     }
   );
   child.stdout.on('data', (chunk) => process.stdout.write(`[next] ${chunk}`));

@@ -47,7 +47,7 @@ if (fs.existsSync(migrationsDir)) {
   });
 }
 
-const seedSQL = auditSQLFile(seedPath, 'Datos Oficiales Seed (seed.sql)');
+auditSQLFile(seedPath, 'Datos Oficiales Seed (seed.sql)');
 auditSQLFile(demoSeedPath, 'Seed demo deshabilitado (demo_seed.sql)');
 
 // 2. Extraer catálogo de tablas creadas en el esquema

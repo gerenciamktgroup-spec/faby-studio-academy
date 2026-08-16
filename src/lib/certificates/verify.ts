@@ -25,17 +25,31 @@ export function buildCertificateCanonicalPayload(params: {
   studentName: string;
   courseId: string;
   courseTitle: string;
-  totalActiveHours: number;
+  totalActiveSeconds: number;
   issuedAt: string;
 }): string {
+  const version = params.version ?? '2.0';
+  if (version === '1.0') {
+    return JSON.stringify({
+      version: '1.0',
+      code: params.code,
+      student_id: params.studentId,
+      student_name: params.studentName,
+      course_id: params.courseId,
+      course_title: params.courseTitle,
+      total_active_hours: Number((params.totalActiveSeconds / 3600).toFixed(2)),
+      issued_at: new Date(params.issuedAt).toISOString(),
+    });
+  }
+
   return JSON.stringify({
-    version: params.version ?? '1.0',
+    version: '2.0',
     code: params.code,
     student_id: params.studentId,
     student_name: params.studentName,
     course_id: params.courseId,
     course_title: params.courseTitle,
-    total_active_hours: Number(params.totalActiveHours),
+    total_active_seconds: Math.floor(params.totalActiveSeconds),
     issued_at: new Date(params.issuedAt).toISOString(),
   });
 }
@@ -44,7 +58,9 @@ export async function verifyCertificate(code: string): Promise<PublicVerifiedCer
   const admin = createAdminClient();
   const { data, error } = await admin
     .from('certificates')
-    .select('enrollment_id, student_id, course_id, code, hash_signature, total_active_hours, issued_at, verification_url, profiles(full_name), courses(title)')
+    .select(
+      'enrollment_id, student_id, course_id, code, hash_signature, payload_version, student_name_snapshot, course_title_snapshot, total_active_seconds, total_active_hours, issued_at, verification_url, profiles(full_name), courses(title)'
+    )
     .eq('code', code)
     .maybeSingle();
 
@@ -53,17 +69,22 @@ export async function verifyCertificate(code: string): Promise<PublicVerifiedCer
 
   const profile = relation(data.profiles as unknown as { full_name: string });
   const course = relation(data.courses as unknown as { title: string });
-  if (!profile || !course) return null;
 
+  const studentName = data.student_name_snapshot || profile?.full_name || 'Alumna Faby Studio';
+  const courseTitle = data.course_title_snapshot || course?.title || 'Curso Profesional';
+  const totalActiveSeconds = data.total_active_seconds ?? Math.round(Number(data.total_active_hours || 0) * 3600);
+  const totalActiveHours = Number((totalActiveSeconds / 3600).toFixed(2));
   const canonicalIssuedAt = new Date(data.issued_at).toISOString();
+  const payloadVersion = data.payload_version ?? '1.0';
+
   const canonicalPayload = buildCertificateCanonicalPayload({
-    version: '1.0',
+    version: payloadVersion,
     code: data.code,
     studentId: data.student_id,
-    studentName: profile.full_name,
+    studentName,
     courseId: data.course_id,
-    courseTitle: course.title,
-    totalActiveHours: Number(data.total_active_hours),
+    courseTitle,
+    totalActiveSeconds,
     issuedAt: canonicalIssuedAt,
   });
 
@@ -79,9 +100,9 @@ export async function verifyCertificate(code: string): Promise<PublicVerifiedCer
 
   return {
     code: data.code,
-    student_name: profile.full_name,
-    course_title: course.title,
-    total_active_hours: Number(data.total_active_hours),
+    student_name: studentName,
+    course_title: courseTitle,
+    total_active_hours: totalActiveHours,
     issued_at: canonicalIssuedAt,
     verification_url: data.verification_url,
     is_valid: true,

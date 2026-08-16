@@ -27,7 +27,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Certificado no encontrado o firma no válida.' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, certificate });
+    return NextResponse.json({
+      success: true,
+      certificate: {
+        code: certificate.code,
+        student_name: certificate.student_name,
+        course_title: certificate.course_title,
+        total_active_hours: certificate.total_active_hours,
+        issued_at: certificate.issued_at,
+        verification_url: certificate.verification_url,
+        is_valid: certificate.is_valid,
+      },
+    });
   } catch (error) {
     return apiErrorResponse(error);
   }
@@ -59,7 +70,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Check teacher course assignment (if not superadmin)
+    // 2. Check teacher course assignment (if not superadmin or academic admin)
     if (!principal.roles.includes('superadmin') && !principal.roles.includes('admin_academico')) {
       const { data: staffAssignment, error: staffError } = await admin
         .from('course_staff')
@@ -104,69 +115,72 @@ export async function POST(request: NextRequest) {
     if (lessonsResult.error) throw lessonsResult.error;
     const lessonIds = (lessonsResult.data ?? []).map((l) => l.id);
 
-    if (lessonIds.length > 0) {
-      const { data: progressData, error: progressError } = await admin
-        .from('lesson_progress')
-        .select('lesson_id')
-        .eq('student_id', enrollment.student_id)
-        .eq('status', 'completed')
-        .in('lesson_id', lessonIds);
-      if (progressError) throw progressError;
+    if (lessonIds.length === 0) {
+      return NextResponse.json(
+        { error: 'El curso no contiene lecciones estructuradas para certificar.' },
+        { status: 409 }
+      );
+    }
 
-      const completedLessons = new Set((progressData ?? []).map((row) => row.lesson_id));
-      if (lessonIds.some((lId) => !completedLessons.has(lId))) {
+    const { data: progressData, error: progressError } = await admin
+      .from('lesson_progress')
+      .select('lesson_id')
+      .eq('student_id', enrollment.student_id)
+      .eq('status', 'completed')
+      .in('lesson_id', lessonIds);
+    if (progressError) throw progressError;
+
+    const completedLessons = new Set((progressData ?? []).map((row) => row.lesson_id));
+    if (lessonIds.some((lId) => !completedLessons.has(lId))) {
+      return NextResponse.json(
+        { error: 'La alumna aún no ha completado la totalidad de las lecciones del curso.' },
+        { status: 409 }
+      );
+    }
+
+    // 5. Check assessments and assignments
+    const [assessmentsResult, assignmentsResult] = await Promise.all([
+      admin.from('assessments').select('id').in('lesson_id', lessonIds),
+      admin.from('assignments').select('id').in('lesson_id', lessonIds),
+    ]);
+    if (assessmentsResult.error) throw assessmentsResult.error;
+    if (assignmentsResult.error) throw assignmentsResult.error;
+
+    const assessmentIds = (assessmentsResult.data ?? []).map((row) => row.id);
+    if (assessmentIds.length > 0) {
+      const { data: attempts, error: attemptsError } = await admin
+        .from('assessment_attempts')
+        .select('assessment_id')
+        .eq('student_id', enrollment.student_id)
+        .eq('passed', true)
+        .in('assessment_id', assessmentIds);
+      if (attemptsError) throw attemptsError;
+      const passed = new Set((attempts ?? []).map((row) => row.assessment_id));
+      if (assessmentIds.some((aId) => !passed.has(aId))) {
         return NextResponse.json(
-          { error: 'La alumna aún no ha completado la totalidad de las lecciones del curso.' },
+          { error: 'Faltan evaluaciones teóricas por aprobar.' },
           { status: 409 }
         );
       }
     }
 
-    // 5. Check assessments and assignments
-    if (lessonIds.length > 0) {
-      const [assessmentsResult, assignmentsResult] = await Promise.all([
-        admin.from('assessments').select('id').in('lesson_id', lessonIds),
-        admin.from('assignments').select('id').in('lesson_id', lessonIds),
-      ]);
-      if (assessmentsResult.error) throw assessmentsResult.error;
-      if (assignmentsResult.error) throw assignmentsResult.error;
-
-      const assessmentIds = (assessmentsResult.data ?? []).map((row) => row.id);
-      if (assessmentIds.length > 0) {
-        const { data: attempts, error: attemptsError } = await admin
-          .from('assessment_attempts')
-          .select('assessment_id')
-          .eq('student_id', enrollment.student_id)
-          .eq('passed', true)
-          .in('assessment_id', assessmentIds);
-        if (attemptsError) throw attemptsError;
-        const passed = new Set((attempts ?? []).map((row) => row.assessment_id));
-        if (assessmentIds.some((aId) => !passed.has(aId))) {
-          return NextResponse.json(
-            { error: 'Faltan evaluaciones teóricas por aprobar.' },
-            { status: 409 }
-          );
-        }
-      }
-
-      const assignmentIds = (assignmentsResult.data ?? []).map((row) => row.id);
-      if (assignmentIds.length > 0) {
-        const { data: submissions, error: submissionsError } = await admin
-          .from('assignment_submissions')
-          .select('assignment_id, grade')
-          .eq('student_id', enrollment.student_id)
-          .in('assignment_id', assignmentIds)
-          .not('graded_at', 'is', null);
-        if (submissionsError) throw submissionsError;
-        const approved = new Set(
-          (submissions ?? []).filter((row) => Number(row.grade) >= 70).map((row) => row.assignment_id)
+    const assignmentIds = (assignmentsResult.data ?? []).map((row) => row.id);
+    if (assignmentIds.length > 0) {
+      const { data: submissions, error: submissionsError } = await admin
+        .from('assignment_submissions')
+        .select('assignment_id, grade')
+        .eq('student_id', enrollment.student_id)
+        .in('assignment_id', assignmentIds)
+        .not('graded_at', 'is', null);
+      if (submissionsError) throw submissionsError;
+      const approved = new Set(
+        (submissions ?? []).filter((row) => Number(row.grade) >= 70).map((row) => row.assignment_id)
+      );
+      if (assignmentIds.some((aId) => !approved.has(aId))) {
+        return NextResponse.json(
+          { error: 'Faltan entregas de prácticas evaluadas con nota aprobatoria (mínimo 70/100).' },
+          { status: 409 }
         );
-        if (assignmentIds.some((aId) => !approved.has(aId))) {
-          return NextResponse.json(
-            { error: 'Faltan entregas de prácticas evaluadas con nota aprobatoria (mínimo 70/100).' },
-            { status: 409 }
-          );
-        }
       }
     }
 
@@ -222,13 +236,13 @@ export async function POST(request: NextRequest) {
       .toUpperCase()}`;
 
     const canonicalPayload = buildCertificateCanonicalPayload({
-      version: '1.0',
+      version: '2.0',
       code,
       studentId: enrollment.student_id,
       studentName,
       courseId: enrollment.course_id,
       courseTitle: courseData.title,
-      totalActiveHours,
+      totalActiveSeconds,
       issuedAt,
     });
 
@@ -240,7 +254,7 @@ export async function POST(request: NextRequest) {
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin).replace(/\/$/, '');
     const verificationUrl = `${appUrl}/verificar-certificado/${code}`;
 
-    // 8. Insert certificate into database
+    // 8. Insert certificate into database with snapshots
     const { data: certificate, error: issueError } = await admin
       .from('certificates')
       .insert({
@@ -249,6 +263,10 @@ export async function POST(request: NextRequest) {
         course_id: enrollment.course_id,
         code,
         hash_signature: signature,
+        payload_version: '2.0',
+        student_name_snapshot: studentName,
+        course_title_snapshot: courseData.title,
+        total_active_seconds: totalActiveSeconds,
         total_active_hours: totalActiveHours,
         issued_at: issuedAt,
         verification_url: verificationUrl,
@@ -258,10 +276,14 @@ export async function POST(request: NextRequest) {
     if (issueError) throw issueError;
 
     // 9. Update enrollment status to completed
-    await admin
+    const { error: enrollmentUpdateError } = await admin
       .from('enrollments')
       .update({ status: 'completed', completed_at: issuedAt, certificate_id: certificate.id })
       .eq('id', enrollment.id);
+    if (enrollmentUpdateError) {
+      console.error('[Certificates API] Enrollment update failed:', enrollmentUpdateError);
+      throw enrollmentUpdateError;
+    }
 
     // 10. Audit event
     await recordActivityEvent({

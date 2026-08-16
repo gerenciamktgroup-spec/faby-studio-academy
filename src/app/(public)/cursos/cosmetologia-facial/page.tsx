@@ -8,12 +8,8 @@ import {
   Sparkles,
   Clock,
   Award,
-  CheckCircle2,
   Play,
-  Star,
-  ShieldCheck,
   ArrowRight,
-  BookOpen,
   Users,
   ChevronDown,
   ChevronUp,
@@ -25,7 +21,6 @@ import {
 
 export default function CosmetologyCourseDetailPage() {
   const [openModule, setOpenModule] = useState<number | null>(1);
-  const [downloadedDossier, setDownloadedDossier] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
 
   const youtubeVideoId = 'o6Z52S9qJ5k'; // Protocolo de Limpieza Facial en Cabina
@@ -106,37 +101,6 @@ export default function CosmetologyCourseDetailPage() {
       ],
     },
   ];
-
-  const handleDownloadDossier = () => {
-    setDownloadedDossier(true);
-    const content = `═══════════════════════════════════════════════════════════
-        FABY STUDIO ACADEMY — DOSSIER ACADÉMICO
-    CURSO SUPERIOR DE COSMETOLOGÍA FACIAL & SKIN CARE
-═══════════════════════════════════════════════════════════
-
-• Duración: 10 Semanas (80 Horas Lectivas Activas)
-• Modalidad: Campus Virtual 24/7 + Tutorías 1 a 1 de Corrección
-• Certificación: Diploma Técnico Verificable con Firma SHA-256
-
-TEMARIO COMPLETO:
-- Módulo 1: Histología Cutánea, Biotipos & Fisiología Dérmica
-- Módulo 2: Química Cosmética, pH & Formulación Magistral
-- Módulo 3: Protocolos de Limpieza Profunda & Extracción Aséptica
-- Módulo 4: Peelings Químicos (AHA, BHA, Mandélico) & Neutralización
-- Módulo 5: Aparatología Estética: Alta Frecuencia, Dermapen y Luz LED
-- Módulo 6: Diagnóstico Profesional, Ficha Médica y Proyecto de Casos
-
-Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
-═══════════════════════════════════════════════════════════`;
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `DOSSIER_COSMETOLOGIA_FACIAL_FABY_STUDIO_2026.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setTimeout(() => setDownloadedDossier(false), 3500);
-  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">

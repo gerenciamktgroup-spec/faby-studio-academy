@@ -34,7 +34,7 @@ const anonClient = createClient(supabaseUrl, anonKey, {
 
 async function runLiveAudit() {
   console.log('================================================================');
-  console.log('   POSTGRESQL 17 STAGING LIVE DATABASE SECURITY AUDIT');
+  console.log('   POSTGRESQL 17 STAGING LIVE DATABASE SECURITY & CATALOG AUDIT');
   console.log('================================================================\n');
   console.log(`🔗 Conectado a Staging: ${supabaseUrl}`);
   console.log(`📌 Project Ref: ${projectRef}\n`);
@@ -81,7 +81,7 @@ async function runLiveAudit() {
     'course_staff',
   ];
 
-  console.log(`📊 1. AUDITORÍA DE TABLAS DE DOMINIO (${coreTables.length} tablas esperadas):`);
+  console.log(`📊 1. AUDITORÍA DE TABLAS DE DOMINIO (${coreTables.length} tablas verificadas):`);
   let accessibleCount = 0;
   for (const table of coreTables) {
     const { count, error } = await adminClient.from(table).select('*', { count: 'exact', head: true });

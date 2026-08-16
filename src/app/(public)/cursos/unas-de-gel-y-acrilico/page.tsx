@@ -8,12 +8,8 @@ import {
   Sparkles,
   Clock,
   Award,
-  CheckCircle2,
   Play,
-  Star,
-  ShieldCheck,
   ArrowRight,
-  BookOpen,
   Users,
   ChevronDown,
   ChevronUp,
@@ -25,7 +21,6 @@ import {
 
 export default function NailsCourseDetailPage() {
   const [openModule, setOpenModule] = useState<number | null>(1);
-  const [downloadedDossier, setDownloadedDossier] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
 
   const youtubeVideoId = 'gMLz-995K-A'; // Master Class Manicure Premium
@@ -107,37 +102,6 @@ export default function NailsCourseDetailPage() {
       ],
     },
   ];
-
-  const handleDownloadDossier = () => {
-    setDownloadedDossier(true);
-    const content = `═══════════════════════════════════════════════════════════
-        FABY STUDIO ACADEMY — DOSSIER ACADÉMICO
-  MÁSTER PROFESIONAL EN UÑAS DE GEL Y ACRÍLICO PREMIUM
-═══════════════════════════════════════════════════════════
-
-• Duración: 8 Semanas (60 Horas Lectivas Activas)
-• Modalidad: Campus Virtual 24/7 + Tutorías 1 a 1 de Corrección
-• Certificación: Diploma Técnico Verificable con Firma SHA-256
-
-TEMARIO COMPLETO:
-- Módulo 1: Anatomía Ungular & Preparación Mecánica Rusa
-- Módulo 2: Esculpido en Gel Constructor & Control del Ápice
-- Módulo 3: Acrílico Tradicional & Control de Perlas
-- Módulo 4: Acrigel / Polygel & Dual System Forms
-- Módulo 5: Nail Art de Salón & Francesa Inversa (Reverse French)
-- Módulo 6: Relleno, Retirada y Rentabilidad del Salón
-
-Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
-═══════════════════════════════════════════════════════════`;
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `DOSSIER_MASTER_UNAS_FABY_STUDIO_2026.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setTimeout(() => setDownloadedDossier(false), 3500);
-  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">

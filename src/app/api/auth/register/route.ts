@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { recordUserConsent, TERMS_VERSION, PRIVACY_POLICY_VERSION } from '@/lib/consent';
 
-// Simple in-memory rate limiter for staging register endpoint
+// In-memory rate limiter for single-instance protection in staging/demo environment.
+// NOTE FOR PRODUCTION: Multi-instance deployments should use Redis / Upstash or Vercel Edge Firewall / WAF.
 const registerAttempts = new Map<string, { count: number; expiresAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const MAX_ATTEMPTS_PER_WINDOW = 15;
@@ -97,9 +98,10 @@ export async function POST(request: NextRequest) {
     } catch (consentError) {
       console.error('[Register API] Rollback: consent registration failed, deleting user:', consentError);
       // Clean up orphaned auth user to ensure atomicity
-      await admin.auth.admin.deleteUser(userId).catch((delErr) => {
-        console.error('[Register API] Critical: failed to delete orphan user during rollback:', delErr);
-      });
+      const { error: rollbackError } = await admin.auth.admin.deleteUser(userId);
+      if (rollbackError) {
+        console.error('[Register API] Critical: failed to delete orphan user during rollback:', rollbackError);
+      }
 
       return NextResponse.json(
         { error: 'No se pudo completar el registro legal del consentimiento. Intenta de nuevo.' },

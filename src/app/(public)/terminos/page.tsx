@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
-import { FileText, Award, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { FileText, ArrowLeft } from 'lucide-react';
 
 export default function TerminosPage() {
   return (

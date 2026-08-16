@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
-import { BookOpen, Clock, Award, Star, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Clock, Award, Star, ArrowRight } from 'lucide-react';
 
 export default function CursosPage() {
   const courses = [

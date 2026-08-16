@@ -8,16 +8,11 @@ import {
   Sparkles,
   Award,
   Clock,
-  Users,
   ShieldCheck,
-  CheckCircle2,
   Play,
   ArrowRight,
   Star,
-  Video,
-  Eye,
-  BookOpen,
-  Check
+  Video
 } from 'lucide-react';
 
 export default function HomePage() {

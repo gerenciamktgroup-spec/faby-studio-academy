@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
-import { ShieldCheck, Lock, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export default function PrivacidadPage() {
   return (

@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, ShieldCheck, Heart } from 'lucide-react';
+import { Sparkles, ShieldCheck } from 'lucide-react';
 
 export function PublicFooter() {
   return (

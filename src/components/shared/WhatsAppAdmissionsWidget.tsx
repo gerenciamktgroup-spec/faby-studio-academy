@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MessageCircle, X, Sparkles, Send, Building2, HelpCircle } from 'lucide-react';
+import { MessageCircle, X, Send } from 'lucide-react';
 
 export function WhatsAppAdmissionsWidget({ phone }: { phone: string }) {
   const [isOpen, setIsOpen] = useState(false);

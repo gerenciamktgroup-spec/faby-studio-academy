@@ -6,7 +6,6 @@ import { ADMIN_ROLES, type AppRole } from '@/lib/auth/roles';
 import { requireAuthPrincipal } from '@/lib/auth/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { recordActivityEvent } from '@/lib/audit-logger';
 
 export interface AdminActionState {
   status: 'idle' | 'success' | 'error';
@@ -125,18 +124,32 @@ export async function inviteUserAction(
       throw inviteError ?? new Error('Supabase no devolvió la cuenta invitada.');
     }
 
-    const { error: roleError } = await admin.from('user_roles').upsert(
-      { user_id: data.user.id, role: payload.data.role },
-      { onConflict: 'user_id,role' }
-    );
-    if (roleError) throw roleError;
+    const { error: assignError } = await admin.rpc('manage_user_role_tx', {
+      p_actor_id: principal.id,
+      p_target_user_id: data.user.id,
+      p_target_role: payload.data.role,
+      p_action: 'ASSIGN',
+    });
+
+    if (assignError) {
+      console.error('[Admin] Failed to assign role on invited user, rolling back:', assignError);
+      const { error: rollbackError } = await admin.auth.admin.deleteUser(data.user.id);
+      if (rollbackError) {
+        console.error('[Admin] Failed rollback on invited user:', rollbackError);
+      }
+      return errorState(assignError.message || 'No fue posible asignar el rol inicial a la cuenta invitada.');
+    }
+
     if (payload.data.role !== 'alumna') {
-      const { error: removeStudentError } = await admin
-        .from('user_roles')
-        .delete()
-        .eq('user_id', data.user.id)
-        .eq('role', 'alumna');
-      if (removeStudentError) throw removeStudentError;
+      const { error: removeDefaultError } = await admin.rpc('manage_user_role_tx', {
+        p_actor_id: principal.id,
+        p_target_user_id: data.user.id,
+        p_target_role: 'alumna',
+        p_action: 'REMOVE',
+      });
+      if (removeDefaultError) {
+        console.warn('[Admin] Default alumna role cleanup notice:', removeDefaultError.message);
+      }
     }
 
     revalidatePath('/admin');

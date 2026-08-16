@@ -467,34 +467,49 @@ export type Database = {
         Row: {
           code: string
           course_id: string
+          course_title_snapshot: string | null
           enrollment_id: string
           hash_signature: string
           id: string
           issued_at: string | null
+          metadata_snapshot: Json
+          payload_version: string
           student_id: string
+          student_name_snapshot: string | null
           total_active_hours: number
+          total_active_seconds: number | null
           verification_url: string
         }
         Insert: {
           code: string
           course_id: string
+          course_title_snapshot?: string | null
           enrollment_id: string
           hash_signature: string
           id?: string
           issued_at?: string | null
+          metadata_snapshot?: Json
+          payload_version?: string
           student_id: string
+          student_name_snapshot?: string | null
           total_active_hours?: number
+          total_active_seconds?: number | null
           verification_url: string
         }
         Update: {
           code?: string
           course_id?: string
+          course_title_snapshot?: string | null
           enrollment_id?: string
           hash_signature?: string
           id?: string
           issued_at?: string | null
+          metadata_snapshot?: Json
+          payload_version?: string
           student_id?: string
+          student_name_snapshot?: string | null
           total_active_hours?: number
+          total_active_seconds?: number | null
           verification_url?: string
         }
         Relationships: [
@@ -528,6 +543,7 @@ export type Database = {
           id: string
           ip_hash: string
           legal_version_id: string | null
+          user_agent: string | null
           user_id: string
           version: string
         }
@@ -537,6 +553,7 @@ export type Database = {
           id?: string
           ip_hash: string
           legal_version_id?: string | null
+          user_agent?: string | null
           user_id: string
           version: string
         }
@@ -546,6 +563,7 @@ export type Database = {
           id?: string
           ip_hash?: string
           legal_version_id?: string | null
+          user_agent?: string | null
           user_id?: string
           version?: string
         }

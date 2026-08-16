@@ -15,28 +15,28 @@ test.describe('Authenticated Role-Based Flows & Route Security', () => {
     await expect(page.getByText(/no encontrado|no válido|no existe/i)).toBeVisible({ timeout: 10000 });
   });
 
-  test('Route guard protects /campus by redirecting unauthenticated users to /login', async ({ page }) => {
+  test('Unauthenticated access guard: /campus redirects anonymous user to /login', async ({ page }) => {
     const response = await page.goto('/campus');
     expect(response?.status()).toBeLessThan(400);
     expect(page.url()).toContain('/login');
     await expect(page.locator('input[type="email"]')).toBeVisible();
   });
 
-  test('Route guard protects /profesor by redirecting unauthenticated users to /login', async ({ page }) => {
+  test('Unauthenticated access guard: /profesor redirects anonymous user to /login', async ({ page }) => {
     const response = await page.goto('/profesor');
     expect(response?.status()).toBeLessThan(400);
     expect(page.url()).toContain('/login');
     await expect(page.locator('input[type="email"]')).toBeVisible();
   });
 
-  test('Route guard protects /admin by redirecting unauthenticated users to /login', async ({ page }) => {
+  test('Unauthenticated access guard: /admin redirects anonymous user to /login', async ({ page }) => {
     const response = await page.goto('/admin');
     expect(response?.status()).toBeLessThan(400);
     expect(page.url()).toContain('/login');
     await expect(page.locator('input[type="email"]')).toBeVisible();
   });
 
-  test('Route guard protects /auditoria by redirecting unauthenticated users to /login', async ({ page }) => {
+  test('Unauthenticated access guard: /auditoria redirects anonymous user to /login', async ({ page }) => {
     const response = await page.goto('/auditoria');
     expect(response?.status()).toBeLessThan(400);
     expect(page.url()).toContain('/login');

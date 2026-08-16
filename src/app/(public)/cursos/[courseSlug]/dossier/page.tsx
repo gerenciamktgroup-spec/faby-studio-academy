@@ -7,15 +7,10 @@ import {
   Sparkles,
   Printer,
   ArrowLeft,
-  Award,
-  Clock,
   CheckCircle2,
   Users,
-  Building2,
   ShieldCheck,
-  Download,
-  BookOpen,
-  Calendar
+  BookOpen
 } from 'lucide-react';
 
 const DOSSIERS_DATA: Record<string, {

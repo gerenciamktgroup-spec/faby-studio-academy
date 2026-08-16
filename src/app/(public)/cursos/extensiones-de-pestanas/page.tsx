@@ -8,26 +8,19 @@ import {
   Sparkles,
   Clock,
   Award,
-  CheckCircle2,
   Play,
-  Star,
-  ShieldCheck,
   ArrowRight,
-  BookOpen,
   Users,
   HelpCircle,
   ChevronDown,
   ChevronUp,
   Download,
   FileText,
-  Video,
-  Check,
-  MessageCircle
+  Video
 } from 'lucide-react';
 
 export default function LashCourseDetailPage() {
   const [openModule, setOpenModule] = useState<number | null>(1);
-  const [downloadedDossier, setDownloadedDossier] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
 
   const youtubeVideoId = 'FmcPn9DJ5ef'; // Tutorial Pelo a Pelo Técnica Clásica 1x1
@@ -110,37 +103,6 @@ export default function LashCourseDetailPage() {
       ],
     },
   ];
-
-  const handleDownloadDossier = () => {
-    setDownloadedDossier(true);
-    const content = `═══════════════════════════════════════════════════════════
-        FABY STUDIO ACADEMY — DOSSIER ACADÉMICO
-       ESPECIALIZACIÓN EN PESTAÑAS Y VOLUMEN RUSO
-═══════════════════════════════════════════════════════════
-
-• Duración: 6 Semanas (50 Horas Lectivas Activas)
-• Modalidad: Campus Virtual 24/7 + Tutorías 1 a 1 de Corrección
-• Certificación: Diploma Técnico Verificable con Firma SHA-256
-
-TEMARIO COMPLETO:
-- Módulo 1: Fundamentos & Bioseguridad Ocular
-- Módulo 2: Visagismo, Curvaturas & Mapping Avanzado (Cat Eye, Doll Eye)
-- Módulo 3: Técnica Clásica Pelo a Pelo (1:1)
-- Módulo 4: Volumen Ruso & Creación de Abanicos (2D a 6D)
-- Módulo 5: Retención Extrema, Mantenimiento & Retirada Segura
-- Módulo 6: Negocio en Cabina, Fotografía & Marca Personal
-
-Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
-═══════════════════════════════════════════════════════════`;
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `DOSSIER_ESPECIALIZACION_PESTANAS_FABY_STUDIO_2026.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setTimeout(() => setDownloadedDossier(false), 3500);
-  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">

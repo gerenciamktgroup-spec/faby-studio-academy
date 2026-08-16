@@ -45,6 +45,16 @@ CREATE TRIGGER trg_legal_doc_protect
   BEFORE UPDATE OR DELETE ON public.legal_document_versions
   FOR EACH ROW EXECUTE FUNCTION public.trg_prevent_legal_document_mutation();
 
+-- Revocar escrituras directas sobre tablas críticas de seguridad para clientes
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON public.user_roles FROM PUBLIC, anon, authenticated;
+GRANT SELECT ON public.user_roles TO authenticated;
+
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON public.consent_records FROM PUBLIC, anon, authenticated;
+GRANT SELECT ON public.consent_records TO authenticated;
+
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON public.legal_document_versions FROM PUBLIC, anon, authenticated;
+GRANT SELECT ON public.legal_document_versions TO anon, authenticated;
+
 -- Normalizar el nombre legacy antes de completar el backfill.
 UPDATE public.consent_records
 SET consent_type = 'privacy_policy'
@@ -463,7 +473,7 @@ DECLARE
   required_seconds BIGINT;
   actor_allowed BOOLEAN;
   test_fixture BOOLEAN;
-  certificate_id UUID;
+  v_certificate_id UUID;
 BEGIN
   IF p_payload_version <> '2.0'
      OR p_code !~ '^FABY-[0-9]{4}-[A-Z0-9]{12}$'
@@ -608,10 +618,10 @@ BEGIN
     p_course_title_snapshot, p_total_active_seconds,
     ROUND(p_total_active_seconds::NUMERIC / 3600, 2), p_issued_at,
     p_verification_url, test_fixture
-  ) RETURNING id INTO certificate_id;
+  ) RETURNING id INTO v_certificate_id;
 
   UPDATE public.enrollments
-  SET status = 'completed', completed_at = p_issued_at, certificate_id = certificate_id
+  SET status = 'completed', completed_at = p_issued_at, certificate_id = v_certificate_id
   WHERE id = enrollment_row.id;
 
   INSERT INTO public.activity_events (
@@ -624,7 +634,7 @@ BEGIN
     p_ip_hash,
     LEFT(COALESCE(p_user_agent, 'unknown'), 512),
     jsonb_build_object(
-      'certificate_id', certificate_id,
+      'certificate_id', v_certificate_id,
       'enrollment_id', enrollment_row.id,
       'student_id', enrollment_row.student_id,
       'active_seconds', p_total_active_seconds,
@@ -633,7 +643,7 @@ BEGIN
   );
 
   RETURN jsonb_build_object(
-    'id', certificate_id,
+    'id', v_certificate_id,
     'code', p_code,
     'student_name', p_student_name_snapshot,
     'course_title', p_course_title_snapshot,

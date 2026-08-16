@@ -375,7 +375,7 @@ export default function LuxuryDossierPage() {
             <p className="font-bold text-rose-700 text-sm">{course.activeHours}h Activas</p>
           </div>
           <div className="space-y-1">
-            <span className="text-slate-400 font-medium">Acreditación</span>
+            <span className="text-slate-400 font-medium">Certificación</span>
             <p className="font-bold text-emerald-700 text-sm">Diploma SHA-256</p>
           </div>
           <div className="space-y-1">
@@ -445,7 +445,7 @@ export default function LuxuryDossierPage() {
               <span>Validez y Verificación del Diploma</span>
             </h4>
             <p className="text-slate-600 leading-relaxed">
-              El certificado emitido cuenta con código único y código QR público enlazado al portal de auditoría inmutable, permitiendo a salones y clientas comprobar la autenticidad y horas de formación realizadas.
+              El certificado emitido cuenta con código único y código QR público enlazado al portal de validación, permitiendo a salones y clientas comprobar la autenticidad y horas de formación realizadas.
             </p>
           </div>
         </div>
@@ -457,7 +457,7 @@ export default function LuxuryDossierPage() {
             <p className="text-3xl font-extrabold text-slate-900 font-display">{course.price}</p>
             <p className="text-xs text-slate-500 font-medium">{course.installments}</p>
             <p className="text-[11px] text-rose-700 font-semibold mt-1">
-              ✨ Inscripción y seguimiento a través del Campus Virtual oficial.
+              ✨ Inscripción y seguimiento a través del Campus Virtual.
             </p>
           </div>
 
@@ -470,7 +470,7 @@ export default function LuxuryDossierPage() {
 
         {/* Footer Guarantee */}
         <footer className="border-t border-slate-100 pt-4 text-center text-[10px] text-slate-400">
-          FABY STUDIO ACADEMY © 2026 • Todos los derechos reservados. Programa registrado y auditable con cumplimiento estricto de RGPD y normativa formativa.
+          FABY STUDIO ACADEMY © 2026 • Todos los derechos reservados. Formación técnica con registro de trazabilidad y certificación verificable.
         </footer>
       </div>
     </div>

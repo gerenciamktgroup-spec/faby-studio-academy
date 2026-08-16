@@ -1,0 +1,44 @@
+name: Staging Live Security & Database Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * 1' # Weekly security audit
+
+jobs:
+  audit-staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: staging
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      AUDIT_IP_HASH_SALT: ${{ secrets.AUDIT_IP_HASH_SALT }}
+      CERTIFICATE_SIGNING_SECRET: ${{ secrets.CERTIFICATE_SIGNING_SECRET }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      NEXT_PUBLIC_APP_URL: https://faby-studio-academy.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Link Supabase Project
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      - name: Verify Live Migrations
+        run: supabase migration list --linked
+      - name: Run Supabase Security Advisor Linter
+        run: supabase db lint --linked
+      - name: Run Live Database Audit
+        run: npm run db:audit:live
+      - name: Run Live RBAC & RLS Security Matrix
+        run: node scripts/test-roles-real.mjs

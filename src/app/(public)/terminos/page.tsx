@@ -44,14 +44,14 @@ export default function TerminosPage() {
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">2. Acceso y Uso del Campus Virtual</h2>
             <p>
-              El acceso al campus es personal e intransferible. Cada alumna dispone de credenciales individuales y un sistema de control de presencia y tiempo de estudio activo exigido para la acreditación técnica y expedición del diploma de aprovechamiento.
+              El acceso al campus es personal e intransferible. Cada alumna dispone de credenciales individuales y un sistema de control de presencia y tiempo de estudio activo exigido para la certificación formativa y expedición del diploma de aprovechamiento.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">3. Modalidades de Matrícula y Pagos</h2>
             <p>
-              En este entorno de pruebas, las inscripciones son gestionadas de forma manual y asistida por el equipo de administración académica. Los pagos automatizados en línea se habilitarán tras la activación de la pasarela de pago oficial del negocio.
+              En este entorno de pruebas, las inscripciones son gestionadas de forma manual y asistida por el equipo de administración académica. Los pagos automatizados en línea se habilitarán tras la activación de la pasarela de pagos.
             </p>
           </section>
 

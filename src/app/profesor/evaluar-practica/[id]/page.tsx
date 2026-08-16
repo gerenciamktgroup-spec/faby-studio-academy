@@ -37,7 +37,7 @@ export default async function GradeSubmissionPage({ params }: { params: Promise<
     <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-4xl space-y-7">
         <Link href="/profesor/evaluar-practica" className="inline-flex items-center gap-1 text-xs font-bold text-slate-500"><ArrowLeft className="h-4 w-4" /> Prácticas</Link>
-        <header><p className="text-xs font-bold uppercase tracking-wider text-rose-600">Evaluación oficial</p><h1 className="text-3xl font-extrabold text-slate-900">{assignment?.title ?? 'Práctica técnica'}</h1><p className="mt-1 text-sm text-slate-600">{profile?.full_name} — {profile?.email}</p></header>
+        <header><p className="text-xs font-bold uppercase tracking-wider text-rose-600">Evaluación docente</p><h1 className="text-3xl font-extrabold text-slate-900">{assignment?.title ?? 'Práctica técnica'}</h1><p className="mt-1 text-sm text-slate-600">{profile?.full_name} — {profile?.email}</p></header>
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
           <h2 className="font-bold text-slate-900">Evidencia de la alumna</h2>
           <p className="whitespace-pre-line text-sm leading-7 text-slate-700">{submission.submission_text || 'Sin descripción adicional.'}</p>

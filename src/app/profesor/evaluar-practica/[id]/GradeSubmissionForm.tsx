@@ -39,7 +39,7 @@ export function GradeSubmissionForm({ submissionId }: { submissionId: string }) 
       <div><label className="text-sm font-bold text-slate-900">Calificación: {grade}/100</label><input type="range" min={0} max={100} value={grade} onChange={(event) => setGrade(Number(event.target.value))} className="mt-2 w-full accent-rose-600" /></div>
       <label className="block text-sm font-bold text-slate-900">Retroalimentación<textarea required minLength={10} maxLength={5000} rows={7} value={feedback} onChange={(event) => setFeedback(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-normal outline-none focus:border-rose-500" placeholder="Describe fortalezas, correcciones y siguiente paso…" /></label>
       {error && <p className="rounded-xl bg-red-50 p-3 text-xs text-red-700">{error}</p>}
-      <button type="submit" disabled={saving} className="rounded-xl bg-rose-600 px-5 py-3 text-sm font-bold text-white disabled:opacity-50">{saving ? 'Guardando…' : 'Guardar evaluación oficial'}</button>
+      <button type="submit" disabled={saving} className="rounded-xl bg-rose-600 px-5 py-3 text-sm font-bold text-white disabled:opacity-50">{saving ? 'Guardando…' : 'Guardar evaluación docente'}</button>
     </form>
   );
 }

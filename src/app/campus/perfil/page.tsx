@@ -26,7 +26,7 @@ export default async function StudentProfilePage() {
       <div>
         <span className="text-xs font-bold text-rose-600 uppercase tracking-widest">Mi cuenta</span>
         <h1 className="text-2xl font-bold font-display text-slate-900 mt-1">Perfil y seguridad</h1>
-        <p className="text-xs text-slate-500">Gestiona los datos que aparecerán en tus acreditaciones y protege tu acceso.</p>
+        <p className="text-xs text-slate-500">Gestiona los datos que aparecerán en tus diplomas y protege tu acceso.</p>
       </div>
       <ProfileForm
         initialProfile={{

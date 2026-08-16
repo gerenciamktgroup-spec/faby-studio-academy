@@ -40,7 +40,7 @@ export default function PrivacidadPage() {
               El presente entorno web y campus virtual opera como plataforma de formación técnica y académica para el sector belleza. Los datos fiscales definitivos y domicilio social de la entidad titular se encuentran en fase de formalización corporativa previa al lanzamiento comercial definitivo.
             </p>
             <p>
-              Para cualquier consulta sobre privacidad, protección de datos de prueba o ejercicio de derechos de acceso y supresión, contacte a través del correo oficial: <a href="mailto:privacidad@fabystudio.academy" className="text-rose-600 font-semibold underline">privacidad@fabystudio.academy</a>.
+              Para cualquier consulta sobre privacidad, protección de datos de prueba o ejercicio de derechos de acceso y supresión, contacte a través del correo de contacto: <a href="mailto:privacidad@fabystudio.academy" className="text-rose-600 font-semibold underline">privacidad@fabystudio.academy</a>.
             </p>
           </section>
 

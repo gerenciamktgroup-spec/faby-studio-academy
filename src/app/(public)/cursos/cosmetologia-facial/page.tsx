@@ -116,7 +116,7 @@ export default function CosmetologyCourseDetailPage() {
 
 • Duración: 10 Semanas (80 Horas Lectivas Activas)
 • Modalidad: Campus Virtual 24/7 + Tutorías 1 a 1 de Corrección
-• Acreditación: Certificado Técnico Verificable con Hash SHA-256
+• Certificación: Diploma Técnico Verificable con Firma SHA-256
 
 TEMARIO COMPLETO:
 - Módulo 1: Histología Cutánea, Biotipos & Fisiología Dérmica

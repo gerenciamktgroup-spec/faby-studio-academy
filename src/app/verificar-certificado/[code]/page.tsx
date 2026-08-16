@@ -27,7 +27,7 @@ export default async function VerifyCertificatePage({
       <main className="flex-1 max-w-3xl mx-auto px-4 py-12 w-full space-y-8">
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-800">
-            <ShieldCheck className="h-4 w-4" /> PORTAL OFICIAL DE VALIDACIÓN
+            <ShieldCheck className="h-4 w-4" /> PORTAL DE VALIDACIÓN TÉCNICA
           </div>
           <h1 className="text-3xl font-extrabold text-slate-900">Verificación de certificado</h1>
         </div>

@@ -527,6 +527,7 @@ export type Database = {
           granted_at: string | null
           id: string
           ip_hash: string
+          legal_version_id: string | null
           user_id: string
           version: string
         }
@@ -535,6 +536,7 @@ export type Database = {
           granted_at?: string | null
           id?: string
           ip_hash: string
+          legal_version_id?: string | null
           user_id: string
           version: string
         }
@@ -543,10 +545,18 @@ export type Database = {
           granted_at?: string | null
           id?: string
           ip_hash?: string
+          legal_version_id?: string | null
           user_id?: string
           version?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "consent_records_legal_version_id_fkey"
+            columns: ["legal_version_id"]
+            isOneToOne: false
+            referencedRelation: "legal_document_versions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "consent_records_user_id_fkey"
             columns: ["user_id"]
@@ -969,6 +979,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      legal_document_versions: {
+        Row: {
+          content_sha256: string
+          content_text: string
+          created_at: string
+          document_type: string
+          effective_from: string
+          id: string
+          title: string
+          version: string
+        }
+        Insert: {
+          content_sha256: string
+          content_text: string
+          created_at?: string
+          document_type: string
+          effective_from?: string
+          id?: string
+          title: string
+          version: string
+        }
+        Update: {
+          content_sha256?: string
+          content_text?: string
+          created_at?: string
+          document_type?: string
+          effective_from?: string
+          id?: string
+          title?: string
+          version?: string
+        }
+        Relationships: []
       }
       lesson_progress: {
         Row: {
@@ -1633,6 +1676,25 @@ export type Database = {
         Returns: boolean
       }
       is_auditor_or_admin: { Args: { user_id: string }; Returns: boolean }
+      manage_user_role_tx: {
+        Args: {
+          p_action: string
+          p_actor_id: string
+          p_target_role: Database["public"]["Enums"]["app_role"]
+          p_target_user_id: string
+        }
+        Returns: Json
+      }
+      record_user_legal_consents: {
+        Args: {
+          p_ip_hash: string
+          p_privacy_version?: string
+          p_terms_version?: string
+          p_user_agent: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       submit_assessment_attempt: {
         Args: { p_answers: Json; p_assessment_id: string }
         Returns: {

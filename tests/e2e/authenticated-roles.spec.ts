@@ -15,28 +15,32 @@ test.describe('Authenticated Role-Based Flows & Route Security', () => {
     await expect(page.getByText(/no encontrado|no válido|no existe/i)).toBeVisible({ timeout: 10000 });
   });
 
-  test('Route guard protects /campus against unauthenticated access', async ({ page }) => {
-    const res = await page.goto('/campus');
-    const url = page.url();
-    expect(url.includes('/login') || res?.status() === 503).toBeTruthy();
+  test('Route guard protects /campus by redirecting unauthenticated users to /login', async ({ page }) => {
+    const response = await page.goto('/campus');
+    expect(response?.status()).toBeLessThan(400);
+    expect(page.url()).toContain('/login');
+    await expect(page.locator('input[type="email"]')).toBeVisible();
   });
 
-  test('Route guard protects /profesor against unauthenticated access', async ({ page }) => {
-    const res = await page.goto('/profesor');
-    const url = page.url();
-    expect(url.includes('/login') || res?.status() === 503).toBeTruthy();
+  test('Route guard protects /profesor by redirecting unauthenticated users to /login', async ({ page }) => {
+    const response = await page.goto('/profesor');
+    expect(response?.status()).toBeLessThan(400);
+    expect(page.url()).toContain('/login');
+    await expect(page.locator('input[type="email"]')).toBeVisible();
   });
 
-  test('Route guard protects /admin against unauthenticated access', async ({ page }) => {
-    const res = await page.goto('/admin');
-    const url = page.url();
-    expect(url.includes('/login') || res?.status() === 503).toBeTruthy();
+  test('Route guard protects /admin by redirecting unauthenticated users to /login', async ({ page }) => {
+    const response = await page.goto('/admin');
+    expect(response?.status()).toBeLessThan(400);
+    expect(page.url()).toContain('/login');
+    await expect(page.locator('input[type="email"]')).toBeVisible();
   });
 
-  test('Route guard protects /auditoria against unauthenticated access', async ({ page }) => {
-    const res = await page.goto('/auditoria');
-    const url = page.url();
-    expect(url.includes('/login') || res?.status() === 503).toBeTruthy();
+  test('Route guard protects /auditoria by redirecting unauthenticated users to /login', async ({ page }) => {
+    const response = await page.goto('/auditoria');
+    expect(response?.status()).toBeLessThan(400);
+    expect(page.url()).toContain('/login');
+    await expect(page.locator('input[type="email"]')).toBeVisible();
   });
 
   test('Registration page enforces versioned consent acceptance', async ({ page }) => {

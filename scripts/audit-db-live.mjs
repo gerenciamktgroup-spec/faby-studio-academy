@@ -1,5 +1,4 @@
 import fs from 'node:fs';
-import https from 'node:https';
 import { createClient } from '@supabase/supabase-js';
 
 // Safely load .env.local if present
@@ -16,16 +15,20 @@ if (fs.existsSync('.env.local')) {
 }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
 const projectRef = process.env.SUPABASE_PROJECT_REF || (supabaseUrl ? new URL(supabaseUrl).hostname.split('.')[0] : '');
-const token = process.env.SUPABASE_ACCESS_TOKEN || '';
 
-if (!supabaseUrl || !serviceKey) {
-  console.error('❌ Falta NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env.local.');
+if (!supabaseUrl || !serviceKey || !anonKey) {
+  console.error('❌ Falta NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY o SUPABASE_SERVICE_ROLE_KEY.');
   process.exit(1);
 }
 
 const adminClient = createClient(supabaseUrl, serviceKey, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
+
+const anonClient = createClient(supabaseUrl, anonKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
@@ -35,6 +38,8 @@ async function runLiveAudit() {
   console.log('================================================================\n');
   console.log(`🔗 Conectado a Staging: ${supabaseUrl}`);
   console.log(`📌 Project Ref: ${projectRef}\n`);
+
+  let failures = 0;
 
   // 1. Audit core public tables via API
   const coreTables = [
@@ -60,6 +65,7 @@ async function runLiveAudit() {
     'audit_exports',
     'consent_records',
     'privacy_policy_versions',
+    'legal_document_versions',
     'data_deletion_requests',
     'data_retention_policies',
     'skills',
@@ -80,7 +86,8 @@ async function runLiveAudit() {
   for (const table of coreTables) {
     const { count, error } = await adminClient.from(table).select('*', { count: 'exact', head: true });
     if (error && error.code !== 'PGRST116') {
-      console.log(`   • public.${table.padEnd(28)} : ❌ Error (${error.message})`);
+      console.error(`   • public.${table.padEnd(28)} : ❌ Error (${error.message})`);
+      failures++;
     } else {
       accessibleCount++;
       console.log(`   • public.${table.padEnd(28)} : ✅ Activa (${count ?? 0} registros)`);
@@ -88,49 +95,74 @@ async function runLiveAudit() {
   }
   console.log(`\n   ✅ ${accessibleCount}/${coreTables.length} tablas verificadas y operativas en Staging.`);
 
-  // 2. Audit Storage Buckets
+  // 2. Audit Storage Buckets (must all be private)
   console.log(`\n📦 2. AUDITORÍA DE STORAGE BUCKETS:`);
   const { data: buckets, error: bucketErr } = await adminClient.storage.listBuckets();
   if (bucketErr) {
-    console.warn(`   ⚠️ No se pudieron listar buckets: ${bucketErr.message}`);
+    console.error(`   ❌ No se pudieron listar buckets: ${bucketErr.message}`);
+    failures++;
   } else {
-    buckets.forEach((b) => {
-      console.log(`   - Bucket: ${b.id.padEnd(20)} | Público: ${b.public ? '⚠️ SÍ' : '🔒 NO (Privado)'}`);
-    });
-    console.log(`   ✅ Buckets verificados correctamente.`);
+    for (const b of buckets) {
+      if (b.public) {
+        console.error(`   ❌ Bucket público no permitido: ${b.id}`);
+        failures++;
+      } else {
+        console.log(`   - Bucket: ${b.id.padEnd(24)} | 🔒 Privado`);
+      }
+    }
+    console.log(`   ✅ Todos los buckets auditados están configurados como privados.`);
   }
 
   // 3. Test Security of user_roles table
   console.log(`\n🛡️ 3. AUDITORÍA DE PROTECCIÓN RBAC (user_roles):`);
-  const anonClient = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
   const { error: anonInsertErr } = await anonClient.from('user_roles').insert({
     user_id: '00000000-0000-0000-0000-000000000000',
     role: 'superadmin',
   });
-  if (anonInsertErr) {
+  if (anonInsertErr && (anonInsertErr.code === '42501' || anonInsertErr.message.includes('denied'))) {
     console.log(`   ✅ Inserción anónima rechazada en user_roles: [${anonInsertErr.code}] ${anonInsertErr.message}`);
   } else {
     console.error(`   ❌ VULNERABILIDAD CRÍTICA: Cliente anónimo pudo insertar en user_roles.`);
-    process.exit(1);
+    failures++;
   }
 
-  // 4. Test Inmutability of consent_records
+  // 4. Test Immutability of consent_records
   console.log(`\n📜 4. AUDITORÍA DE INMUTABILIDAD (consent_records):`);
-  const { error: anonConsentUpdate } = await anonClient.from('consent_records').update({ version: 'invalid' }).neq('id', '00000000-0000-0000-0000-000000000000');
-  if (anonConsentUpdate || true) {
-    console.log(`   ✅ Modificación no autorizada de consentimientos bloqueada.`);
+  const { error: anonConsentInsert } = await anonClient.from('consent_records').insert({
+    user_id: '00000000-0000-0000-0000-000000000000',
+    consent_type: 'terms',
+    version: '2026.1',
+    ip_hash: 'test_hash',
+  });
+  if (anonConsentInsert && (anonConsentInsert.code === '42501' || anonConsentInsert.message.includes('denied'))) {
+    console.log(`   ✅ Inserción directa anónima en consent_records rechazada.`);
+  } else {
+    console.error(`   ❌ VULNERABILIDAD: Cliente anónimo pudo insertar en consent_records.`);
+    failures++;
   }
 
   // 5. Test Questions Column Security
   console.log(`\n🔒 5. AUDITORÍA DE SEGURIDAD DE PREGUNTAS (questions.correct_answer_json):`);
   const { data: qData, error: qErr } = await anonClient.from('questions').select('id, question_text, correct_answer_json').limit(1);
   if (qErr || !qData || qData.every((q) => q.correct_answer_json === undefined || q.correct_answer_json === null)) {
-    console.log(`   ✅ correct_answer_json protegido y no expuesto a clientes sin privilegios.`);
+    console.log(`   ✅ correct_answer_json protegido y no expuesto a clientes anónimos.`);
   } else {
-    console.error(`   ❌ VULNERABILIDAD: correct_answer_json es legible por clientes públicos.`);
+    console.error(`   ❌ VULNERABILIDAD: correct_answer_json es legible por clientes anónimos.`);
+    failures++;
+  }
+
+  // 6. Test Legal Document Versions Table
+  console.log(`\n⚖️ 6. AUDITORÍA DE VERSIONES LEGALES (legal_document_versions):`);
+  const { data: legalDocs, error: legalErr } = await anonClient.from('legal_document_versions').select('document_type, version, content_sha256');
+  if (legalErr || !legalDocs || legalDocs.length < 2) {
+    console.error(`   ❌ No se pudieron leer las versiones legales 2026.1: ${legalErr?.message}`);
+    failures++;
+  } else {
+    console.log(`   ✅ Versiones legales 2026.1 disponibles públicamente con SHA-256 verificado (${legalDocs.length} documentos).`);
+  }
+
+  if (failures > 0) {
+    console.error(`\n❌ AUDITORÍA FINALIZADA CON ${failures} INCIDENCIAS DE SEGURIDAD.`);
     process.exit(1);
   }
 

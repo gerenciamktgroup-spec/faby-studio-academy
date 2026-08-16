@@ -34,6 +34,7 @@ export function PublicFooter() {
           <div className="space-y-2 text-xs">
             <p className="font-bold text-slate-900 uppercase tracking-wider">Garantía & Legal</p>
             <ul className="space-y-1.5 text-slate-600">
+              <li><Link href="/demo" className="hover:text-fabi-pink font-semibold text-rose-600 transition-colors">Demo Switcher de Roles</Link></li>
               <li><Link href="/verificar-certificado" className="hover:text-fabi-pink transition-colors">Verificación de Diplomas</Link></li>
               <li><Link href="/auditoria" className="hover:text-fabi-pink transition-colors">Auditoría & Trazabilidad</Link></li>
               <li><Link href="/privacidad" className="hover:text-fabi-pink transition-colors">Aviso de privacidad de la preview</Link></li>

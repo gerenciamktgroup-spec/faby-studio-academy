@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "db:audit": "node scripts/setup-database.mjs"
+    "db:audit": "node scripts/setup-database.mjs",
+    "db:audit:live": "node scripts/audit-db-live.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

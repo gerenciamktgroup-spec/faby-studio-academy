@@ -24,13 +24,13 @@ export default function PrivacidadPage() {
           <div className="space-y-3 border-b border-slate-100 pb-6">
             <div className="inline-flex items-center space-x-2 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-emerald-800 font-bold">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>CUMPLIMIENTO RGPD & LOPD-GDD 2026</span>
+              <span>PROTECCIÓN DE DATOS & PRIVACIDAD (RGPD)</span>
             </div>
             <h1 className="text-3xl font-extrabold font-display text-slate-900">
               Política de Privacidad & Protección de Datos
             </h1>
             <p className="text-slate-500">
-              Última actualización: Agosto de 2026 • FABY STUDIO ACADEMY (Entorno de Demostración & Staging)
+              Versión: 2026.1 • FABY STUDIO ACADEMY (Entorno de Demostración & Staging)
             </p>
           </div>
 
@@ -49,8 +49,8 @@ export default function PrivacidadPage() {
             <p>Tratamos la información que nos facilitan las usuarias y alumnas para:</p>
             <ul className="list-disc pl-5 space-y-1.5 text-slate-600">
               <li>Gestionar la matrícula, creación de cuentas individuales y acceso al campus virtual.</li>
-              <li>Acreditar el cómputo oficial de horas lectivas y tiempo de conexión exigido por normativa formativa.</li>
-              <li>Evaluar las prácticas docentes, emitir diplomas oficiales y registrar el código único criptográfico SHA-256.</li>
+              <li>Acreditar el cómputo de horas de aprendizaje activo y tiempo de interacción en la plataforma.</li>
+              <li>Evaluar las prácticas docentes, emitir certificados verificables y registrar el código único criptográfico SHA-256.</li>
               <li>Gestionar los cobros online y validaciones en caja en los salones físicos de Faby Studio.</li>
             </ul>
           </section>

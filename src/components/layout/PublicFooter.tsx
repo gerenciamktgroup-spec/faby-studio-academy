@@ -17,7 +17,7 @@ export function PublicFooter() {
               </span>
             </div>
             <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
-              Plataforma oficial de formación técnica avanzada en estética, pestañas, uñas y cosmetología. Metodología auditable con seguimiento de tiempo activo y certificación verificable.
+              Plataforma de formación técnica avanzada en estética, pestañas, uñas y cosmetología. Metodología auditable con seguimiento de tiempo activo y certificación verificable.
             </p>
           </div>
 
@@ -46,7 +46,7 @@ export function PublicFooter() {
           <p>© {new Date().getFullYear()} FABY STUDIO ACADEMY. Todos los derechos reservados.</p>
           <div className="flex items-center space-x-2 text-emerald-600 font-semibold bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
             <ShieldCheck className="w-4 h-4" />
-            <span>Plataforma Oficial Verificada & Auditable</span>
+            <span>Plataforma Verificada & Auditable</span>
           </div>
         </div>
       </div>

@@ -114,7 +114,7 @@ const DOSSIERS_DATA: Record<string, {
           'Retirada mecánica segura con torno de carburo',
           'Fijación de tarifas, costes por servicio y consentimiento informado',
         ],
-        practicalOutcome: 'Proyecto Final Completo y examen de homologación.',
+        practicalOutcome: 'Proyecto Final Completo y evaluación técnica de aprovechamiento.',
       },
     ],
   },
@@ -132,58 +132,58 @@ const DOSSIERS_DATA: Record<string, {
     modules: [
       {
         num: 1,
-        title: 'Fundamentos, Anatomía & Bioseguridad Ocular',
+        title: 'Bioseguridad Ocular, Anatomía del Folículo y Ficha Técnica',
         hours: '8h Activas',
         lessons: [
-          'Ciclo piloso folicular (fases anágena, catágena y telógena)',
-          'Química de adhesivos: cianoacrilato, humedad y polimerización',
-          'Colocación de parches de hidrogel y prevención de quemaduras químicas',
+          'Ciclo de vida de la pestaña natural (anágena, catágena, telógena)',
+          'Enfermedades oculares, blefaritis, demodex y contraindicaciones',
+          'Química de cianoacrilatos: humedad, temperatura y vapores',
         ],
-        practicalOutcome: 'Test teórico de bioseguridad aprobado con mínimo 70%.',
+        practicalOutcome: 'Test de bioseguridad y elaboración de ficha de consentimientos.',
       },
       {
         num: 2,
-        title: 'Visagismo, Curvaturas & Mapping Avanzado',
-        hours: '8h Activas',
+        title: 'Técnica Clásica 1 a 1 & Visagismo de Mirada',
+        hours: '10h Activas',
         lessons: [
-          'Clasificación morfológica de la mirada (ojos hundidos, almendrados, etc.)',
-          'Guía de curvaturas (B, C, CC, D, L, M) y grosores compatibles',
-          'Diseño de mapping: Efectos Cat Eye, Doll Eye, Ardilla y Open Eye',
+          'Aislamiento perfecto de la pestaña natural sin adherencias (stickies)',
+          'Direccionamiento simétrico a 90 grados y distancia de seguridad',
+          'Mapping personalizado según morfología (ojos almendrados, caídos, rasgados)',
         ],
-        practicalOutcome: 'Ficha técnica de mapping personalizada sobre plantilla.',
+        practicalOutcome: 'Set completo clásico en modelo real con rúbrica técnica.',
       },
       {
         num: 3,
-        title: 'Técnica Clásica Pelo a Pelo (1:1)',
+        title: 'Volumen Ruso: Abanicado Manual 2D a 6D',
         hours: '10h Activas',
         lessons: [
-          'Ergonomía de trabajo y manejo de pinzas de aislamiento y colocación',
-          'Aislamiento milimétrico individual sin adherencias (stickies)',
-          'Distancia exacta al párpado (0.5mm a 1mm sin tocar piel)',
+          'Geometría del abanico perfecto: bases finas, apertura y simetría',
+          'Técnicas de armado: frotado en tira, pellizco y volumen con pinza',
+          'Cálculo de peso seguro (grosores 0.05, 0.07 vs pestaña natural)',
         ],
-        practicalOutcome: 'Práctica 01 evaluada por rúbrica docente de 100 puntos.',
+        practicalOutcome: 'Creación de 50 abanicos simétricos con base perfecta.',
       },
       {
         num: 4,
-        title: 'Volumen Ruso & Creación de Abanicos (2D a 6D)',
-        hours: '12h Activas',
+        title: 'Efectos de Tendencia: Whispy, Kim K, Wet Look y Foxy Eye',
+        hours: '8h Activas',
         lessons: [
-          'Cálculo de pesos en grosores ultrafinos 0.03mm, 0.05mm y 0.07mm',
-          'Técnicas de abanicado manual (en tira, en dedo y pinching)',
-          'Base cristalizada y envoltura adhesiva para máxima retención',
+          'Efecto Sirena y Foxy Eye con curvaturas L y M',
+          'Efecto Kim K con espigas (spikes) y capas superiores',
+          'Wet Look con abanicos cerrados y efecto mojado texturizado',
         ],
-        practicalOutcome: 'Set completo de Volumen Ruso 3D en modelo real.',
+        practicalOutcome: 'Aplicación de set de volumen híbrido/tendencia en modelo.',
       },
       {
         num: 5,
-        title: 'Retención Extrema, Mantenimiento & Retirada',
-        hours: '6h Activas',
+        title: 'Lifting de Pestañas, Botox Queratina y Laminado de Cejas',
+        hours: '8h Activas',
         lessons: [
-          'Control de variables ambientales en cabina (temperatura e higrómetro)',
-          'Protocolo de relleno a las 3 semanas y diagnóstico de caída',
-          'Retirada química aséptica con crema removedora sin ardor',
+          'Química de la permanente: rotura y fijación de puentes de disulfuro',
+          'Selección de moldes según longitud y curvatura deseada',
+          'Tinte profesional de pestañas y nutrición con ácido hialurónico',
         ],
-        practicalOutcome: 'Guía de cuidados posteriores (Aftercare) para la clienta.',
+        practicalOutcome: 'Lifting completo de pestañas con tinte y nutrición en modelo.',
       },
       {
         num: 6,
@@ -192,7 +192,7 @@ const DOSSIERS_DATA: Record<string, {
         lessons: [
           'Iluminación, macrofotografía y portafolio profesional en redes',
           'Estructura de precios rentables y fidelización de clientela',
-          'Entrega y defensa del Proyecto Final con diploma oficial',
+          'Entrega y defensa del Proyecto Final con diploma verificable',
         ],
         practicalOutcome: 'Evaluación final y emisión de Certificado Verificable SHA-256.',
       },
@@ -272,9 +272,9 @@ const DOSSIERS_DATA: Record<string, {
         lessons: [
           'Consentimiento informado RGPD y prevención de reacciones adversas',
           'Venta consultiva de apoyo domiciliario para multiplicar ingresos',
-          'Presentación del caso clínico final para graduación oficial',
+          'Presentación del caso clínico final para graduación formativa',
         ],
-        practicalOutcome: 'Defensa del Proyecto Final y titulación oficial verificada.',
+        practicalOutcome: 'Defensa del Proyecto Final y certificación verificada.',
       },
     ],
   },
@@ -342,7 +342,7 @@ export default function LuxuryDossierPage() {
           <div className="text-left sm:text-right space-y-1">
             <span className="inline-flex items-center space-x-1 text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Dossier Académico Oficial 2026</span>
+              <span>Dossier Académico Informativo</span>
             </span>
             <p className="text-[11px] text-slate-400">Emisión verificada con firma digital SHA-256</p>
           </div>
@@ -435,7 +435,7 @@ export default function LuxuryDossierPage() {
               <span>Acompañamiento y Tutoría 1 a 1</span>
             </h4>
             <p className="text-slate-600 leading-relaxed">
-              Cada alumna cuenta con una tutora especialista asignada (Profesora Faby / Laura Gómez). Todas las prácticas fotográficas en modelos reales son corregidas individualmente mediante rúbricas oficiales de 100 puntos.
+              Cada alumna cuenta con una tutora especialista asignada (Profesora Faby / Laura Gómez). Todas las prácticas fotográficas en modelos reales son corregidas individualmente mediante rúbricas técnicas de 100 puntos.
             </p>
           </div>
 

@@ -70,7 +70,7 @@ export default function HomePage() {
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               <div className="inline-flex items-center space-x-2 bg-rose-50 border border-rose-200 px-3.5 py-1.5 rounded-full text-xs font-bold text-rose-700">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Academia Oficial de Formación Estética Avanzada</span>
+                <span>Academia de Especialización Estética Avanzada</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-extrabold tracking-tight leading-[1.15] text-slate-900">
@@ -104,12 +104,12 @@ export default function HomePage() {
               {/* Trust Badges */}
               <div className="pt-6 border-t border-slate-200 grid grid-cols-3 gap-4 text-center lg:text-left">
                 <div>
-                  <p className="text-2xl font-bold text-slate-900 font-display">98%</p>
-                  <p className="text-xs text-slate-500">Empleabilidad</p>
+                  <p className="text-2xl font-bold text-slate-900 font-display">100%</p>
+                  <p className="text-xs text-slate-500">Práctico y Guiado</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-fabi-pink font-display">+1,200</p>
-                  <p className="text-xs text-slate-500">Alumnas Graduadas</p>
+                  <p className="text-2xl font-bold text-fabi-pink font-display">1 a 1</p>
+                  <p className="text-xs text-slate-500">Tutorías Personalizadas</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-emerald-600 font-display">SHA-256</p>
@@ -142,7 +142,7 @@ export default function HomePage() {
                   </h3>
 
                   <p className="text-xs text-slate-600">
-                    60 Horas lectivas activas • Tutorías personalizadas 1 a 1 • Certificado oficial verificado.
+                    60 Horas lectivas activas • Tutorías personalizadas 1 a 1 • Certificado técnico verificado.
                   </p>
 
                   <div className="pt-2 flex items-center justify-between border-t border-slate-100">
@@ -271,7 +271,7 @@ export default function HomePage() {
               Trazabilidad y Calidad Educativa Sin Compromisos
             </h2>
             <p className="text-sm text-slate-600">
-              Diseñada desde el primer día cumpliendo con los estándares exigidos para Formación Profesional regulada en España.
+              Diseñada con arquitectura auditable y seguimiento de aprendizaje activo.
             </p>
           </div>
 
@@ -314,7 +314,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
             <div>
-              <span className="text-xs font-bold text-rose-600 uppercase tracking-widest">Catálogo Oficial</span>
+              <span className="text-xs font-bold text-rose-600 uppercase tracking-widest">Catálogo Académico</span>
               <h2 className="text-3xl font-bold font-display text-slate-900 mt-1">Cursos & Másteres Especializados</h2>
             </div>
             <Link

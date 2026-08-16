@@ -31,34 +31,37 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const supabase = createClient();
-      const appUrl = window.location.origin;
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
-        password,
-        options: {
-          emailRedirectTo: `${appUrl}/auth/callback?next=/campus`,
-          data: {
-            full_name: fullName.trim(),
-            phone: phone.trim(),
-            course_interest: course,
-            accepted_terms_at: new Date().toISOString(),
-          },
-        },
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          email: email.trim().toLowerCase(),
+          password,
+          phone: phone.trim(),
+          courseInterest: course,
+          acceptTerms,
+        }),
       });
 
-      if (signUpError) {
-        setError(
-          signUpError.message.toLowerCase().includes('already')
-            ? 'Ya existe una cuenta con ese correo. Inicia sesión.'
-            : 'No fue posible crear la cuenta. Revisa los datos e inténtalo nuevamente.'
-        );
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error || 'No fue posible crear la cuenta.');
         return;
       }
 
       setRegisteredSuccess(true);
-      if (data.session) {
-        window.setTimeout(() => router.replace('/campus'), 1200);
+
+      // Attempt auto-login
+      const supabase = createClient();
+      const { data: loginData } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      if (loginData?.session) {
+        window.setTimeout(() => router.replace('/campus'), 1000);
       }
     } catch {
       setError('El servicio de registro todavía no está configurado.');
@@ -204,8 +207,8 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-fabi-pink to-fabi-darkpink hover:from-fabi-darkpink hover:to-fabi-pink text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-rose-600/20 transition-all flex items-center justify-center space-x-2 hover:scale-[1.01] disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={loading || !acceptTerms}
+              className="w-full bg-gradient-to-r from-fabi-pink to-fabi-darkpink hover:from-fabi-darkpink hover:to-fabi-pink text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-rose-600/20 transition-all flex items-center justify-center space-x-2 hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>

@@ -2,10 +2,11 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { ADMIN_ROLES } from '@/lib/auth/roles';
+import { ADMIN_ROLES, type AppRole } from '@/lib/auth/roles';
 import { requireAuthPrincipal } from '@/lib/auth/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { recordActivityEvent } from '@/lib/audit-logger';
 
 export interface AdminActionState {
   status: 'idle' | 'success' | 'error';
@@ -105,8 +106,9 @@ export async function inviteUserAction(
     const principal = await requireAuthPrincipal(ADMIN_ROLES);
     const payload = invitationSchema.safeParse(Object.fromEntries(formData));
     if (!payload.success) return errorState('Revisa nombre, correo y rol inicial.');
-    if (payload.data.role === 'admin_academico' && !principal.roles.includes('superadmin')) {
-      return errorState('Solo superadministración puede invitar otra cuenta administrativa.');
+    const elevatedRoles: AppRole[] = ['admin_academico', 'auditor', 'superadmin'];
+    if (elevatedRoles.includes(payload.data.role) && !principal.roles.includes('superadmin')) {
+      return errorState('Solo superadministración puede invitar cuentas administrativas o de auditoría.');
     }
 
     const admin = createAdminClient();
@@ -153,19 +155,43 @@ export async function assignRoleAction(
     const principal = await requireAuthPrincipal(ADMIN_ROLES);
     const payload = roleSchema.safeParse(Object.fromEntries(formData));
     if (!payload.success) return errorState('Selecciona un usuario y un rol válidos.');
-    if (['admin_academico', 'superadmin'].includes(payload.data.role) && !principal.roles.includes('superadmin')) {
-      return errorState('Solo superadministración puede asignar roles administrativos elevados.');
+
+    const targetRole = payload.data.role;
+    const targetUserId = payload.data.userId;
+
+    // Rule: No self-elevation
+    if (targetUserId === principal.id) {
+      return errorState('No puedes autoasignarte roles desde esta sesión.');
     }
 
-    const supabase = await createClient();
-    const { error } = await supabase.from('user_roles').insert({
-      user_id: payload.data.userId,
-      role: payload.data.role,
+    // Rule: admin_academico can only manage alumna, tutor, profesor
+    const elevatedRoles: AppRole[] = ['admin_academico', 'auditor', 'superadmin'];
+    if (elevatedRoles.includes(targetRole) && !principal.roles.includes('superadmin')) {
+      return errorState('Solo superadministración puede asignar roles administrativos o de auditoría.');
+    }
+
+    const admin = createAdminClient();
+    const { error } = await admin.from('user_roles').insert({
+      user_id: targetUserId,
+      role: targetRole,
     });
+
     if (error) {
       if (error.code === '23505') return errorState('La cuenta ya tiene ese rol.');
       throw error;
     }
+
+    await recordActivityEvent({
+      userId: principal.id,
+      sessionId: `sess_role_assign_${targetUserId}`,
+      eventType: 'EVENT_CORRECTION',
+      metadata: {
+        action: 'ROLE_ASSIGNED',
+        target_user_id: targetUserId,
+        assigned_role: targetRole,
+        granted_by: principal.id,
+      },
+    });
 
     revalidatePath('/admin');
     return { status: 'success', message: 'Rol asignado correctamente.' };
@@ -183,15 +209,64 @@ export async function removeRoleAction(
     const principal = await requireAuthPrincipal(ADMIN_ROLES);
     const payload = removeRoleSchema.safeParse(Object.fromEntries(formData));
     if (!payload.success) return errorState('Selecciona una cuenta y un rol válidos.');
-    if (['admin_academico', 'superadmin'].includes(payload.data.role) && !principal.roles.includes('superadmin')) return errorState('Solo superadministración puede retirar roles administrativos elevados.');
-    if (payload.data.userId === principal.id && principal.roles.includes(payload.data.role)) return errorState('No puedes retirar tu propio rol desde esta sesión.');
 
-    const supabase = await createClient();
-    const { count, error: countError } = await supabase.from('user_roles').select('*', { count: 'exact', head: true }).eq('user_id', payload.data.userId);
+    const targetRole = payload.data.role;
+    const targetUserId = payload.data.userId;
+
+    // Rule: admin_academico can only manage alumna, tutor, profesor
+    const elevatedRoles: AppRole[] = ['admin_academico', 'auditor', 'superadmin'];
+    if (elevatedRoles.includes(targetRole) && !principal.roles.includes('superadmin')) {
+      return errorState('Solo superadministración puede retirar roles administrativos o de auditoría.');
+    }
+
+    // Rule: A superadmin cannot remove their own superadmin role in this session
+    if (targetUserId === principal.id && targetRole === 'superadmin') {
+      return errorState('No puedes retirar tu propio rol de superadministración desde esta sesión.');
+    }
+
+    const admin = createAdminClient();
+
+    // Rule: Cannot delete the last superadmin
+    if (targetRole === 'superadmin') {
+      const { count: superadminCount, error: saCountError } = await admin
+        .from('user_roles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'superadmin');
+      if (saCountError) throw saCountError;
+      if ((superadminCount ?? 0) <= 1) {
+        return errorState('No es posible eliminar el último superadministrador del sistema.');
+      }
+    }
+
+    // Rule: Every account must retain at least one role
+    const { count: userRoleCount, error: countError } = await admin
+      .from('user_roles')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', targetUserId);
     if (countError) throw countError;
-    if ((count ?? 0) <= 1) return errorState('La cuenta debe conservar al menos un rol.');
-    const { error } = await supabase.from('user_roles').delete().eq('user_id', payload.data.userId).eq('role', payload.data.role);
+    if ((userRoleCount ?? 0) <= 1) {
+      return errorState('La cuenta debe conservar al menos un rol.');
+    }
+
+    const { error } = await admin
+      .from('user_roles')
+      .delete()
+      .eq('user_id', targetUserId)
+      .eq('role', targetRole);
     if (error) throw error;
+
+    await recordActivityEvent({
+      userId: principal.id,
+      sessionId: `sess_role_remove_${targetUserId}`,
+      eventType: 'EVENT_CORRECTION',
+      metadata: {
+        action: 'ROLE_REMOVED',
+        target_user_id: targetUserId,
+        removed_role: targetRole,
+        revoked_by: principal.id,
+      },
+    });
+
     revalidatePath('/admin');
     return { status: 'success', message: 'Rol retirado correctamente.' };
   } catch (error) {

@@ -2,21 +2,23 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import { getCertificateSigningSecret } from '@/lib/config/env';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-export interface VerifiedCertificate {
+export interface PublicVerifiedCertificate {
   code: string;
   student_name: string;
   course_title: string;
   total_active_hours: number;
   issued_at: string;
   verification_url: string;
-  hash_signature: string;
+  is_valid: boolean;
 }
+
+export type VerifiedCertificate = PublicVerifiedCertificate;
 
 function relation<T>(value: T | T[] | null): T | null {
   return Array.isArray(value) ? value[0] ?? null : value;
 }
 
-export async function verifyCertificate(code: string): Promise<VerifiedCertificate | null> {
+export async function verifyCertificate(code: string): Promise<PublicVerifiedCertificate | null> {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from('certificates')
@@ -44,6 +46,6 @@ export async function verifyCertificate(code: string): Promise<VerifiedCertifica
     total_active_hours: Number(data.total_active_hours),
     issued_at: canonicalIssuedAt,
     verification_url: data.verification_url,
-    hash_signature: data.hash_signature,
+    is_valid: true,
   };
 }

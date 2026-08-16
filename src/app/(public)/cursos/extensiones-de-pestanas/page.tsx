@@ -114,13 +114,13 @@ export default function LashCourseDetailPage() {
   const handleDownloadDossier = () => {
     setDownloadedDossier(true);
     const content = `═══════════════════════════════════════════════════════════
-        FABY STUDIO ACADEMY — DOSSIER OFICIAL 2026
+        FABY STUDIO ACADEMY — DOSSIER ACADÉMICO
        ESPECIALIZACIÓN EN PESTAÑAS Y VOLUMEN RUSO
 ═══════════════════════════════════════════════════════════
 
 • Duración: 6 Semanas (50 Horas Lectivas Activas)
 • Modalidad: Campus Virtual 24/7 + Tutorías 1 a 1 de Corrección
-• Acreditación: Certificado Oficial Verificable con Hash SHA-256
+• Acreditación: Certificado Técnico Verificable con Hash SHA-256
 
 TEMARIO COMPLETO:
 - Módulo 1: Fundamentos & Bioseguridad Ocular
@@ -161,7 +161,7 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
               </h1>
 
               <p className="text-base text-slate-600 leading-relaxed">
-                Formación completa de 6 semanas con acompañamiento docente 1 a 1. Aprende técnica clásica pelo a pelo, volumen ruso, diseño de mirada y gestión profesional de clientas con diploma oficial verificable.
+                Formación completa de 6 semanas con acompañamiento docente 1 a 1. Aprende técnica clásica pelo a pelo, volumen ruso, diseño de mirada y gestión profesional de clientas con certificado técnico verificable.
               </p>
 
               <div className="flex flex-wrap gap-4 text-xs font-semibold text-slate-700">
@@ -171,7 +171,7 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
                 </span>
                 <span className="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
                   <Award className="w-4 h-4 text-emerald-600" />
-                  <span>Certificado Oficial Verificable SHA-256</span>
+                  <span>Certificado Técnico Verificable SHA-256</span>
                 </span>
                 <span className="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
                   <Users className="w-4 h-4 text-purple-600" />
@@ -193,7 +193,7 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
                   className="inline-flex items-center justify-center space-x-2 bg-slate-50 border border-slate-200 text-slate-800 px-6 py-4 rounded-xl font-semibold text-base hover:border-rose-300 hover:text-rose-600 transition-colors shadow-2xs"
                 >
                   <Download className="w-4 h-4 text-rose-600" />
-                  <span>Ver Dossier Oficial PDF</span>
+                  <span>Ver Dossier Académico</span>
                 </Link>
               </div>
             </div>
@@ -266,7 +266,7 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
 
               <div className="p-4 bg-slate-950 flex items-center justify-between">
                 <p className="text-xs text-slate-400">
-                  Esta clase forma parte del <strong className="text-white">Módulo 1</strong> de la Especialización Oficial.
+                  Esta clase forma parte del <strong className="text-white">Módulo 1</strong> de la Especialización Profesional.
                 </p>
                 <Link
                   href="/checkout"
@@ -400,7 +400,7 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
         <div className="p-8 sm:p-12 rounded-3xl bg-white border border-slate-200 text-center space-y-4 shadow-sm">
           <h3 className="text-2xl font-bold font-display text-slate-900">Comienza tu Formación Profesional Hoy</h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Únete a más de 1.200 alumnas graduadas y obtén una acreditación técnica oficial de alto valor en el mercado de la belleza.
+            Inicia tu formación especializada y obtén un certificado técnico verificable en el sector de la estética.
           </p>
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link

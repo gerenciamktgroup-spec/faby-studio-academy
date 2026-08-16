@@ -750,6 +750,7 @@ export type Database = {
           image_url: string | null
           is_published: boolean | null
           level: string | null
+          min_active_hours_pct: number
           slug: string
           title: string
           updated_at: string | null
@@ -763,6 +764,7 @@ export type Database = {
           image_url?: string | null
           is_published?: boolean | null
           level?: string | null
+          min_active_hours_pct?: number
           slug: string
           title: string
           updated_at?: string | null
@@ -776,6 +778,7 @@ export type Database = {
           image_url?: string | null
           is_published?: boolean | null
           level?: string | null
+          min_active_hours_pct?: number
           slug?: string
           title?: string
           updated_at?: string | null
@@ -1636,18 +1639,6 @@ export type Database = {
           attempt_id: string
           passed: boolean
           score: number
-        }[]
-      }
-      verify_certificate: {
-        Args: { p_code: string }
-        Returns: {
-          code: string
-          course_title: string
-          hash_signature: string
-          issued_at: string
-          student_name: string
-          total_active_hours: number
-          verification_url: string
         }[]
       }
     }

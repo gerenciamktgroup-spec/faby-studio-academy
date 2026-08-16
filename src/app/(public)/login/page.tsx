@@ -63,7 +63,7 @@ export default function LoginPage() {
         <div className="text-center space-y-2">
           <div className="inline-flex items-center space-x-2 bg-rose-50 border border-rose-200 px-3.5 py-1.5 rounded-full text-xs font-bold text-rose-700">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>CAMPUS VIRTUAL OFICIAL</span>
+            <span>CAMPUS VIRTUAL</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-slate-900">

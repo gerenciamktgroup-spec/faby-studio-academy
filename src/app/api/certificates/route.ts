@@ -115,6 +115,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const { data: courseData, error: courseError } = await supabase
+      .from('courses')
+      .select('id, title, estimated_hours, min_active_hours_pct')
+      .eq('id', enrollment.course_id)
+      .single();
+    if (courseError) throw courseError;
+
+    const minPct = Number(courseData.min_active_hours_pct ?? 0.80);
+    const minRequiredHours = Number((courseData.estimated_hours * minPct).toFixed(2));
+
     const { data: sessions, error: sessionsError } = await supabase
       .from('session_logs')
       .select('total_active_seconds')
@@ -127,6 +137,16 @@ export async function POST(request: NextRequest) {
       0
     );
     const totalActiveHours = Number((totalActiveSeconds / 3600).toFixed(2));
+
+    if (totalActiveHours < minRequiredHours) {
+      return NextResponse.json(
+        {
+          error: `Horas de actividad insuficientes. La alumna cuenta con ${totalActiveHours}h registradas, pero se requiere un mínimo de ${minRequiredHours}h (${Math.round(minPct * 100)}% de ${courseData.estimated_hours}h estimadas).`,
+        },
+        { status: 409 }
+      );
+    }
+
     const issuedAt = new Date().toISOString();
     const code = `FABY-${new Date().getUTCFullYear()}-${randomUUID()
       .replaceAll('-', '')

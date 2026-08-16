@@ -110,13 +110,13 @@ export default function CosmetologyCourseDetailPage() {
   const handleDownloadDossier = () => {
     setDownloadedDossier(true);
     const content = `═══════════════════════════════════════════════════════════
-        FABY STUDIO ACADEMY — DOSSIER OFICIAL 2026
+        FABY STUDIO ACADEMY — DOSSIER ACADÉMICO
     CURSO SUPERIOR DE COSMETOLOGÍA FACIAL & SKIN CARE
 ═══════════════════════════════════════════════════════════
 
 • Duración: 10 Semanas (80 Horas Lectivas Activas)
 • Modalidad: Campus Virtual 24/7 + Tutorías 1 a 1 de Corrección
-• Acreditación: Certificado Oficial Verificable con Hash SHA-256
+• Acreditación: Certificado Técnico Verificable con Hash SHA-256
 
 TEMARIO COMPLETO:
 - Módulo 1: Histología Cutánea, Biotipos & Fisiología Dérmica
@@ -157,7 +157,7 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
               </h1>
 
               <p className="text-base text-slate-600 leading-relaxed">
-                Especialízate en diagnóstico cutáneo avanzado, química de activos dermocosméticos, peelings químicos, microneedling y masajes reafirmantes de cabina con acreditación oficial auditable.
+                Especialízate en diagnóstico cutáneo avanzado, química de activos dermocosméticos, peelings químicos, microneedling y masajes reafirmantes de cabina con certificación técnica auditable.
               </p>
 
               <div className="flex flex-wrap gap-4 text-xs font-semibold text-slate-700">
@@ -167,7 +167,7 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
                 </span>
                 <span className="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
                   <Award className="w-4 h-4 text-emerald-600" />
-                  <span>Certificado Oficial Verificable SHA-256</span>
+                  <span>Certificado Técnico Verificable SHA-256</span>
                 </span>
                 <span className="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
                   <Users className="w-4 h-4 text-purple-600" />
@@ -189,7 +189,7 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
                   className="inline-flex items-center justify-center space-x-2 bg-slate-50 border border-slate-200 text-slate-800 px-6 py-4 rounded-xl font-semibold text-base hover:border-rose-300 hover:text-rose-600 transition-colors shadow-2xs"
                 >
                   <Download className="w-4 h-4 text-rose-600" />
-                  <span>Ver Dossier Oficial PDF</span>
+                  <span>Ver Dossier Académico</span>
                 </Link>
               </div>
             </div>
@@ -262,7 +262,7 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
 
               <div className="p-4 bg-slate-950 flex items-center justify-between">
                 <p className="text-xs text-slate-400">
-                  Esta clase forma parte del <strong className="text-white">Módulo 1</strong> del Curso Superior Oficial.
+                  Esta clase forma parte del <strong className="text-white">Módulo 1</strong> del Curso Superior.
                 </p>
                 <Link
                   href="/checkout"

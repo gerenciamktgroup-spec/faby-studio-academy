@@ -48,7 +48,12 @@ export async function middleware(request: NextRequest) {
   const sessionResponse = await updateSession(request);
 
   // 4. Enforce Security Response Headers
-  sessionResponse.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  const pathname = request.nextUrl.pathname;
+  const isPrivateRoute = pathname.startsWith('/campus') || pathname.startsWith('/profesor') || pathname.startsWith('/admin') || pathname.startsWith('/api');
+  if (isPrivateRoute) {
+    sessionResponse.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  }
+
   sessionResponse.headers.set('X-Frame-Options', 'SAMEORIGIN');
   sessionResponse.headers.set('X-Content-Type-Options', 'nosniff');
 

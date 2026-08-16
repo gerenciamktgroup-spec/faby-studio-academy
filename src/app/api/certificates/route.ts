@@ -4,7 +4,6 @@ import { TEACHING_ROLES } from '@/lib/auth/roles';
 import { requireAuthPrincipal } from '@/lib/auth/server';
 import { getCertificateSigningSecret } from '@/lib/config/env';
 import { apiErrorResponse } from '@/lib/http/errors';
-import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
   certificateIssueSchema,
@@ -52,7 +51,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(validationError(payload.error), { status: 400 });
     }
 
-    const supabase = await createClient();
     const admin = createAdminClient();
 
     // 1. Fetch enrollment

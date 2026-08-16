@@ -1,76 +1,120 @@
-import { expect, test } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
+import { createClient } from '@supabase/supabase-js';
+import { expect, test, type Page } from '@playwright/test';
 
-test.describe('Authenticated Role-Based Flows & Route Security', () => {
+const liveAuthentication = process.env.LIVE_AUTH_E2E === 'true';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  test('Public certificate verification handles non-existent and valid formats securely', async ({ page }) => {
-    await page.goto('/verificar-certificado');
-    await expect(page.locator('h1')).toContainText('Verificación');
+type Role =
+  | 'alumna'
+  | 'tutor'
+  | 'profesor'
+  | 'admin_academico'
+  | 'auditor'
+  | 'superadmin';
 
-    // Enter invalid certificate code
-    await page.fill('input[placeholder*="FABY-"]', 'FABY-INVALID-9999');
-    await page.click('button:has-text("Verificar Diploma")');
+interface TestIdentity {
+  id: string;
+  email: string;
+  password: string;
+  role: Role;
+  landing: string;
+}
 
-    // Should navigate to verification route and show not found status
-    await page.waitForURL(/\/verificar-certificado\/FABY-INVALID-9999/);
-    await expect(page.getByText(/no encontrado|no válido|no existe/i)).toBeVisible({ timeout: 10000 });
+const identities: TestIdentity[] = [];
+
+async function login(page: Page, identity: TestIdentity) {
+  await page.goto('/login');
+  await page.locator('input[type="email"]').fill(identity.email);
+  await page.locator('input[type="password"]').fill(identity.password);
+  await page.getByRole('button', { name: /iniciar sesión/i }).click();
+  await page.waitForURL((url) => url.pathname === identity.landing, { timeout: 20_000 });
+  expect(page.url()).toContain(identity.landing);
+}
+
+test.describe('Flujos autenticados por rol contra Supabase Staging', () => {
+  test.skip(!liveAuthentication, 'Se ejecuta únicamente en el job Live con secretos de Staging.');
+
+  test.beforeAll(async () => {
+    if (!supabaseUrl || !anonKey || !serviceKey) {
+      throw new Error('El E2E autenticado requiere URL, anon key y service role de Staging.');
+    }
+
+    const admin = createClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const roles: Array<{ role: Role; landing: string }> = [
+      { role: 'alumna', landing: '/campus' },
+      { role: 'tutor', landing: '/profesor' },
+      { role: 'profesor', landing: '/profesor' },
+      { role: 'admin_academico', landing: '/admin' },
+      { role: 'auditor', landing: '/auditoria' },
+      { role: 'superadmin', landing: '/admin' },
+    ];
+
+    for (const item of roles) {
+      const suffix = randomUUID();
+      const email = `playwright_${item.role}_${suffix}@staging.faby.internal`;
+      const password = `Playwright_${suffix}!Aa1`;
+      const created = await admin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: `Playwright ${item.role}` },
+      });
+      if (created.error || !created.data.user) throw created.error ?? new Error('Auth no devolvió usuario.');
+
+      const id = created.data.user.id;
+      identities.push({ id, email, password, role: item.role, landing: item.landing });
+      if (item.role !== 'alumna') {
+        const assigned = await admin.from('user_roles').insert({ user_id: id, role: item.role });
+        if (assigned.error) throw assigned.error;
+        const removed = await admin.from('user_roles').delete().eq('user_id', id).eq('role', 'alumna');
+        if (removed.error) throw removed.error;
+      }
+    }
   });
 
-  test('Unauthenticated access guard: /campus redirects anonymous user to /login', async ({ page }) => {
-    const response = await page.goto('/campus');
-    expect(response?.status()).toBeLessThan(400);
-    expect(page.url()).toContain('/login');
-    await expect(page.locator('input[type="email"]')).toBeVisible();
+  test.afterAll(async () => {
+    if (!supabaseUrl || !serviceKey) return;
+    const admin = createClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    for (const identity of identities) {
+      const deleted = await admin.auth.admin.deleteUser(identity.id);
+      if (deleted.error) throw deleted.error;
+    }
   });
 
-  test('Unauthenticated access guard: /profesor redirects anonymous user to /login', async ({ page }) => {
-    const response = await page.goto('/profesor');
-    expect(response?.status()).toBeLessThan(400);
-    expect(page.url()).toContain('/login');
-    await expect(page.locator('input[type="email"]')).toBeVisible();
-  });
+  for (const role of ['alumna', 'tutor', 'profesor', 'admin_academico', 'auditor', 'superadmin'] as const) {
+    test(`${role} inicia sesión y llega a su área autorizada sin 503`, async ({ page }) => {
+      const identity = identities.find((candidate) => candidate.role === role);
+      if (!identity) throw new Error(`No se creó la identidad ${role}.`);
+      await login(page, identity);
+      const response = await page.goto(identity.landing);
+      expect(response?.status()).toBeLessThan(500);
+      expect(response?.status()).not.toBe(503);
+      expect(page.url()).toContain(identity.landing);
+    });
+  }
 
-  test('Unauthenticated access guard: /admin redirects anonymous user to /login', async ({ page }) => {
+  test('alumna autenticada no puede entrar en administración', async ({ page }) => {
+    const identity = identities.find((candidate) => candidate.role === 'alumna');
+    if (!identity) throw new Error('No se creó la alumna de prueba.');
+    await login(page, identity);
     const response = await page.goto('/admin');
-    expect(response?.status()).toBeLessThan(400);
-    expect(page.url()).toContain('/login');
-    await expect(page.locator('input[type="email"]')).toBeVisible();
+    expect(response?.status()).not.toBe(503);
+    await expect(page).toHaveURL(/\/campus|\/sin-acceso/);
   });
 
-  test('Unauthenticated access guard: /auditoria redirects anonymous user to /login', async ({ page }) => {
-    const response = await page.goto('/auditoria');
-    expect(response?.status()).toBeLessThan(400);
-    expect(page.url()).toContain('/login');
-    await expect(page.locator('input[type="email"]')).toBeVisible();
-  });
-
-  test('Registration page enforces versioned consent acceptance', async ({ page }) => {
-    await page.goto('/registro');
-    await expect(page.locator('h1')).toContainText('Crea tu Cuenta');
-    const submitBtn = page.getByRole('button', { name: /Crear Cuenta/i });
-    await expect(submitBtn).toBeDisabled();
-
-    // Check terms checkbox
-    await page.check('input[type="checkbox"]');
-    await expect(submitBtn).toBeEnabled();
-  });
-
-  test('Legal terms and privacy pages display neutral staging compliance text', async ({ page }) => {
-    await page.goto('/privacidad');
-    await expect(page.locator('h1')).toContainText('Política de Privacidad');
-    await expect(page.getByText(/Madrid/i)).toHaveCount(0);
-    await expect(page.getByText(/Calle Serrano/i)).toHaveCount(0);
-    await expect(page.getByText(/LOPD-GDD 2026/i)).toHaveCount(0);
-
-    await page.goto('/terminos');
-    await expect(page.locator('h1')).toContainText('Términos y Condiciones');
-    await expect(page.getByText(/Klarna/i)).toHaveCount(0);
-    await expect(page.getByText(/Bizum/i)).toHaveCount(0);
-  });
-
-  test('Checkout page presents controlled informational status without requesting payment cards', async ({ page }) => {
-    await page.goto('/checkout');
-    await expect(page.locator('h1')).toContainText('El pago en línea aún no está habilitado');
-    await expect(page.getByText(/Sin cobros simulados/i)).toBeVisible();
-    await expect(page.getByRole('link', { name: /Crear mi cuenta/i })).toBeVisible();
+  test('auditor autenticado no recibe capacidades de administración', async ({ page }) => {
+    const identity = identities.find((candidate) => candidate.role === 'auditor');
+    if (!identity) throw new Error('No se creó el auditor de prueba.');
+    await login(page, identity);
+    const response = await page.goto('/admin');
+    expect(response?.status()).not.toBe(503);
+    await expect(page).toHaveURL(/\/auditoria|\/sin-acceso/);
   });
 });

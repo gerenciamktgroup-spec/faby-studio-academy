@@ -37,7 +37,7 @@ export function PublicHeader() {
             </Link>
             <Link href="/auditoria" className="hover:text-fabi-pink transition-colors flex items-center space-x-1.5">
               <ShieldCheck className="w-4 h-4 text-slate-500" />
-              <span>Auditoría TMS/369</span>
+              <span>Trazabilidad técnica</span>
             </Link>
           </nav>
 

@@ -36,7 +36,7 @@ export function PublicFooter() {
             <ul className="space-y-1.5 text-slate-600">
               <li><Link href="/verificar-certificado" className="hover:text-fabi-pink transition-colors">Verificación de Diplomas</Link></li>
               <li><Link href="/auditoria" className="hover:text-fabi-pink transition-colors">Auditoría & Trazabilidad</Link></li>
-              <li><Link href="/privacidad" className="hover:text-fabi-pink transition-colors">Política de Privacidad (RGPD)</Link></li>
+              <li><Link href="/privacidad" className="hover:text-fabi-pink transition-colors">Aviso de privacidad de la preview</Link></li>
               <li><Link href="/terminos" className="hover:text-fabi-pink transition-colors">Términos y Condiciones</Link></li>
             </ul>
           </div>

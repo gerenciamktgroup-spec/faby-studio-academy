@@ -1,598 +1,543 @@
 import fs from 'node:fs';
+import { spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
-import { createHmac, timingSafeEqual, randomUUID } from 'node:crypto';
 
-// 1. Strict Environment Load
-const env = {};
-if (fs.existsSync('.env.local')) {
-  const lines = fs.readFileSync('.env.local', 'utf-8').split('\n');
-  for (const line of lines) {
-    const match = line.match(/^([A-Z0-9_]+)=(.*)$/);
-    if (match) {
-      env[match[1]] = match[2].trim();
-      process.env[match[1]] = match[2].trim();
+function loadLocalEnvironment() {
+  if (!fs.existsSync('.env.local')) return;
+  for (const rawLine of fs.readFileSync('.env.local', 'utf8').split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const separator = line.indexOf('=');
+    if (separator < 1) continue;
+    const key = line.slice(0, separator).trim();
+    let value = line.slice(separator + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
     }
+    if (!process.env[key]) process.env[key] = value;
   }
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
-const ipHashSalt = process.env.AUDIT_IP_HASH_SALT || env.AUDIT_IP_HASH_SALT;
-const certSigningSecret = process.env.CERTIFICATE_SIGNING_SECRET || env.CERTIFICATE_SIGNING_SECRET;
-
-if (!supabaseUrl || !supabaseAnonKey || !serviceKey) {
-  console.error('❌ FATAL: Credenciales incompletas de Supabase en el entorno.');
-  process.exit(1);
+function requireEnvironment(name, minLength = 1) {
+  const value = process.env[name]?.trim();
+  if (!value || value.length < minLength) throw new Error(`Falta o es inválida la variable ${name}.`);
+  return value;
 }
 
-if (!ipHashSalt || ipHashSalt.length < 32) {
-  console.error('❌ FATAL: AUDIT_IP_HASH_SALT debe tener al menos 32 caracteres.');
-  process.exit(1);
+let passed = 0;
+function check(description, condition, details = '') {
+  if (!condition) throw new Error(`${description}${details ? ` — ${details}` : ''}`);
+  passed += 1;
+  console.log(`✅ [${passed}] ${description}`);
 }
 
-if (!certSigningSecret || certSigningSecret.length < 32) {
-  console.error('❌ FATAL: CERTIFICATE_SIGNING_SECRET debe tener al menos 32 caracteres.');
-  process.exit(1);
+function strictResult(description, result) {
+  if (result.error) throw new Error(`${description}: ${result.error.message}`);
+  return result.data;
 }
 
-const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
+async function waitForApplication(baseUrl, child) {
+  const deadline = Date.now() + 120_000;
+  while (Date.now() < deadline) {
+    if (child?.exitCode !== null) throw new Error(`Next.js terminó antes de estar listo (${child.exitCode}).`);
+    try {
+      const response = await fetch(`${baseUrl}/login`, { redirect: 'manual' });
+      if (response.status < 500) return;
+    } catch {
+      // El proceso todavía está iniciando; el límite temporal controla el fallo.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  throw new Error('Next.js no estuvo disponible dentro de 120 segundos.');
+}
+
+function startApplication(baseUrl) {
+  if (process.env.LIVE_APP_URL) return null;
+  const port = new URL(baseUrl).port || '3100';
+  const child = spawn(
+    'npm',
+    ['run', 'dev', '--', '--hostname', '127.0.0.1', '--port', port],
+    {
+      env: {
+        ...process.env,
+        ENABLE_PUBLIC_REGISTRATION: 'true',
+        NEXT_PUBLIC_APP_URL: baseUrl,
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }
+  );
+  child.stdout.on('data', (chunk) => process.stdout.write(`[next] ${chunk}`));
+  child.stderr.on('data', (chunk) => process.stderr.write(`[next] ${chunk}`));
+  return child;
+}
+
+async function apiRequest(baseUrl, path, options = {}, accessToken) {
+  const headers = new Headers(options.headers);
+  headers.set('content-type', 'application/json');
+  if (accessToken) headers.set('authorization', `Bearer ${accessToken}`);
+  const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
+  const body = await response.json().catch(() => null);
+  return { response, body };
+}
+
+function containsPrivateKey(value) {
+  const forbidden = new Set([
+    'id',
+    'student_id',
+    'course_id',
+    'enrollment_id',
+    'hash_signature',
+    'email',
+  ]);
+  if (Array.isArray(value)) return value.some(containsPrivateKey);
+  if (!value || typeof value !== 'object') return false;
+  return Object.entries(value).some(([key, nested]) => forbidden.has(key) || containsPrivateKey(nested));
+}
+
+loadLocalEnvironment();
+const supabaseUrl = requireEnvironment('NEXT_PUBLIC_SUPABASE_URL');
+const anonKey = requireEnvironment('NEXT_PUBLIC_SUPABASE_ANON_KEY', 40);
+const serviceKey = requireEnvironment('SUPABASE_SERVICE_ROLE_KEY', 40);
+requireEnvironment('AUDIT_IP_HASH_SALT', 32);
+requireEnvironment('CERTIFICATE_SIGNING_SECRET', 32);
+
+const baseUrl = (process.env.LIVE_APP_URL?.trim() || 'http://127.0.0.1:3100').replace(/\/$/, '');
+const admin = createClient(supabaseUrl, serviceKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
-
-const anonClient = createClient(supabaseUrl, supabaseAnonKey, {
+const anonymous = createClient(supabaseUrl, anonKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
+const runId = randomUUID();
+const users = [];
+const storageObjects = [];
+let testCourseId = null;
+let application = null;
 
-let passedCount = 0;
-let testIndex = 1;
-const createdUsers = [];
-const createdEnrollments = [];
-const createdCertificates = [];
-const createdSessions = [];
-const createdSubmissions = [];
-
-function assert(description, condition, details = '') {
-  if (condition) {
-    console.log(`   ✅ [${testIndex++}] ${description} ${details ? '(' + details + ')' : ''}`);
-    passedCount++;
-  } else {
-    console.error(`   ❌ [${testIndex++}] FAILED: ${description} ${details ? '(' + details + ')' : ''}`);
-    throw new Error(`Assertion failed: ${description}`);
-  }
-}
-
-function buildCanonicalPayload(params) {
-  const version = params.version ?? '2.0';
-  if (version === '1.0') {
-    return JSON.stringify({
-      version: '1.0',
-      code: params.code,
-      student_id: params.studentId,
-      student_name: params.studentName,
-      course_id: params.courseId,
-      course_title: params.courseTitle,
-      total_active_hours: Number((params.totalActiveSeconds / 3600).toFixed(2)),
-      issued_at: new Date(params.issuedAt).toISOString(),
-    });
-  }
-
-  return JSON.stringify({
-    version: '2.0',
-    code: params.code,
-    student_id: params.studentId,
-    student_name: params.studentName,
-    course_id: params.courseId,
-    course_title: params.courseTitle,
-    total_active_seconds: Math.floor(params.totalActiveSeconds),
-    issued_at: new Date(params.issuedAt).toISOString(),
-  });
-}
-
-async function verifyCertificateReal(code) {
-  const { data, error } = await supabaseAdmin
-    .from('certificates')
-    .select('enrollment_id, student_id, course_id, code, hash_signature, payload_version, student_name_snapshot, course_title_snapshot, total_active_seconds, total_active_hours, issued_at, verification_url, profiles(full_name), courses(title)')
-    .eq('code', code)
-    .maybeSingle();
-
-  if (error) throw error;
-  if (!data) return null;
-
-  const studentName = data.student_name_snapshot || data.profiles?.full_name || 'Alumna Faby Studio';
-  const courseTitle = data.course_title_snapshot || data.courses?.title || 'Curso Profesional';
-  const totalActiveSeconds = data.total_active_seconds ?? Math.round(Number(data.total_active_hours || 0) * 3600);
-  const totalActiveHours = Number((totalActiveSeconds / 3600).toFixed(2));
-  const canonicalIssuedAt = new Date(data.issued_at).toISOString();
-  const payloadVersion = data.payload_version ?? '1.0';
-
-  const canonicalPayload = buildCanonicalPayload({
-    version: payloadVersion,
-    code: data.code,
-    studentId: data.student_id,
-    studentName,
-    courseId: data.course_id,
-    courseTitle,
-    totalActiveSeconds,
-    issuedAt: canonicalIssuedAt,
-  });
-
-  const expected = createHmac('sha256', certSigningSecret)
-    .update(canonicalPayload)
-    .digest();
-
-  const actual = Buffer.from(data.hash_signature, 'hex');
-  if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) {
-    return null;
-  }
-
-  return {
-    code: data.code,
-    student_name: studentName,
-    course_title: courseTitle,
-    total_active_hours: totalActiveHours,
-    issued_at: canonicalIssuedAt,
-    verification_url: data.verification_url,
-    is_valid: true,
-  };
-}
-
-function computeIpHashLocal(ip) {
-  return createHmac('sha256', ipHashSalt).update(ip).digest('hex');
-}
-
-async function createLiveTestUser(role, prefix) {
-  const timestamp = Date.now() + '_' + Math.random().toString(36).substring(2, 7);
-  const email = `${prefix}_${timestamp}@staging.faby.internal`;
-  const password = `StagingTest_${timestamp}!Aa1`;
-  const fullName = `Test User ${role} ${timestamp}`;
-
-  const { data, error } = await supabaseAdmin.auth.admin.createUser({
+async function createUser(role, label, retainStudentRole = false) {
+  const email = `${label}_${runId}@staging.faby.internal`;
+  const password = `Staging_${randomUUID()}!Aa1`;
+  const fullName = `Security Test ${label}`;
+  const created = await admin.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
-    user_metadata: { full_name: fullName },
+    user_metadata: { full_name: fullName, security_test_run_id: runId },
   });
-
-  if (error || !data.user) {
-    throw new Error(`Failed to create test user: ${error?.message}`);
+  if (created.error || !created.data.user) {
+    throw new Error(`No se pudo crear ${label}: ${created.error?.message}`);
   }
 
-  const userId = data.user.id;
-  createdUsers.push(userId);
+  const id = created.data.user.id;
+  users.push(id);
 
-  // Set role
   if (role !== 'alumna') {
-    await supabaseAdmin.from('user_roles').delete().eq('user_id', userId).eq('role', 'alumna');
-    await supabaseAdmin.from('user_roles').insert({ user_id: userId, role });
+    const roleInsert = await admin.from('user_roles').insert({ user_id: id, role });
+    strictResult(`Asignación inicial ${role}`, roleInsert);
+    if (!retainStudentRole) {
+      const defaultDelete = await admin
+        .from('user_roles')
+        .delete()
+        .eq('user_id', id)
+        .eq('role', 'alumna');
+      strictResult(`Retiro del rol inicial de ${label}`, defaultDelete);
+    }
   }
 
-  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+  const client = createClient(supabaseUrl, anonKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-
-  const { data: sessionData, error: sessionErr } = await userClient.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (sessionErr || !sessionData.session) {
-    throw new Error(`Failed to sign in test user ${email}: ${sessionErr?.message}`);
+  const signedIn = await client.auth.signInWithPassword({ email, password });
+  if (signedIn.error || !signedIn.data.session) {
+    throw new Error(`No se pudo autenticar ${label}: ${signedIn.error?.message}`);
   }
 
   return {
-    id: userId,
+    id,
     email,
-    password,
     fullName,
-    client: userClient,
-    session: sessionData.session,
+    client,
+    accessToken: signedIn.data.session.access_token,
   };
 }
 
-async function runLiveSecurityMatrix() {
-  console.log('============================================================');
-  console.log('  LIVE RBAC & RLS REAL SECURITY MATRIX (POSTGRESQL 17)');
-  console.log(`  Supabase Target: ${supabaseUrl}`);
-  console.log('============================================================\n');
-
-  // Setup identities
-  console.log('📋 Creando identidades reales de prueba en Staging...');
-  const alumnaA = await createLiveTestUser('alumna', 'test_alumna_a');
-  const alumnaB = await createLiveTestUser('alumna', 'test_alumna_b');
-  const tutora = await createLiveTestUser('tutor', 'test_tutora');
-  const profesoraAsignada = await createLiveTestUser('profesor', 'test_profesora_asig');
-  const adminAcad = await createLiveTestUser('admin_academico', 'test_admin_acad');
-  const auditor = await createLiveTestUser('auditor', 'test_auditor');
-  const superadmin = await createLiveTestUser('superadmin', 'test_superadmin');
-  const superadmin2 = await createLiveTestUser('superadmin', 'test_superadmin2');
-
-  // Fetch a test course
-  const { data: course, error: courseErr } = await supabaseAdmin
-    .from('courses')
-    .select('id, title, estimated_hours, min_active_hours_pct')
-    .limit(1)
-    .single();
-  if (courseErr || !course) throw new Error('No course found for testing.');
-
-  // Ensure course staff assignment for profesoraAsignada
-  await supabaseAdmin.from('course_staff').upsert(
-    { course_id: course.id, user_id: profesoraAsignada.id, staff_role: 'profesor', is_active: true },
-    { onConflict: 'course_id,user_id,staff_role' }
+async function createEnrollmentFixture(student, activeSeconds) {
+  const enrollment = strictResult(
+    `Matrícula para ${student.email}`,
+    await admin
+      .from('enrollments')
+      .insert({ student_id: student.id, course_id: testCourseId, status: 'active' })
+      .select('id')
+      .single()
   );
+  const lesson = strictResult(
+    'Lectura de lección de prueba',
+    await admin
+      .from('lessons')
+      .select('id, modules!inner(course_id)')
+      .eq('modules.course_id', testCourseId)
+      .single()
+  );
+  strictResult(
+    `Progreso para ${student.email}`,
+    await admin.from('lesson_progress').insert({
+      student_id: student.id,
+      lesson_id: lesson.id,
+      status: 'completed',
+      active_time_seconds: activeSeconds,
+      completed_at: new Date().toISOString(),
+    })
+  );
+  strictResult(
+    `Sesión activa para ${student.email}`,
+    await admin.from('session_logs').insert({
+      user_id: student.id,
+      course_id: testCourseId,
+      session_id: `security_${runId}_${student.id}`,
+      total_active_seconds: activeSeconds,
+      total_logged_seconds: activeSeconds,
+      is_active: false,
+      ended_at: new Date().toISOString(),
+    })
+  );
+  return enrollment.id;
+}
 
-  console.log('\n🔒 1. PROTECCIÓN DE ROLES Y CONTROL DE ESCALADA:');
+async function cleanup() {
+  for (const object of storageObjects) {
+    const removed = await admin.storage.from(object.bucket).remove([object.path]);
+    if (removed.error) console.error(`Cleanup Storage: ${removed.error.message}`);
+  }
 
-  // Test 1: Alumna direct insert in user_roles rejected
-  const { error: err1 } = await alumnaA.client.from('user_roles').insert({ user_id: alumnaA.id, role: 'superadmin' });
-  assert('Alumna A no puede insertar directamente en user_roles', Boolean(err1), `Code ${err1?.code}`);
+  if (users.length > 0) {
+    const certificateDelete = await admin
+      .from('certificates')
+      .delete()
+      .in('student_id', users)
+      .eq('is_test_fixture', true);
+    if (certificateDelete.error) console.error(`Cleanup certificados: ${certificateDelete.error.message}`);
+  }
 
-  // Test 2: Alumna direct update in user_roles rejected
-  const { error: err2 } = await alumnaA.client.from('user_roles').update({ role: 'superadmin' }).eq('user_id', alumnaA.id);
-  assert('Alumna A no puede actualizar directamente user_roles', Boolean(err2), `Code ${err2?.code}`);
+  if (testCourseId) {
+    const courseDelete = await admin.from('courses').delete().eq('id', testCourseId);
+    if (courseDelete.error) console.error(`Cleanup curso: ${courseDelete.error.message}`);
+  }
 
-  // Test 3: Alumna direct delete in user_roles rejected
-  const { error: err3 } = await alumnaA.client.from('user_roles').delete().eq('user_id', alumnaA.id);
-  assert('Alumna A no puede eliminar de user_roles', Boolean(err3), `Code ${err3?.code}`);
+  for (const userId of users) {
+    const deleted = await admin.auth.admin.deleteUser(userId);
+    if (deleted.error) console.error(`Cleanup Auth ${userId}: ${deleted.error.message}`);
+  }
 
-  // Test 4: Anonymous client denied read access to user_roles
-  const { data: dataAnonRoles, error: err4 } = await anonClient.from('user_roles').select('*');
-  assert('Cliente anónimo no puede acceder a las filas de user_roles (Aislamiento RLS)', (dataAnonRoles ?? []).length === 0 || Boolean(err4));
+  if (application && application.exitCode === null) application.kill('SIGTERM');
+}
 
-  // Test 5: Alumna cannot execute manage_user_role_tx RPC
-  const { error: err5 } = await alumnaA.client.rpc('manage_user_role_tx', {
-    p_actor_id: alumnaA.id,
-    p_target_user_id: alumnaA.id,
+async function run() {
+  console.log(`LIVE target: ${supabaseUrl}`);
+  application = startApplication(baseUrl);
+  await waitForApplication(baseUrl, application);
+  check('La aplicación Next.js está disponible para pruebas HTTP reales', true);
+
+  const baselineSuperRows = strictResult(
+    'Lectura del baseline de superadmins',
+    await admin.from('user_roles').select('user_id').eq('role', 'superadmin')
+  );
+  const baselineSuperCount = baselineSuperRows.length;
+
+  const alumnaBelow = await createUser('alumna', 'alumna_below');
+  const alumnaExact = await createUser('alumna', 'alumna_exact');
+  const alumnaAbove = await createUser('alumna', 'alumna_above');
+  const alumnaTamper = await createUser('alumna', 'alumna_tamper');
+  const tutor = await createUser('tutor', 'tutor');
+  const professor = await createUser('profesor', 'professor');
+  const adminAcademic = await createUser('admin_academico', 'admin');
+  const auditor = await createUser('auditor', 'auditor');
+  const superadminA = await createUser('superadmin', 'super_a', true);
+  const superadminB = await createUser('superadmin', 'super_b', true);
+  check('Se autenticaron identidades reales para los seis roles y cuatro matrículas de umbral', users.length === 10);
+
+  const anonymousRoleInsert = await anonymous.from('user_roles').insert({
+    user_id: alumnaBelow.id,
+    role: 'superadmin',
+  });
+  check('Anónimo no puede escribir user_roles', Boolean(anonymousRoleInsert.error));
+
+  const studentRoleInsert = await alumnaBelow.client.from('user_roles').insert({
+    user_id: alumnaBelow.id,
+    role: 'superadmin',
+  });
+  check('Alumna no puede autoasignarse roles', Boolean(studentRoleInsert.error));
+
+  const clientRpc = await alumnaBelow.client.rpc('manage_user_role_tx', {
+    p_actor_id: alumnaBelow.id,
+    p_target_user_id: alumnaBelow.id,
     p_target_role: 'superadmin',
     p_action: 'ASSIGN',
   });
-  assert('Alumna A no puede ejecutar la función RPC manage_user_role_tx', Boolean(err5), `Code ${err5?.code}`);
+  check('Alumna no puede ejecutar manage_user_role_tx', Boolean(clientRpc.error));
 
-  // Test 6: Anonymous cannot execute manage_user_role_tx RPC
-  const { error: err6 } = await anonClient.rpc('manage_user_role_tx', {
-    p_actor_id: alumnaA.id,
-    p_target_user_id: alumnaA.id,
+  const adminEscalation = await admin.rpc('manage_user_role_tx', {
+    p_actor_id: adminAcademic.id,
+    p_target_user_id: tutor.id,
     p_target_role: 'superadmin',
     p_action: 'ASSIGN',
   });
-  assert('Cliente anónimo no puede ejecutar manage_user_role_tx', Boolean(err6), `Code ${err6?.code}`);
+  check('admin_academico no puede escalar una cuenta a superadmin', Boolean(adminEscalation.error));
 
-  // Test 7: Academic Admin cannot assign superadmin role
-  const { error: err7 } = await supabaseAdmin.rpc('manage_user_role_tx', {
-    p_actor_id: adminAcad.id,
-    p_target_user_id: alumnaA.id,
-    p_target_role: 'superadmin',
-    p_action: 'ASSIGN',
-  });
-  assert('Admin Académico es rechazado al intentar asignar rol superadmin', Boolean(err7), err7?.message);
-
-  // Test 8: Academic Admin cannot alter roles of accounts with elevated roles
-  const { error: err8 } = await supabaseAdmin.rpc('manage_user_role_tx', {
-    p_actor_id: adminAcad.id,
-    p_target_user_id: auditor.id,
-    p_target_role: 'alumna',
-    p_action: 'ASSIGN',
-  });
-  assert('Admin Académico es rechazado al intentar modificar usuario con rol elevado', Boolean(err8), err8?.message);
-
-  // Test 9: Superadmin assigns operative role via manage_user_role_tx successfully
-  const { data: data9, error: err9 } = await supabaseAdmin.rpc('manage_user_role_tx', {
-    p_actor_id: superadmin.id,
-    p_target_user_id: tutora.id,
-    p_target_role: 'profesor',
-    p_action: 'ASSIGN',
-  });
-  assert('Superadministrador asigna rol docente exitosamente vía manage_user_role_tx', !err9 && data9?.success === true);
-
-  // Test 10: Concurrent attempt to remove the only remaining superadmin is blocked
-  await supabaseAdmin.from('user_roles').insert({ user_id: superadmin2.id, role: 'alumna' });
-  await supabaseAdmin.rpc('manage_user_role_tx', {
-    p_actor_id: superadmin.id,
-    p_target_user_id: superadmin2.id,
-    p_target_role: 'superadmin',
-    p_action: 'REMOVE',
-  });
-
-  const [race1, race2] = await Promise.all([
-    supabaseAdmin.rpc('manage_user_role_tx', {
-      p_actor_id: superadmin.id,
-      p_target_user_id: superadmin.id,
+  const race = await Promise.all([
+    admin.rpc('manage_user_role_tx', {
+      p_actor_id: superadminA.id,
+      p_target_user_id: superadminA.id,
       p_target_role: 'superadmin',
       p_action: 'REMOVE',
     }),
-    supabaseAdmin.rpc('manage_user_role_tx', {
-      p_actor_id: superadmin.id,
-      p_target_user_id: superadmin.id,
+    admin.rpc('manage_user_role_tx', {
+      p_actor_id: superadminB.id,
+      p_target_user_id: superadminB.id,
       p_target_role: 'superadmin',
       p_action: 'REMOVE',
     }),
   ]);
-  const raceBlocked = Boolean(race1.error) && Boolean(race2.error);
-  assert('Intentos concurrentes de revocar al último superadministrador quedan bloqueados por serialización FOR UPDATE', raceBlocked, race1.error?.message);
+  const expectedRaceErrors = baselineSuperCount === 0 ? 1 : 0;
+  check(
+    'La carrera de degradación conserva el baseline global de superadmins',
+    race.filter((result) => result.error).length === expectedRaceErrors
+  );
+  const remainingSupers = strictResult(
+    'Conteo posterior de superadmins',
+    await admin.from('user_roles').select('user_id').eq('role', 'superadmin')
+  );
+  check(
+    'El invariante conserva al menos un superadmin y nunca reduce el baseline existente',
+    remainingSupers.length >= Math.max(1, baselineSuperCount)
+  );
 
-  // 2. AISLAMIENTO RLS ENTRE ALUMNAS Y STORAGE:
-  let { data: assign } = await supabaseAdmin.from('assignments').select('id').limit(1).maybeSingle();
-  if (!assign) {
-    const { data: mod } = await supabaseAdmin.from('modules').select('id').limit(1).single();
-    const { data: newAssign } = await supabaseAdmin.from('assignments').insert({
-      module_id: mod.id,
-      title: 'Práctica de Validación RLS',
-      description: 'Práctica de aislamiento de entregas'
-    }).select('id').single();
-    assign = newAssign;
+  for (const user of [superadminA, superadminB]) {
+    const restore = await admin
+      .from('user_roles')
+      .upsert({ user_id: user.id, role: 'superadmin' }, { onConflict: 'user_id,role' });
+    strictResult(`Restauración de fixture ${user.email}`, restore);
   }
 
-  // Create practice submissions for Alumna A and Alumna B
-  const { data: subA, error: subAErr } = await supabaseAdmin
-    .from('assignment_submissions')
-    .insert({
-      assignment_id: assign.id,
-      student_id: alumnaA.id,
-      submission_text: 'Práctica privada Alumna A',
-    })
-    .select('id')
-    .single();
-  if (subAErr) throw subAErr;
-  createdSubmissions.push(subA.id);
+  const consentHashA = 'a'.repeat(64);
+  const consentHashB = 'b'.repeat(64);
+  const concurrentConsents = await Promise.all([
+    admin.rpc('record_user_legal_consents', {
+      p_user_id: alumnaBelow.id,
+      p_ip_hash: consentHashA,
+      p_user_agent: 'SecurityMatrix/A',
+      p_terms_version: '2026.2',
+      p_privacy_version: '2026.2',
+    }),
+    admin.rpc('record_user_legal_consents', {
+      p_user_id: alumnaBelow.id,
+      p_ip_hash: consentHashB,
+      p_user_agent: 'SecurityMatrix/B',
+      p_terms_version: '2026.2',
+      p_privacy_version: '2026.2',
+    }),
+  ]);
+  check('Las dos llamadas concurrentes de consentimiento terminan sin error', concurrentConsents.every((result) => !result.error));
+  const consentRows = strictResult(
+    'Lectura de consentimientos concurrentes',
+    await admin
+      .from('consent_records')
+      .select('consent_type, ip_hash, granted_at, legal_version_id')
+      .eq('user_id', alumnaBelow.id)
+      .eq('version', '2026.2')
+  );
+  check('La concurrencia genera exactamente una evidencia por documento', consentRows.length === 2);
+  check('La evidencia original no fue sobrescrita por el reintento', new Set(consentRows.map((row) => row.ip_hash)).size === 1);
 
-  const { data: subB, error: subBErr } = await supabaseAdmin
-    .from('assignment_submissions')
-    .insert({
-      assignment_id: assign.id,
-      student_id: alumnaB.id,
-      submission_text: 'Práctica privada Alumna B',
-    })
-    .select('id')
-    .single();
-  if (subBErr) throw subBErr;
-  createdSubmissions.push(subB.id);
-
-  // Test 11: Alumna A cannot read Alumna B's submission
-  const { data: readBbyA } = await alumnaA.client
-    .from('assignment_submissions')
-    .select('*')
-    .eq('id', subB.id);
-  assert('Alumna A no puede leer entregas de prácticas de Alumna B', (readBbyA ?? []).length === 0);
-
-  // Test 12: Alumna A can read her own submission
-  const { data: readAbyA } = await alumnaA.client
-    .from('assignment_submissions')
-    .select('*')
-    .eq('id', subA.id);
-  assert('Alumna A puede leer sus propias entregas de prácticas', (readAbyA ?? []).length === 1);
-
-  // Test 13: Storage denies cross-user read in private buckets
-  const testFileA = `private_${alumnaA.id}/evidence_${Date.now()}.png`;
-  await supabaseAdmin.storage.from('practice-evidence').upload(testFileA, Buffer.from('fake_image_content'), { contentType: 'image/png' });
-  const { data: downloadCross } = await alumnaB.client.storage.from('practice-evidence').download(testFileA);
-  assert('Storage bloquea la lectura cruzada de evidencias privadas entre alumnas', downloadCross === null);
-  await supabaseAdmin.storage.from('practice-evidence').remove([testFileA]);
-
-  console.log('\n📜 3. CONSENTIMIENTOS, INMUTABILIDAD Y ROLLBACK:');
-
-  // Test 14: Direct write to consent_records is rejected for alumna
-  const { error: errConsentInsert } = await alumnaA.client.from('consent_records').insert({
-    user_id: alumnaA.id,
-    consent_type: 'terms',
-    version: '2026.1',
-    granted_at: new Date().toISOString(),
-  });
-  assert('Alumna A no puede insertar directamente en consent_records', Boolean(errConsentInsert), `Code ${errConsentInsert?.code}`);
-
-  // Test 15: Direct update on consent_records is rejected
-  const { error: errConsentUpdate } = await alumnaA.client.from('consent_records').update({ version: '9999' }).eq('user_id', alumnaA.id);
-  assert('Alumna A no puede actualizar consent_records', Boolean(errConsentUpdate), `Code ${errConsentUpdate?.code}`);
-
-  // Test 16: Idempotent consent registration does not mutate granted_at or evidence
-  const userIp = '198.51.100.42';
-  const ipHash = computeIpHashLocal(userIp);
-  const { data: initialConsent, error: consentRpcErr } = await supabaseAdmin.rpc('record_user_legal_consents', {
-    p_user_id: alumnaA.id,
-    p_ip_hash: ipHash,
-    p_user_agent: 'Mozilla/5.0 TestAgent',
-    p_terms_version: '2026.1',
-    p_privacy_version: '2026.1',
-  });
-  if (consentRpcErr) throw consentRpcErr;
-
-  const { data: firstGrantRow } = await supabaseAdmin
-    .from('consent_records')
-    .select('granted_at, ip_hash')
-    .eq('id', initialConsent.terms_consent_id)
-    .single();
-
-  // Retry recording consent
-  await supabaseAdmin.rpc('record_user_legal_consents', {
-    p_user_id: alumnaA.id,
-    p_ip_hash: computeIpHashLocal('203.0.113.99'),
-    p_user_agent: 'Mozilla/5.0 DifferentAgent',
-    p_terms_version: '2026.1',
-    p_privacy_version: '2026.1',
-  });
-
-  const { data: retryGrantRow } = await supabaseAdmin
-    .from('consent_records')
-    .select('granted_at, ip_hash')
-    .eq('id', initialConsent.terms_consent_id)
-    .single();
-
-  const timestampUnchanged = firstGrantRow?.granted_at === retryGrantRow?.granted_at;
-  const ipUnchanged = firstGrantRow?.ip_hash === retryGrantRow?.ip_hash;
-  assert('Registro de consentimiento es idempotente: no muta granted_at ni sobrescribe evidencia', timestampUnchanged && ipUnchanged);
-
-  // Test 17: Legal document versions published are immutable
-  const { error: errMutateLegal } = await supabaseAdmin
+  const legalMutation = await admin
     .from('legal_document_versions')
-    .update({ content_text: 'Mutated illegal text' })
-    .eq('version', '2026.1');
-  assert('Versiones legales publicadas impiden modificación de contenido (Trigger de inmutabilidad)', Boolean(errMutateLegal), errMutateLegal?.message);
+    .update({ title: 'Mutación prohibida' })
+    .eq('version', '2026.2');
+  check('La inmutabilidad legal bloquea también cambios de título', Boolean(legalMutation.error));
 
-  // Test 18: Rollback verification on registration failure
-  const orphanTestEmail = `rollback_test_${Date.now()}@staging.faby.internal`;
-  const { data: orphanUser } = await supabaseAdmin.auth.admin.createUser({
-    email: orphanTestEmail,
-    password: 'Password123!Aa1',
-    email_confirm: true,
-  });
-  if (orphanUser?.user) {
-    const { error: rollbackDelErr } = await supabaseAdmin.auth.admin.deleteUser(orphanUser.user.id);
-    assert('Rollback de usuario Auth ante fallo de registro se ejecuta y valida sin error', !rollbackDelErr);
-
-    const { data: verifiedDeleted } = await supabaseAdmin.auth.admin.getUserById(orphanUser.user.id);
-    assert('Confirmado que no existe usuario huérfano tras rollback', !verifiedDeleted?.user);
-  }
-
-  console.log('\n🎓 4. CERTIFICADOS AL SEGUNDO EXACTO, FIRMA CANÓNICA Y VERIFICACIÓN SANITIZADA:');
-
-  const estimatedSeconds = Math.round(Number(course.estimated_hours) * 3600);
-  const minPct = Number(course.min_active_hours_pct ?? 0.80);
-  const requiredActiveSeconds = Math.ceil(estimatedSeconds * minPct);
-
-  // Create enrollment for Alumna A
-  const { data: enrollA, error: enrollAErr } = await supabaseAdmin
-    .from('enrollments')
-    .insert({
-      student_id: alumnaA.id,
-      course_id: course.id,
-      status: 'active',
+  const course = strictResult(
+    'Creación de curso de umbral',
+    await admin
+      .from('courses')
+      .insert({
+        slug: `security-threshold-${runId}`,
+        title: `Security Threshold ${runId}`,
+        description: 'Curso sintético para validar el umbral exacto al segundo.',
+        category: 'Security Test',
+        estimated_hours: 1,
+        min_active_hours_pct: 0.8,
+        is_published: false,
+      })
+      .select('id, title')
+      .single()
+  );
+  testCourseId = course.id;
+  const moduleRow = strictResult(
+    'Creación de módulo de prueba',
+    await admin
+      .from('modules')
+      .insert({ course_id: testCourseId, title: 'Módulo de seguridad', order_index: 1 })
+      .select('id')
+      .single()
+  );
+  const lessonRow = strictResult(
+    'Creación de lección de prueba',
+    await admin
+      .from('lessons')
+      .insert({
+        module_id: moduleRow.id,
+        title: 'Lección de seguridad',
+        content_type: 'text',
+        duration_seconds: 60,
+        order_index: 1,
+      })
+      .select('id')
+      .single()
+  );
+  strictResult(
+    'Asignación real de profesora',
+    await admin.from('course_staff').insert({
+      course_id: testCourseId,
+      user_id: professor.id,
+      staff_role: 'profesor',
+      is_active: true,
     })
+  );
+
+  const requiredSeconds = 2880;
+  const belowEnrollment = await createEnrollmentFixture(alumnaBelow, requiredSeconds - 1);
+  const exactEnrollment = await createEnrollmentFixture(alumnaExact, requiredSeconds);
+  const aboveEnrollment = await createEnrollmentFixture(alumnaAbove, requiredSeconds + 1);
+  const tamperEnrollment = await createEnrollmentFixture(alumnaTamper, requiredSeconds + 1);
+
+  const anonymousIssue = await apiRequest(baseUrl, '/api/certificates', {
+    method: 'POST',
+    body: JSON.stringify({ enrollmentId: exactEnrollment }),
+  });
+  check('La API rechaza emisión anónima con 401', anonymousIssue.response.status === 401);
+
+  const unassignedIssue = await apiRequest(baseUrl, '/api/certificates', {
+    method: 'POST',
+    body: JSON.stringify({ enrollmentId: exactEnrollment }),
+  }, tutor.accessToken);
+  check('La API rechaza docente no asignada con 403', unassignedIssue.response.status === 403);
+
+  const belowIssue = await apiRequest(baseUrl, '/api/certificates', {
+    method: 'POST',
+    body: JSON.stringify({ enrollmentId: belowEnrollment }),
+  }, professor.accessToken);
+  check('La API rechaza requiredSeconds - 1 con 409', belowIssue.response.status === 409);
+
+  const exactIssue = await apiRequest(baseUrl, '/api/certificates', {
+    method: 'POST',
+    body: JSON.stringify({ enrollmentId: exactEnrollment }),
+  }, professor.accessToken);
+  check('La API emite en el umbral exacto con 201', exactIssue.response.status === 201, JSON.stringify(exactIssue.body));
+
+  const aboveIssue = await apiRequest(baseUrl, '/api/certificates', {
+    method: 'POST',
+    body: JSON.stringify({ enrollmentId: aboveEnrollment }),
+  }, professor.accessToken);
+  check('La API emite sobre el umbral con 201', aboveIssue.response.status === 201, JSON.stringify(aboveIssue.body));
+
+  const duplicateIssue = await apiRequest(baseUrl, '/api/certificates', {
+    method: 'POST',
+    body: JSON.stringify({ enrollmentId: exactEnrollment }),
+  }, professor.accessToken);
+  check('La emisión repetida es idempotente y responde 409', duplicateIssue.response.status === 409);
+
+  const publicVerification = await apiRequest(
+    baseUrl,
+    `/api/certificates?code=${encodeURIComponent(exactIssue.body.certificate.code)}`,
+    { method: 'GET' }
+  );
+  check('La verificación pública real responde 200', publicVerification.response.status === 200);
+  check('La respuesta pública no contiene campos privados', !containsPrivateKey(publicVerification.body));
+
+  const tamperedCode = `FABY-${new Date().getUTCFullYear()}-TAMPER000001`;
+  strictResult(
+    'Inserción controlada del fixture alterado',
+    await admin.from('certificates').insert({
+      enrollment_id: tamperEnrollment,
+      student_id: alumnaTamper.id,
+      course_id: testCourseId,
+      code: tamperedCode,
+      hash_signature: 'd'.repeat(64),
+      payload_version: '2.0',
+      student_name_snapshot: alumnaTamper.fullName,
+      course_title_snapshot: course.title,
+      total_active_seconds: requiredSeconds + 1,
+      total_active_hours: 0.8,
+      issued_at: new Date().toISOString(),
+      verification_url: `${baseUrl}/verificar-certificado/${tamperedCode}`,
+      is_test_fixture: true,
+    })
+  );
+  const tamperedVerification = await apiRequest(
+    baseUrl,
+    `/api/certificates?code=${encodeURIComponent(tamperedCode)}`,
+    { method: 'GET' }
+  );
+  check('Una firma alterada es rechazada por la API con 404', tamperedVerification.response.status === 404);
+
+  const ownPath = `${alumnaExact.id}/security-${runId}.txt`;
+  const upload = await alumnaExact.client.storage
+    .from('practice-evidence')
+    .upload(ownPath, new Blob(['synthetic-security-evidence'], { type: 'text/plain' }));
+  strictResult('Upload propietario en Storage', upload);
+  storageObjects.push({ bucket: 'practice-evidence', path: ownPath });
+  const ownDownload = await alumnaExact.client.storage.from('practice-evidence').download(ownPath);
+  check('La propietaria puede descargar su evidencia', !ownDownload.error && ownDownload.data instanceof Blob);
+  const crossDownload = await alumnaAbove.client.storage.from('practice-evidence').download(ownPath);
+  check('Otra alumna no puede descargar la evidencia', Boolean(crossDownload.error) && !crossDownload.data);
+
+  const submission = strictResult(
+    'Creación de entrega privada A',
+    await admin
+      .from('assignments')
+      .insert({
+        lesson_id: lessonRow.id,
+        title: 'Fixture de aislamiento',
+        description: 'Solo para validar RLS',
+      })
+      .select('id')
+      .single()
+  );
+  const privateSubmission = strictResult(
+    'Creación de submission privada',
+    await admin
+      .from('assignment_submissions')
+      .insert({
+        assignment_id: submission.id,
+        student_id: alumnaExact.id,
+        submission_text: 'Evidencia sintética privada',
+      })
+      .select('id')
+      .single()
+  );
+  const ownerRead = await alumnaExact.client
+    .from('assignment_submissions')
     .select('id')
-    .single();
-  if (enrollAErr) throw enrollAErr;
-  createdEnrollments.push(enrollA.id);
+    .eq('id', privateSubmission.id);
+  check('Alumna puede leer su propia entrega', !ownerRead.error && ownerRead.data?.length === 1);
+  const crossRead = await alumnaAbove.client
+    .from('assignment_submissions')
+    .select('id')
+    .eq('id', privateSubmission.id);
+  check('Alumna no puede leer entregas ajenas', !crossRead.error && crossRead.data?.length === 0);
 
-  // Test 19: Certificate rejected at requiredSeconds - 1 (Below threshold -> 409)
-  const belowSeconds = requiredActiveSeconds - 1;
-  const { data: sessBelow, error: sessBelowErr } = await supabaseAdmin.from('session_logs').insert({
-    user_id: alumnaA.id,
-    course_id: course.id,
-    session_id: `sess_test_below_${Date.now()}`,
-    total_active_seconds: belowSeconds,
-    total_logged_seconds: belowSeconds + 100,
-  }).select('id').single();
-  if (sessBelowErr) throw sessBelowErr;
-  createdSessions.push(sessBelow.id);
+  const auditorRead = await auditor.client.from('activity_events').select('id').limit(1);
+  check('Auditor puede leer la traza inmutable', !auditorRead.error && Array.isArray(auditorRead.data));
 
-  // Test issuance rejection when active time < required
-  const { data: sessionsA } = await supabaseAdmin.from('session_logs').select('total_active_seconds').eq('user_id', alumnaA.id).eq('course_id', course.id);
-  const totalA = (sessionsA ?? []).reduce((acc, s) => acc + Number(s.total_active_seconds || 0), 0);
-  assert('Verificación de tiempo activo: total < requerido detectado al segundo exacto', totalA < requiredActiveSeconds, `${totalA}s < ${requiredActiveSeconds}s`);
-
-  // Test 20: Add 1 second to reach exact threshold -> issuance allowed
-  const { data: sessExact, error: sessExactErr } = await supabaseAdmin.from('session_logs').insert({
-    user_id: alumnaA.id,
-    course_id: course.id,
-    session_id: `sess_test_exact_${Date.now()}`,
-    total_active_seconds: 1,
-    total_logged_seconds: 5,
-  }).select('id').single();
-  if (sessExactErr) throw sessExactErr;
-  createdSessions.push(sessExact.id);
-
-  const { data: sessionsA2 } = await supabaseAdmin.from('session_logs').select('total_active_seconds').eq('user_id', alumnaA.id).eq('course_id', course.id);
-  const totalA2 = (sessionsA2 ?? []).reduce((acc, s) => acc + Number(s.total_active_seconds || 0), 0);
-  assert('Alcanzado el umbral exacto de horas activas (total == requerido)', totalA2 === requiredActiveSeconds, `${totalA2}s === ${requiredActiveSeconds}s`);
-
-  // Issue certificate for Alumna A with snapshot fields
-  const certCode = `FABY-${new Date().getUTCFullYear()}-${randomUUID().replaceAll('-', '').slice(0, 12).toUpperCase()}`;
-  const issuedAt = new Date().toISOString();
-  const canonicalPayload = buildCanonicalPayload({
-    version: '2.0',
-    code: certCode,
-    studentId: alumnaA.id,
-    studentName: alumnaA.fullName,
-    courseId: course.id,
-    courseTitle: course.title,
-    totalActiveSeconds: totalA2,
-    issuedAt,
-  });
-
-  const validSignature = createHmac('sha256', certSigningSecret)
-    .update(canonicalPayload)
-    .digest('hex');
-
-  const { data: certRow, error: certErr } = await supabaseAdmin.from('certificates').insert({
-    enrollment_id: enrollA.id,
-    student_id: alumnaA.id,
-    course_id: course.id,
-    code: certCode,
-    hash_signature: validSignature,
-    payload_version: '2.0',
-    student_name_snapshot: alumnaA.fullName,
-    course_title_snapshot: course.title,
-    total_active_seconds: totalA2,
-    total_active_hours: Number((totalA2 / 3600).toFixed(2)),
-    issued_at: issuedAt,
-    verification_url: `https://faby-studio-academy.vercel.app/verificar-certificado/${certCode}`,
-  }).select('id, code').single();
-  if (certErr) throw certErr;
-  createdCertificates.push(certRow.id);
-
-  assert('Certificado emitido con éxito con snapshots persistidos y firma canónica v2', Boolean(certRow?.id));
-
-  // Test 21: Public verification validates canonical HMAC and matches snapshots
-  const verified = await verifyCertificateReal(certCode);
-  assert('Verificación pública confirma autenticidad del certificado y firma válida', verified?.is_valid === true && verified?.code === certCode);
-
-  // Test 22: Public response does not contain sensitive internal fields (hash, uuid, email)
-  const isSanitized = !('hash_signature' in verified) && !('student_id' in verified) && !('course_id' in verified) && !('email' in verified);
-  assert('Respuesta de verificación pública está estrictamente sanitizada (sin hashes, UUID ni correo)', isSanitized);
-
-  // Test 23: Tampered signature or payload is rejected
-  const tamperedCode = `FABY-TAMPERED-${Date.now()}`;
-  await supabaseAdmin.from('certificates').insert({
-    enrollment_id: enrollA.id,
-    student_id: alumnaA.id,
-    course_id: course.id,
-    code: tamperedCode,
-    hash_signature: 'deadbeef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-    payload_version: '2.0',
-    student_name_snapshot: 'Nombre Falso',
-    course_title_snapshot: course.title,
-    total_active_seconds: 500,
-    total_active_hours: 0.14,
-    issued_at: issuedAt,
-    verification_url: `https://faby-studio-academy.vercel.app/verificar-certificado/${tamperedCode}`,
-  });
-  const tamperedResult = await verifyCertificateReal(tamperedCode);
-  assert('Certificado con firma alterada o corrupta es rechazado (is_valid = false/null)', tamperedResult === null);
-
-  // Test 24: Non-existent certificate returns null (404)
-  const nonExistent = await verifyCertificateReal('FABY-NON-EXISTENT-9999');
-  assert('Certificado inexistente devuelve null (404)', nonExistent === null);
-
-  // Test 25: Tutora, Profesora, Admin, Auditor and Superadmin execute role specific actions
-  const { data: auditLogs, error: auditReadErr } = await auditor.client.from('activity_events').select('*').limit(5);
-  assert('Auditor puede inspeccionar la línea de eventos inmutable de activity_events', !auditReadErr && Array.isArray(auditLogs));
-
-  const { data: alumnaLogs } = await alumnaA.client.from('activity_events').select('*');
-  const alumnaSeesOnlyOwn = (alumnaLogs ?? []).every(e => e.user_id === alumnaA.id);
-  assert('Alumna A solo puede ver sus propios registros en activity_events (Aislamiento RLS)', alumnaSeesOnlyOwn);
-
-  console.log('\n🧹 5. LIMPIEZA COMPROBADA DE IDENTIDADES DE PRUEBA:');
-
-  // Purge test fixtures via transactional service_role procedure
-  await supabaseAdmin.rpc('clean_test_fixture_tx', { p_user_ids: createdUsers });
-
-  let cleanDeletes = 0;
-  for (const uid of createdUsers) {
-    const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(uid);
-    if (!delErr) {
-      cleanDeletes++;
-    } else {
-      console.log(`   [Clean Auth Error] User ${uid}: ${delErr.message}`);
-    }
-  }
-
-  assert(`Todas las ${createdUsers.length} cuentas de prueba fueron eliminadas limpiamente de Supabase Auth`, cleanDeletes === createdUsers.length, `${cleanDeletes}/${createdUsers.length} purgadas`);
-
-  console.log('\n============================================================');
-  console.log(`  RESULTADO: ${passedCount} PRUEBAS SUPERADAS / 0 FALLOS`);
-  console.log('  EXIT CODE: 0 (VALIDACIÓN LIVE COMPLETADA CON ÉXITO)');
-  console.log('============================================================');
+  console.log(`\nRESULTADO LIVE: ${passed} comprobaciones reales superadas.`);
 }
 
-runLiveSecurityMatrix().catch((error) => {
-  console.error('\n❌ ERROR CRÍTICO EN LA MATRIZ DE SEGURIDAD:', error);
-  process.exit(1);
-});
+try {
+  await run();
+} catch (error) {
+  console.error('\n❌ MATRIZ LIVE FALLIDA');
+  console.error(error instanceof Error ? error.message : error);
+  process.exitCode = 1;
+} finally {
+  await cleanup();
+}

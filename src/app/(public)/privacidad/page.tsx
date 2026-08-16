@@ -24,48 +24,48 @@ export default function PrivacidadPage() {
           <div className="space-y-3 border-b border-slate-100 pb-6">
             <div className="inline-flex items-center space-x-2 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-emerald-800 font-bold">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>PROTECCIÓN DE DATOS & PRIVACIDAD (RGPD)</span>
+              <span>AVISO DE PRIVACIDAD DE LA PREVIEW</span>
             </div>
             <h1 className="text-3xl font-extrabold font-display text-slate-900">
-              Política de Privacidad & Protección de Datos
+              Aviso de Privacidad para Pruebas
             </h1>
             <p className="text-slate-500">
-              Versión: 2026.1 • FABY STUDIO ACADEMY (Entorno de Demostración & Staging)
+              Versión: 2026.2 • FABY STUDIO ACADEMY (Preview privada)
             </p>
           </div>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">1. Responsable del Tratamiento</h2>
+            <h2 className="text-base font-bold text-slate-900">1. Alcance de esta preview</h2>
             <p>
-              El presente entorno web y campus virtual opera como plataforma de formación técnica y académica para el sector belleza. Los datos fiscales definitivos y domicilio social de la entidad titular se encuentran en fase de formalización corporativa previa al lanzamiento comercial definitivo.
+              Este entorno se encuentra en validación técnica, está reservado a personas autorizadas y debe utilizarse exclusivamente con identidades y datos sintéticos. El registro público permanece deshabilitado.
             </p>
             <p>
-              Para cualquier consulta sobre privacidad, protección de datos de prueba o ejercicio de derechos de acceso y supresión, contacte a través del correo de contacto: <a href="mailto:privacidad@fabystudio.academy" className="text-rose-600 font-semibold underline">privacidad@fabystudio.academy</a>.
+              Para consultas sobre los datos de prueba escriba a <a href="mailto:privacidad@fabystudio.academy" className="text-rose-600 font-semibold underline">privacidad@fabystudio.academy</a>.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">2. Finalidad del Tratamiento de Datos</h2>
-            <p>Tratamos la información que nos facilitan las usuarias y alumnas para:</p>
+            <h2 className="text-base font-bold text-slate-900">2. Finalidad de los datos de prueba</h2>
+            <p>Las cuentas sintéticas se utilizan únicamente para:</p>
             <ul className="list-disc pl-5 space-y-1.5 text-slate-600">
-              <li>Gestionar la matrícula, creación de cuentas individuales y acceso al campus virtual.</li>
-              <li>Acreditar el cómputo de horas de aprendizaje activo y tiempo de interacción en la plataforma.</li>
-              <li>Evaluar las prácticas docentes, emitir certificados verificables y registrar el código único criptográfico SHA-256.</li>
-              <li>Gestionar los cobros online y validaciones en caja en los salones físicos de Faby Studio.</li>
+              <li>Verificar la autenticación y el control de acceso por roles.</li>
+              <li>Comprobar el cómputo técnico del tiempo de actividad.</li>
+              <li>Validar prácticas, trazas y certificados técnicos de prueba.</li>
+              <li>Detectar fallos de seguridad y funcionamiento antes del lanzamiento.</li>
             </ul>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">3. Legitimación</h2>
+            <h2 className="text-base font-bold text-slate-900">3. Limitaciones</h2>
             <p>
-              La base legal para el tratamiento de los datos es la ejecución del contrato de prestación de servicios formativos y el consentimiento expreso otorgado al registrarse y aceptar los presentes términos.
+              Esta página no declara cumplimiento normativo, acreditación administrativa ni aptitud para procesar datos personales reales. La información legal pública se completará antes de habilitar el registro comercial.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">4. Derechos ARCO / RGPD de las Alumnas</h2>
+            <h2 className="text-base font-bold text-slate-900">4. Consultas y eliminación de pruebas</h2>
             <p>
-              Cualquier usuaria puede ejercer sus derechos de acceso, rectificación, supresión, limitación del tratamiento y portabilidad de sus datos enviando un email a <a href="mailto:privacidad@fabystudio.academy" className="text-rose-600 font-semibold underline">privacidad@fabystudio.academy</a>.
+              Las personas autorizadas pueden solicitar la revisión o eliminación de sus datos de validación escribiendo a <a href="mailto:privacidad@fabystudio.academy" className="text-rose-600 font-semibold underline">privacidad@fabystudio.academy</a>.
             </p>
           </section>
         </div>

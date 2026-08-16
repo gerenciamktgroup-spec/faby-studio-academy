@@ -336,7 +336,7 @@ export default function HomePage() {
                   Máster Profesional en Uñas de Gel y Acrílico Premium
                 </h3>
                 <p className="text-xs text-slate-600 line-clamp-2">
-                  Formación completa de nivel profesional con certificación acreditada. Técnicas avanzadas de esculpido y anatomía.
+                  Formación técnica con prácticas guiadas y certificado verificable. Técnicas avanzadas de esculpido y anatomía.
                 </p>
                 <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                   <span>60h Activas</span>

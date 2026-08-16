@@ -2,8 +2,8 @@ import { createHmac } from 'node:crypto';
 import { getAuditIpSalt } from '@/lib/config/env';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-export const TERMS_VERSION = '2026.1';
-export const PRIVACY_POLICY_VERSION = '2026.1';
+export const TERMS_VERSION = '2026.2';
+export const PRIVACY_POLICY_VERSION = '2026.2';
 
 export function hashIpAddress(ipAddress?: string): string {
   const salt = getAuditIpSalt();
@@ -19,7 +19,7 @@ export async function recordUserConsent(params: {
 }) {
   const admin = createAdminClient();
   const ipHash = hashIpAddress(params.ipAddress);
-  const userAgent = params.userAgent || 'FabyStudio/2026.1';
+  const userAgent = params.userAgent || 'FabyStudio/2026.2';
   const termsVer = params.termsVersion || TERMS_VERSION;
   const privacyVer = params.privacyVersion || PRIVACY_POLICY_VERSION;
 

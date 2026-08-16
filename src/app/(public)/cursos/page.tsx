@@ -57,7 +57,7 @@ export default function CursosPage() {
             Catálogo de Másteres y Especializaciones Estéticas
           </h1>
           <p className="text-sm text-slate-600">
-            Formación virtual con acompañamiento de tutoras acreditadas, actividades prácticas y certificado técnico auditable.
+            Formación virtual con acompañamiento de tutoras, actividades prácticas y certificado técnico verificable.
           </p>
         </div>
 

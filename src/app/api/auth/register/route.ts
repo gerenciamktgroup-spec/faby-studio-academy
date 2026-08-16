@@ -1,27 +1,13 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { recordUserConsent, TERMS_VERSION, PRIVACY_POLICY_VERSION } from '@/lib/consent';
-
-// In-memory rate limiter for single-instance protection in staging/demo environment.
-// NOTE FOR PRODUCTION: Multi-instance deployments should use Redis / Upstash or Vercel Edge Firewall / WAF.
-const registerAttempts = new Map<string, { count: number; expiresAt: number }>();
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const MAX_ATTEMPTS_PER_WINDOW = 15;
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = registerAttempts.get(ip);
-  if (!entry || now > entry.expiresAt) {
-    registerAttempts.set(ip, { count: 1, expiresAt: now + RATE_LIMIT_WINDOW_MS });
-    return false;
-  }
-  if (entry.count >= MAX_ATTEMPTS_PER_WINDOW) {
-    return true;
-  }
-  entry.count++;
-  return false;
-}
+import {
+  hashIpAddress,
+  recordUserConsent,
+  TERMS_VERSION,
+  PRIVACY_POLICY_VERSION,
+} from '@/lib/consent';
+import { isPublicRegistrationEnabled } from '@/lib/config/env';
 
 const registerSchema = z.object({
   fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres.'),
@@ -36,13 +22,44 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
-    const userAgent = request.headers.get('user-agent') || 'FabyStudio/2026.1';
-
-    if (isRateLimited(ipAddress)) {
+    if (!isPublicRegistrationEnabled()) {
       return NextResponse.json(
-        { error: 'Demasiados intentos de registro. Espera un minuto antes de reintentar.' },
-        { status: 429 }
+        { error: 'El registro público está deshabilitado durante la preview privada.' },
+        { status: 503 }
+      );
+    }
+
+    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
+    const userAgent = request.headers.get('user-agent') || 'FabyStudio/2026.2';
+    const admin = createAdminClient();
+    const ipHash = hashIpAddress(ipAddress);
+    const { data: rateLimitData, error: rateLimitError } = await admin.rpc(
+      'consume_registration_rate_limit',
+      {
+        p_ip_hash: ipHash,
+        p_limit: 10,
+        p_window_seconds: 900,
+      }
+    );
+
+    if (rateLimitError) throw rateLimitError;
+    const rateLimit = rateLimitData as {
+      allowed?: boolean;
+      retry_after_seconds?: number;
+    } | null;
+
+    if (!rateLimit?.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Demasiados intentos de registro. Intenta nuevamente más tarde.',
+          retryAfterSeconds: rateLimit?.retry_after_seconds ?? 900,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimit?.retry_after_seconds ?? 900),
+          },
+        }
       );
     }
 
@@ -55,8 +72,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { fullName, email, password, phone, courseInterest } = parsed.data;
-    const admin = createAdminClient();
-
     // 1. Create auth user
     const { data: authData, error: authError } = await admin.auth.admin.createUser({
       email: email.trim().toLowerCase(),

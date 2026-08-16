@@ -26,7 +26,7 @@ test.describe('Public experience and fail-closed security', () => {
         feedback: 'Intento anónimo',
       },
     });
-    expect([401, 503]).toContain(gradeResponse.status());
+    expect(gradeResponse.status()).toBe(401);
     expect((await gradeResponse.json()).success).not.toBe(true);
 
     const heartbeatResponse = await request.post('/api/audit/heartbeat', {
@@ -37,7 +37,7 @@ test.describe('Public experience and fail-closed security', () => {
         hasRecentInteraction: true,
       },
     });
-    expect([401, 503]).toContain(heartbeatResponse.status());
+    expect(heartbeatResponse.status()).toBe(401);
     expect((await heartbeatResponse.json()).success).not.toBe(true);
   });
 
@@ -45,7 +45,8 @@ test.describe('Public experience and fail-closed security', () => {
     for (const path of ['/campus', '/profesor', '/admin', '/auditoria']) {
       const response = await page.goto(path);
       const redirectedToLogin = page.url().includes('/login');
-      expect(redirectedToLogin || response?.status() === 503).toBe(true);
+      expect(response?.status()).not.toBe(503);
+      expect(redirectedToLogin).toBe(true);
     }
   });
 });

@@ -200,7 +200,7 @@ export default function RegisterPage() {
                   Acepto los{' '}
                   <Link href="/terminos" className="text-rose-600 hover:underline font-semibold">términos y condiciones</Link>
                   {' '}de FABY STUDIO ACADEMY y la{' '}
-                  <Link href="/privacidad" className="text-rose-600 hover:underline font-semibold">política de privacidad RGPD</Link>.
+                  <Link href="/privacidad" className="text-rose-600 hover:underline font-semibold">aviso de privacidad de la preview</Link>.
                 </span>
               </label>
             </div>

@@ -10,7 +10,7 @@ import {
   certificateIssueSchema,
   validationError,
 } from '@/lib/validation/api-schemas';
-import { recordActivityEvent } from '@/lib/audit-logger';
+import { hashIpAddress } from '@/lib/consent';
 import { verifyCertificate, buildCertificateCanonicalPayload } from '@/lib/certificates/verify';
 
 export const dynamic = 'force-dynamic';
@@ -90,11 +90,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Check existing certificate
-    const { data: existing } = await admin
+    const { data: existing, error: existingError } = await admin
       .from('certificates')
       .select('code, verification_url')
       .eq('enrollment_id', enrollment.id)
       .maybeSingle();
+    if (existingError) throw existingError;
     if (existing) {
       return NextResponse.json(
         { error: 'Esta matrícula ya cuenta con un certificado emitido.', certificate: existing },
@@ -228,7 +229,6 @@ export async function POST(request: NextRequest) {
     if (profileError) throw profileError;
 
     const studentName = studentProfile?.full_name ?? 'Alumna Faby Studio';
-    const totalActiveHours = Number((totalActiveSeconds / 3600).toFixed(2));
     const issuedAt = new Date().toISOString();
     const code = `FABY-${new Date().getUTCFullYear()}-${randomUUID()
       .replaceAll('-', '')
@@ -254,58 +254,57 @@ export async function POST(request: NextRequest) {
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin).replace(/\/$/, '');
     const verificationUrl = `${appUrl}/verificar-certificado/${code}`;
 
-    // 8. Insert certificate into database with snapshots
-    const { data: certificate, error: issueError } = await admin
-      .from('certificates')
-      .insert({
-        enrollment_id: enrollment.id,
-        student_id: enrollment.student_id,
-        course_id: enrollment.course_id,
-        code,
-        hash_signature: signature,
-        payload_version: '2.0',
-        student_name_snapshot: studentName,
-        course_title_snapshot: courseData.title,
-        total_active_seconds: totalActiveSeconds,
-        total_active_hours: totalActiveHours,
-        issued_at: issuedAt,
-        verification_url: verificationUrl,
-      })
-      .select('id, code, total_active_hours, issued_at, verification_url')
-      .single();
-    if (issueError) throw issueError;
+    // 8. Revalidar bajo bloqueo y emitir certificado, completar matrícula y
+    // registrar auditoría dentro de una única transacción PostgreSQL.
+    const forwardedIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+    const { data: certificateData, error: issueError } = await admin.rpc(
+      'issue_certificate_tx',
+      {
+        p_actor_id: principal.id,
+        p_enrollment_id: enrollment.id,
+        p_code: code,
+        p_hash_signature: signature,
+        p_payload_version: '2.0',
+        p_student_name_snapshot: studentName,
+        p_course_title_snapshot: courseData.title,
+        p_total_active_seconds: totalActiveSeconds,
+        p_issued_at: issuedAt,
+        p_verification_url: verificationUrl,
+        p_ip_hash: hashIpAddress(forwardedIp || 'unknown'),
+        p_user_agent: request.headers.get('user-agent') || 'FabyStudioCertificate/2.0',
+      }
+    );
 
-    // 9. Update enrollment status to completed
-    const { error: enrollmentUpdateError } = await admin
-      .from('enrollments')
-      .update({ status: 'completed', completed_at: issuedAt, certificate_id: certificate.id })
-      .eq('id', enrollment.id);
-    if (enrollmentUpdateError) {
-      console.error('[Certificates API] Enrollment update failed:', enrollmentUpdateError);
-      throw enrollmentUpdateError;
+    if (issueError) {
+      const conflict = /ya tiene|cambió|insuficientes|pendiente|completó|caducado/i.test(
+        issueError.message
+      );
+      const forbidden = /no está asignada|no autorizado/i.test(issueError.message);
+      if (conflict || forbidden) {
+        return NextResponse.json(
+          { error: issueError.message },
+          { status: forbidden ? 403 : 409 }
+        );
+      }
+      throw issueError;
     }
 
-    // 10. Audit event
-    await recordActivityEvent({
-      userId: principal.id,
-      sessionId: `sess_certificate_${randomUUID()}`,
-      eventType: 'CERTIFICATE_ISSUED',
-      courseId: enrollment.course_id,
-      metadata: {
-        certificateId: certificate.id,
-        enrollmentId: enrollment.id,
-        studentId: enrollment.student_id,
-        active_seconds: totalActiveSeconds,
-      },
-    });
+    const certificate = certificateData as {
+      code: string;
+      student_name: string;
+      course_title: string;
+      total_active_hours: number;
+      issued_at: string;
+      verification_url: string;
+    };
 
     return NextResponse.json(
       {
         success: true,
         certificate: {
           code: certificate.code,
-          student_name: studentName,
-          course_title: courseData.title,
+          student_name: certificate.student_name,
+          course_title: certificate.course_title,
           total_active_hours: certificate.total_active_hours,
           issued_at: certificate.issued_at,
           verification_url: certificate.verification_url,

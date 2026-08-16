@@ -224,10 +224,10 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
                     <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">Cupos Abiertos</span>
                   </div>
                   <p className="text-2xl font-extrabold text-slate-900">
-                    380€ <span className="text-xs text-slate-500 font-normal">(o 3 cuotas de 126,66€ sin intereses con Klarna)</span>
+                    380€ <span className="text-xs text-slate-500 font-normal">(Matrícula del programa completo)</span>
                   </p>
                   <p className="text-[11px] text-slate-500">
-                    ✨ Opción de pagar en efectivo directamente en los locales de Faby Studio en Madrid y Barcelona.
+                    ✨ Acceso inmediato al campus virtual y seguimiento personalizado por tutora asignada.
                   </p>
                 </div>
               </div>

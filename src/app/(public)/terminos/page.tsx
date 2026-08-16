@@ -30,35 +30,35 @@ export default function TerminosPage() {
               Términos y Condiciones de Uso
             </h1>
             <p className="text-slate-500">
-              Vigentes a partir de Agosto de 2026 • FABY STUDIO ACADEMY S.L.
+              Vigentes a partir de Agosto de 2026 • FABY STUDIO ACADEMY (Entorno de Demostración & Staging)
             </p>
           </div>
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">1. Objeto y Titularidad</h2>
             <p>
-              Los presentes Términos y Condiciones regulan la matrícula, acceso a la plataforma LMS y contenidos formativos proporcionados por <strong>FABY STUDIO ACADEMY</strong> a través de sus canales digitales y salones físicos en España.
+              Los presentes Términos y Condiciones regulan la matrícula, acceso a la plataforma LMS y contenidos formativos proporcionados por <strong>FABY STUDIO ACADEMY</strong> a través de sus canales digitales y centros autorizados.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">2. Acceso y Uso del Campus Virtual</h2>
             <p>
-              El acceso al campus es personal e intransferible. Cada alumna dispone de credenciales individuales y un sistema de control de presencia y tiempo de estudio activo exigido para la homologación y expedición del diploma.
+              El acceso al campus es personal e intransferible. Cada alumna dispone de credenciales individuales y un sistema de control de presencia y tiempo de estudio activo exigido para la acreditación técnica y expedición del diploma de aprovechamiento.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">3. Modalidades de Pago y Financiación</h2>
+            <h2 className="text-base font-bold text-slate-900">3. Modalidades de Matrícula y Pagos</h2>
             <p>
-              Los pagos pueden realizarse en un pago único con tarjeta o Bizum, financiados en 3 cuotas con Klarna o mediante reserva previa con abono en efectivo en caja en los salones de Madrid o Barcelona.
+              En este entorno de pruebas, las inscripciones son gestionadas de forma manual y asistida por el equipo de administración académica. Los pagos automatizados en línea se habilitarán tras la activación de la pasarela de pago oficial del negocio.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">4. Expedición de Certificados & Diplomas</h2>
             <p>
-              Para obtener el Diploma Oficial con firma SHA-256 es obligatorio haber completado al menos el 80% de las horas lectivas activas y haber superado la evaluación teórica y la rúbrica práctica con un mínimo de 70/100 puntos.
+              Para obtener el Diploma con firma criptográfica SHA-256 es necesario completar los módulos formativos requeridos, superar la evaluación teórica y aprobar la entrega de prácticas técnicas con un mínimo de 70/100 puntos según la rúbrica docente.
             </p>
           </section>
         </div>

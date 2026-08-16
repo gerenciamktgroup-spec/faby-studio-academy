@@ -43,7 +43,7 @@ const DOSSIERS_DATA: Record<string, {
     duration: '8 Semanas',
     activeHours: 60,
     price: '490€',
-    installments: '3 cuotas de 163,33€ sin intereses con Klarna',
+    installments: 'Acceso completo al programa formativo',
     tagline: 'Especialización intensiva en estructura de salón, manicura rusa combinada, control de ápice y nail art comercial.',
     summary: 'El Máster Profesional en Uñas de Gel y Acrílico de FABY STUDIO ACADEMY está diseñado para formar técnicas de élite capaces de realizar esculpidos de máxima resistencia, alineación anatómica perfecta y diseños de alta demanda comercial en salones de belleza.',
     modules: [
@@ -126,8 +126,8 @@ const DOSSIERS_DATA: Record<string, {
     duration: '6 Semanas',
     activeHours: 50,
     price: '380€',
-    installments: '3 cuotas de 126,66€ sin intereses con Klarna',
-    tagline: 'De principiante a especialista en técnica clásica 1:1, visagismo, mapping avanzado y abanicado ruso 2D a 6D.',
+    installments: 'Acceso completo al programa formativo',
+    tagline: 'Formación profesional integral en técnica clásica pelo a pelo, volumen ruso, lash mapping avanzado y bioseguridad ocular.',
     summary: 'Programa formativo de referencia nacional en estética de la mirada. Combina rigor científico en bioseguridad ocular con el dominio artístico del visagismo y la creación manual de abanicos de volumen ruso.',
     modules: [
       {
@@ -206,7 +206,7 @@ const DOSSIERS_DATA: Record<string, {
     duration: '10 Semanas',
     activeHours: 80,
     price: '590€',
-    installments: '3 cuotas de 196,66€ sin intereses con Klarna',
+    installments: 'Acceso completo al programa formativo',
     tagline: 'Diagnóstico cutáneo avanzado, formulación química de activos, peelings químicos y aparatología de cabina.',
     summary: 'Especialización clínica y estética orientada a profesionales que desean liderar cabinas de dermoestética facial con protocolos de vanguardia, diagnóstico personalizado y manejo de activos de alta pureza.',
     modules: [
@@ -457,13 +457,13 @@ export default function LuxuryDossierPage() {
             <p className="text-3xl font-extrabold text-slate-900 font-display">{course.price}</p>
             <p className="text-xs text-slate-500 font-medium">{course.installments}</p>
             <p className="text-[11px] text-rose-700 font-semibold mt-1">
-              ✨ Pago disponible online (Tarjeta, Bizum, Klarna) o en efectivo en los salones Faby Studio.
+              ✨ Inscripción y seguimiento a través del Campus Virtual oficial.
             </p>
           </div>
 
           <div className="text-center sm:text-right space-y-1">
-            <p className="text-xs font-bold text-slate-900">Sede Central FABY STUDIO</p>
-            <p className="text-xs text-slate-500">Madrid • Barcelona • Campus Virtual</p>
+            <p className="text-xs font-bold text-slate-900">Campus FABY STUDIO</p>
+            <p className="text-xs text-slate-500">Campus Virtual • Formación Profesional</p>
             <p className="text-xs text-slate-400">info@fabystudio.academy • www.fabystudio.academy</p>
           </div>
         </div>

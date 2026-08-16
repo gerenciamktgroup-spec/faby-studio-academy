@@ -221,10 +221,10 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
                     <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">Matrícula Abierta</span>
                   </div>
                   <p className="text-2xl font-extrabold text-slate-900">
-                    490€ <span className="text-xs text-slate-500 font-normal">(o 3 cuotas de 163,33€ sin intereses con Klarna)</span>
+                    490€ <span className="text-xs text-slate-500 font-normal">(Matrícula del programa completo)</span>
                   </p>
                   <p className="text-[11px] text-slate-500">
-                    ✨ Puedes matricularte online o pagar en efectivo directamente en los salones Faby Studio.
+                    ✨ Acceso inmediato al campus virtual y seguimiento personalizado por tutora asignada.
                   </p>
                 </div>
               </div>
@@ -360,7 +360,7 @@ Matrículas e Información: https://faby-studio-academy.vercel.app/checkout
             <span className="text-xs font-bold text-rose-600 uppercase tracking-widest">Excelencia Pedagógica</span>
             <h3 className="text-2xl font-bold font-display text-slate-900">Claustro de Especialistas</h3>
             <p className="text-xs text-slate-500 max-w-lg mx-auto">
-              Aprende de formadoras de élite con salones de alto rendimiento en Madrid y Barcelona.
+              Aprende de formadoras de élite especializadas en estética profesional y técnicas de salón.
             </p>
           </div>
 

@@ -3,7 +3,8 @@ import { expect, test } from '@playwright/test';
 test.describe('Public experience and fail-closed security', () => {
   test('renders the public catalog and real authentication forms', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('h1')).toContainText('FABY STUDIO');
+    await expect(page.locator('header')).toContainText('FABY STUDIO');
+    await expect(page.locator('h1')).toBeVisible();
 
     await page.goto('/cursos/extensiones-de-pestanas');
     await expect(page.locator('h1')).toContainText('Extensiones de Pestañas');

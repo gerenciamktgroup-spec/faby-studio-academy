@@ -236,14 +236,14 @@ AS $$
   SELECT target_user_id = auth.uid() AND public.has_any_role(ARRAY[required_role]);
 $$;
 
-CREATE OR REPLACE FUNCTION public.is_auditor_or_admin(target_user_id UUID)
+CREATE OR REPLACE FUNCTION public.is_auditor_or_admin(user_id UUID)
 RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT target_user_id = auth.uid() AND public.has_any_role(
+  SELECT user_id = auth.uid() AND public.has_any_role(
     ARRAY['auditor', 'admin_academico', 'superadmin']::public.app_role[]
   );
 $$;
@@ -649,6 +649,7 @@ COMMENT ON FUNCTION public.verify_certificate(TEXT) IS
   'Returns only the public fields required to verify a certificate.';
 
 -- Students can read question wording and options, never the answer key.
+REVOKE ALL ON public.questions FROM anon;
 REVOKE SELECT ON public.questions FROM authenticated;
 GRANT SELECT (id, assessment_id, question_text, question_type, options_json, points)
   ON public.questions TO authenticated;

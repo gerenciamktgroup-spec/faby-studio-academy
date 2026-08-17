@@ -1,35 +1,35 @@
 'use client';
 
 import React, { useState } from 'react';
-import { HelpCircle, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 export function FaqInteractive() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const faqs = [
     {
-      q: '¿Cómo funciona la formación si estudio de forma 100% online?',
-      a: 'Accedes a nuestro Campus Virtual con clases en alta definición, manuales descargables y un sistema de entrega de prácticas. Subes fotos y vídeos en alta resolución de tus trabajos en modelos y la Profesora Faby o tu tutora asignada colocan notas visuales de corrección personalizadas.',
+      q: '¿Necesito experiencia previa para inscribirme en los másteres?',
+      a: 'No. Todos nuestros programas comienzan desde la anatomía básica, bioseguridad higiénico-sanitaria y control de químicos hasta las técnicas más avanzadas de salón (manicura rusa, volumen ruso e Hidrafacial).',
     },
     {
-      q: '¿Qué validez tiene el certificado que obtengo?',
-      a: 'Nuestros diplomas se emiten con código QR único y firma criptográfica HMAC-SHA-256. Cualquier cliente, centro de estética o empleador puede verificar en tiempo real tu acreditación oficial en nuestra web pública.',
+      q: '¿Puedo abonar la formación en cuotas sin intereses?',
+      a: 'Sí. Puedes realizar un pago único o fraccionar tu matrícula en 3 cuotas mensuales sin intereses a través de nuestra pasarela de pago segura.',
     },
     {
-      q: '¿Puedo visitar las sedes de Faby Studio en Madrid?',
-      a: '¡Por supuesto! Contamos con dos sedes en Madrid (Centro Comercial Plaza Aluche y Puente de Vallecas) donde también atendemos a clientas y recibimos a nuestras alumnas para asesorías y compras de productos.',
+      q: '¿Dónde se realizan las prácticas y tutorías presenciales?',
+      a: 'Disponemos de dos sedes en Madrid: en el Centro Comercial Plaza Aluche (Av. de los Poblados 58) y en Puente de Vallecas. Además, para las alumnas que cursan en formato virtual, las prácticas se realizan sobre modelo real y se evalúan mediante fotos macro y rúbricas directas.',
     },
     {
-      q: '¿Se requiere experiencia previa para comenzar?',
-      a: 'No. Todos nuestros másteres están estructurados desde el nivel básico (anatomía, bioseguridad, química de productos) hasta técnicas avanzadas de salón, manicura rusa, volumen ruso e Hidrafacial.',
+      q: '¿Cómo funcionan las correcciones 1 a 1 de la docente?',
+      a: 'Subes fotografías nítidas y en plano macro de tus trabajos. Leslie Fabiola y el equipo docente analizan el ápice, la simetría, la limpieza de cutícula o el aislamiento y te devuelven una rúbrica con notas específicas para pulir cada detalle.',
     },
     {
-      q: '¿Hay facilidades de pago o cuotas sin intereses?',
-      a: 'Sí. Puedes abonar la matrícula en un único pago o fraccionarlo en hasta 3 cuotas mensuales sin intereses mediante pasarela segura.',
+      q: '¿El diploma digital tiene validez y se puede comprobar?',
+      a: 'Sí. Cada certificado emitido contiene un código QR único y una firma criptográfica que permite a cualquier salón o clienta validar tu titulación en nuestro validador público oficial.',
     },
     {
-      q: '¿Por cuánto tiempo tengo acceso a los contenidos del campus?',
-      a: 'El acceso a las lecciones en vídeo, manuales y actualizaciones técnicas es ilimitado y de por vida una vez matriculada.',
+      q: '¿Puedo estudiar y practicar mientras mantengo mi empleo actual?',
+      a: 'Totalmente. El campus virtual está disponible las 24 horas del día. Puedes organizar tus horas de estudio a tu propio ritmo y coordinar tus entregas de prácticas de forma flexible.',
     },
   ];
 
@@ -38,46 +38,44 @@ export function FaqInteractive() {
   };
 
   return (
-    <section className="py-20 bg-slate-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <section className="py-20 lg:py-32 bg-[#F8F5F1] text-[#0A0A0D] border-b border-[#E8E4DF]">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        {/* Header */}
         <div className="text-center space-y-3">
-          <span className="text-xs font-bold text-rose-600 uppercase tracking-widest bg-rose-50 border border-rose-200 px-3.5 py-1 rounded-full">
-            Resolvemos tus Dudas
+          <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#6E6B68]">
+            Preguntas Frecuentes
           </span>
-          <h2 className="text-3xl font-bold font-display text-slate-900">
-            Preguntas Frecuentes de Futuras Alumnas
+          <h2 className="font-editorial text-4xl sm:text-5xl font-bold text-[#0A0A0D] tracking-tight leading-[0.95]">
+            Dudas resueltas antes de matricularte.
           </h2>
-          <p className="text-sm text-slate-600">
-            Todo lo que necesitas saber antes de iniciar tu máster profesional en FABY STUDIO ACADEMY.
+          <p className="text-sm text-[#6E6B68] font-sans">
+            Información clara sobre metodología, pagos, sedes en Madrid y acreditación técnica.
           </p>
         </div>
 
-        <div className="space-y-4">
+        {/* Minimal Editorial Accordion */}
+        <div className="divide-y divide-[#E8E4DF] border-y border-[#E8E4DF]">
           {faqs.map((faq, idx) => {
             const isOpen = openIndex === idx;
             return (
-              <div
-                key={idx}
-                className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all"
-              >
+              <div key={idx} className="py-6 transition-colors">
                 <button
                   onClick={() => toggleFaq(idx)}
-                  className="w-full p-6 text-left flex items-center justify-between gap-4 font-bold text-slate-900 text-sm sm:text-base hover:text-rose-600 transition-colors"
+                  className="w-full text-left flex items-start justify-between gap-4 group"
                 >
-                  <span className="flex items-center">
-                    <HelpCircle className="w-4 h-4 mr-3 text-rose-500 shrink-0" />
+                  <span className="font-editorial text-lg sm:text-xl font-bold text-[#0A0A0D] group-hover:text-[#DD006B] transition-colors leading-snug">
                     {faq.q}
                   </span>
                   <ChevronDown
-                    className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-                      isOpen ? 'rotate-180 text-rose-600' : ''
+                    className={`w-4 h-4 text-[#6E6B68] shrink-0 mt-1.5 transition-transform duration-200 ${
+                      isOpen ? 'rotate-180 text-[#DD006B]' : ''
                     }`}
                   />
                 </button>
 
                 {isOpen && (
-                  <div className="px-6 pb-6 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-50">
-                    <p className="pt-3 pl-7">{faq.a}</p>
+                  <div className="pt-4 text-xs sm:text-sm text-[#6E6B68] font-sans leading-relaxed pr-8 animate-in fade-in duration-200">
+                    <p>{faq.a}</p>
                   </div>
                 )}
               </div>

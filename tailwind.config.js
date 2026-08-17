@@ -10,22 +10,22 @@ module.exports = {
     extend: {
       colors: {
         fabi: {
-          pink: '#E11D48',       // Rose 600 - Luxury Magenta/Pink
-          darkpink: '#BE185D',   // Pink 700
-          lightpink: '#FFF1F2',  // Rose 50
-          rose: '#FDF2F8',       // Pink 50
-          gold: '#B45309',       // Amber/Gold 700 for light theme
-          charcoal: '#F8FAFC',   // Slate 50 - Base background
-          card: '#FFFFFF',       // Pure White Card Surface
-          border: '#E2E8F0',     // Slate 200 - Clean subtle border
-          cream: '#FFFFFF',      // Pure White
-          subtext: '#64748B',    // Slate 500 - Secondary text
-          dark: '#0F172A',       // Slate 900 - High contrast text
+          pink: '#DD006B',       // Institutional Pink / Editorial Lipstick
+          darkpink: '#960046',   // Deep Berry
+          lightpink: '#FFF1F5',  // Very soft rose tint
+          ivory: '#F8F5F1',      // Warm Ivory
+          white: '#FFFFFF',      // Pure Editorial White
+          obsidian: '#0A0A0D',   // Deep Obsidian Noir
+          noir: '#111117',       // Editorial Deep Noir
+          champagne: '#C5A880',  // Muted Champagne Gold
+          border: '#E8E4DF',     // Subtle Ivory Border
+          subtext: '#6E6B68',    // Warm Editorial Grey
         },
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        display: ['Outfit', 'sans-serif'],
+        sans: ['var(--font-sans)', 'Manrope', 'Inter', 'sans-serif'],
+        editorial: ['var(--font-editorial)', '"Bodoni Moda"', 'serif'],
+        display: ['var(--font-editorial)', '"Bodoni Moda"', 'serif'],
       },
     },
   },

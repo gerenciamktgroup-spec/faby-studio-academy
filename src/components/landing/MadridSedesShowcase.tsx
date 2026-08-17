@@ -1,104 +1,155 @@
 'use client';
 
 import React from 'react';
-import { Building2, GraduationCap, MapPin, Clock, MessageCircle, Phone } from 'lucide-react';
+import { MapPin, Clock, MessageCircle, Phone, ArrowRight } from 'lucide-react';
 
 export function MadridSedesShowcase() {
   return (
-    <section className="py-20 bg-slate-100/70 border-b border-slate-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        <div className="text-center max-w-3xl mx-auto space-y-3">
-          <span className="text-xs font-bold text-rose-700 uppercase tracking-widest bg-rose-100/80 px-3.5 py-1 rounded-full border border-rose-200">
-            Presencia Física & Respaldo Real en Madrid
+    <section id="sedes" className="py-20 lg:py-32 bg-[#0A0A0D] text-[#F8F5F1] border-b border-[#1C1C24]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+        {/* Header */}
+        <div className="space-y-4 max-w-3xl">
+          <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#C5A880]">
+            Presencia Física & Respaldo Local
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold font-display text-slate-900">
-            Nuestras 2 Sedes Físicas en Madrid
+          <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[0.95]">
+            Dos sedes. <br />
+            <span className="italic font-normal text-[#A8A49F]">Una academia real.</span>
           </h2>
-          <p className="text-sm text-slate-600">
-            A diferencia de plataformas anónimas, en FABY STUDIO contamos con centros físicos consolidados donde puedes visitarnos, adquirir materiales o complementar tu formación.
+          <p className="text-sm sm:text-base text-[#A8A49F] font-sans max-w-xl leading-relaxed">
+            La tranquilidad de contar con dos centros consolidados en Madrid donde puedes visitarnos, adquirir tus kits profesionales o realizar workshops presenciales.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Sede 1 */}
-          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow space-y-5 flex flex-col justify-between">
+        {/* 2 Madrid Locations Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl">
+          {/* Sede 1: Plaza Aluche */}
+          <div className="bg-[#111117] border border-[#1C1C24] p-8 sm:p-10 space-y-6 flex flex-col justify-between">
             <div className="space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600">
-                  <Building2 className="w-6 h-6" />
-                </div>
-                <span className="text-[11px] font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-full">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-widest text-[#C5A880] font-sans font-semibold">
                   Sede Central & Salón
                 </span>
+                <span className="text-xs text-emerald-400 font-sans flex items-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5" />
+                  Abierto al público
+                </span>
               </div>
+
               <div>
-                <h3 className="text-xl font-bold text-slate-900 font-display">Sede Plaza Aluche</h3>
-                <p className="text-xs text-slate-500 mt-1 flex items-start">
-                  <MapPin className="w-3.5 h-3.5 mr-1 text-rose-500 shrink-0 mt-0.5" />
+                <h3 className="font-editorial text-2xl sm:text-3xl font-bold text-white">
+                  Sede Plaza Aluche
+                </h3>
+                <p className="text-xs sm:text-sm text-[#A8A49F] font-sans mt-2 flex items-start leading-relaxed">
+                  <MapPin className="w-4 h-4 mr-2 text-[#DD006B] shrink-0 mt-0.5" />
                   Centro Comercial Plaza Aluche, Av. de los Poblados 58, 28044 Madrid
                 </p>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Salón especializado en estética facial, micropigmentación, manicura y atención presencial a alumnas.
+
+              <p className="text-xs sm:text-sm text-[#8A8682] font-sans leading-relaxed">
+                Salón especializado en manicura rusa, extensiones de pestañas, cosmetología facial y punto de asesoría presencial para alumnas.
               </p>
             </div>
-            <div className="pt-3 text-xs text-slate-500 flex items-center justify-between border-t border-slate-100">
-              <span className="flex items-center"><Clock className="w-3.5 h-3.5 mr-1 text-slate-400" /> Lun - Vie: 07:00 - 18:00</span>
-              <span className="font-semibold text-emerald-600">Abierto al público</span>
+
+            <div className="pt-6 border-t border-[#1C1C24] space-y-4">
+              <div className="flex items-center justify-between text-xs text-[#A8A49F] font-sans">
+                <span className="flex items-center">
+                  <Clock className="w-3.5 h-3.5 mr-1.5 text-[#C5A880]" />
+                  Lun – Vie: 07:00 – 18:00
+                </span>
+                <span className="text-white font-semibold">Madrid Suroeste</span>
+              </div>
+
+              <a
+                href="https://maps.google.com/?q=Centro+Comercial+Plaza+Aluche+Av+de+los+Poblados+58+Madrid"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-xs uppercase tracking-wider text-[#F8F5F1] hover:text-[#DD006B] transition-colors"
+              >
+                <span>Ver ubicación en Google Maps</span>
+                <ArrowRight className="w-3 h-3 ml-1.5" />
+              </a>
             </div>
           </div>
 
-          {/* Sede 2 */}
-          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow space-y-5 flex flex-col justify-between">
+          {/* Sede 2: Puente de Vallecas */}
+          <div className="bg-[#111117] border border-[#1C1C24] p-8 sm:p-10 space-y-6 flex flex-col justify-between">
             <div className="space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
-                  <GraduationCap className="w-6 h-6" />
-                </div>
-                <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-3 py-1 rounded-full">
-                  Centro de Formación
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-widest text-[#C5A880] font-sans font-semibold">
+                  Centro de Formación Técnica
+                </span>
+                <span className="text-xs text-white font-sans flex items-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#DD006B] mr-1.5" />
+                  Grupos Reducidos
                 </span>
               </div>
+
               <div>
-                <h3 className="text-xl font-bold text-slate-900 font-display">Sede Puente de Vallecas</h3>
-                <p className="text-xs text-slate-500 mt-1 flex items-start">
-                  <MapPin className="w-3.5 h-3.5 mr-1 text-purple-500 shrink-0 mt-0.5" />
+                <h3 className="font-editorial text-2xl sm:text-3xl font-bold text-white">
+                  Sede Puente de Vallecas
+                </h3>
+                <p className="text-xs sm:text-sm text-[#A8A49F] font-sans mt-2 flex items-start leading-relaxed">
+                  <MapPin className="w-4 h-4 mr-2 text-[#DD006B] shrink-0 mt-0.5" />
                   Centro de Formación & Estética Avanzada, Puente de Vallecas, Madrid
                 </p>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Espacio acondicionado para workshops intensivos, prácticas con modelos reales y masterclasses técnicas.
+
+              <p className="text-xs sm:text-sm text-[#8A8682] font-sans leading-relaxed">
+                Espacio acondicionado para masterclasses técnicas, prácticas intensivas con modelos reales y entrega de diplomas acreditativos.
               </p>
             </div>
-            <div className="pt-3 text-xs text-slate-500 flex items-center justify-between border-t border-slate-100">
-              <span className="flex items-center"><Clock className="w-3.5 h-3.5 mr-1 text-slate-400" /> Citas & Formación</span>
-              <span className="font-semibold text-purple-600">Grupos Reducidos</span>
+
+            <div className="pt-6 border-t border-[#1C1C24] space-y-4">
+              <div className="flex items-center justify-between text-xs text-[#A8A49F] font-sans">
+                <span className="flex items-center">
+                  <Clock className="w-3.5 h-3.5 mr-1.5 text-[#C5A880]" />
+                  Citas & Masterclasses
+                </span>
+                <span className="text-white font-semibold">Madrid Sureste</span>
+              </div>
+
+              <a
+                href="https://wa.me/34614236200?text=Hola%20Faby%20Studio,%20quisiera%20consultar%20disponibilidad%20en%20Sede%20Vallecas"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-xs uppercase tracking-wider text-[#F8F5F1] hover:text-[#DD006B] transition-colors"
+              >
+                <span>Consultar agenda formativa</span>
+                <ArrowRight className="w-3 h-3 ml-1.5" />
+              </a>
             </div>
           </div>
         </div>
 
-        {/* Direct WhatsApp Callout */}
-        <div className="max-w-4xl mx-auto bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
-          <div className="space-y-1 text-center sm:text-left">
-            <h4 className="text-lg font-bold font-display">¿Tienes dudas o deseas atención personalizada?</h4>
-            <p className="text-xs text-slate-300">Habla directamente con la Profesora Faby y nuestro equipo de asesoría académica.</p>
+        {/* Direct WhatsApp Callout Banner */}
+        <div className="bg-[#111117] border border-[#2A2A35] p-8 sm:p-10 flex flex-col lg:flex-row items-center justify-between gap-6 max-w-5xl">
+          <div className="space-y-1 text-center lg:text-left">
+            <h3 className="font-editorial text-2xl font-bold text-white">
+              ¿Deseas concertar una visita o hablar con la docente?
+            </h3>
+            <p className="text-xs sm:text-sm text-[#A8A49F] font-sans">
+              Atención directa en horario de salón de lunes a viernes.
+            </p>
           </div>
+
           <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
             <a
               href="tel:+34614236200"
-              className="inline-flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 text-white px-5 py-3 rounded-xl font-bold text-xs border border-slate-700 transition-colors"
+              className="inline-flex items-center space-x-2 border border-[#F8F5F1]/30 hover:border-white text-[#F8F5F1] px-6 py-3.5 text-xs font-semibold tracking-widest uppercase transition-colors"
             >
-              <Phone className="w-4 h-4 text-rose-400" />
+              <Phone className="w-3.5 h-3.5 text-[#C5A880]" />
               <span>+34 614 23 62 00</span>
             </a>
+
             <a
-              href="https://wa.me/34614236200?text=Hola%20Faby%20Studio,%20quisiera%20asesor%C3%ADa%20sobre%20los%20m%C3%A1steres%20profesionales"
+              href="https://wa.me/34614236200?text=Hola%20Faby%20Studio,%20quisiera%20agendar%20una%20visita%20a%20sus%20sedes%20en%20Madrid"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all hover:scale-105"
+              className="inline-flex items-center space-x-2 bg-[#F8F5F1] hover:bg-white text-[#0A0A0D] px-6 py-3.5 text-xs font-semibold tracking-widest uppercase transition-colors"
             >
-              <MessageCircle className="w-4 h-4" />
-              <span>WhatsApp Asesoría</span>
+              <MessageCircle className="w-3.5 h-3.5 text-[#DD006B]" />
+              <span>WhatsApp Directo</span>
             </a>
           </div>
         </div>

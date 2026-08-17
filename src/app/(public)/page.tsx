@@ -2,30 +2,39 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
-import { HeroSection } from '@/components/landing/HeroSection';
-import { AuthorityTicker } from '@/components/landing/AuthorityTicker';
-import { CareerQuiz } from '@/components/landing/CareerQuiz';
+import { EditorialHero } from '@/components/landing/EditorialHero';
+import { EditorialTrustRail } from '@/components/landing/EditorialTrustRail';
 import { BeforeAfterSlider } from '@/components/landing/BeforeAfterSlider';
+import { EditorialCourseShowcase } from '@/components/landing/EditorialCourseShowcase';
+import { MethodEditorial } from '@/components/landing/MethodEditorial';
+import { ProfessionalJourney } from '@/components/landing/ProfessionalJourney';
 import { ProfitSimulator } from '@/components/landing/ProfitSimulator';
-import { MethodBentoGrid } from '@/components/landing/MethodBentoGrid';
-import { CourseCatalogCards } from '@/components/landing/CourseCatalogCards';
-import { KitCalculator } from '@/components/landing/KitCalculator';
 import { MasterclassShowcase } from '@/components/landing/MasterclassShowcase';
-import { ReviewsGallery } from '@/components/landing/ReviewsGallery';
-import { MasteryGuarantee } from '@/components/landing/MasteryGuarantee';
-import { MadridSedesShowcase } from '@/components/landing/MadridSedesShowcase';
+import { StudentStories } from '@/components/landing/StudentStories';
 import { FounderEditorial } from '@/components/landing/FounderEditorial';
+import { MadridSedesShowcase } from '@/components/landing/MadridSedesShowcase';
+import { MasteryCommitment } from '@/components/landing/MasteryCommitment';
+import { CertificateTrust } from '@/components/landing/CertificateTrust';
 import { ComparisonMatrix } from '@/components/landing/ComparisonMatrix';
+import { CareerPathQuiz } from '@/components/landing/CareerPathQuiz';
 import { FaqInteractive } from '@/components/landing/FaqInteractive';
 import { FloatingWhatsApp } from '@/components/landing/FloatingWhatsApp';
 
 export const metadata: Metadata = {
-  title: 'FABY STUDIO ACADEMY | Academia de Especialización Estética en Madrid',
-  description: 'Másteres profesionales en Uñas de Gel & Acrílico, Hidrafacial y Pestañas. Sedes en Madrid (Aluche y Vallecas) con prácticas reales y diplomas verificables SHA-256.',
-  keywords: ['academia estetica madrid', 'curso unas acrilico madrid', 'curso hidrafacial', 'curso extensiones pestanas', 'faby studio', 'manicura rusa'],
+  title: 'FABY STUDIO ACADEMY | Academia Profesional de Belleza en Madrid',
+  description: 'Formación profesional en uñas de gel, pestañas y estética facial con práctica sobre modelos reales, acompañamiento docente y dos sedes en Madrid.',
+  keywords: [
+    'academia estetica madrid',
+    'curso unas gel madrid',
+    'curso extensiones pestanas madrid',
+    'volumen ruso madrid',
+    'faby studio',
+    'manicura rusa',
+    'hidrafacial madrid',
+  ],
   openGraph: {
     title: 'FABY STUDIO ACADEMY • Madrid',
-    description: 'Transforma tu pasión por la belleza en un negocio rentable con certificación técnica verificable.',
+    description: 'Aprende belleza. Domina la técnica. Hazla tu profesión. Academia profesional en Plaza Aluche y Puente de Vallecas.',
     url: 'https://faby-studio-academy.vercel.app',
     siteName: 'FABY STUDIO ACADEMY',
     locale: 'es_ES',
@@ -51,7 +60,7 @@ export default function HomePage() {
         address: [
           {
             '@type': 'PostalAddress',
-            streetAddress: 'Av. de los Poblados, 58 (C.C. Plaza Aluche)',
+            streetAddress: 'Av. de los Poblados 58 (C.C. Plaza Aluche)',
             addressLocality: 'Madrid',
             postalCode: '28044',
             addressCountry: 'ES',
@@ -78,7 +87,7 @@ export default function HomePage() {
           },
           {
             '@type': 'Course',
-            name: 'Especialización en Pestañas, Cejas & Volumen Ruso',
+            name: 'Especialización Profesional en Pestañas, Cejas & Volumen Ruso',
             description: 'Técnica clásica 1:1, abanicos 2D-6D, visagismo con henna, lifting y depilación con hilo.',
             provider: {
               '@type': 'Organization',
@@ -100,8 +109,8 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800 selection:bg-rose-500 selection:text-white">
-      {/* Schema.org JSON-LD for rich SEO snippets */}
+    <div className="min-h-screen bg-[#F8F5F1] flex flex-col text-[#111117] selection:bg-[#DD006B] selection:text-white">
+      {/* Schema.org JSON-LD Structured Data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -110,55 +119,50 @@ export default function HomePage() {
       <PublicHeader />
 
       <main className="flex-1">
-        {/* 1. Hero Section (50ms Luxury Hook) */}
-        <HeroSection />
+        {/* 01 — ASPIRACIÓN */}
+        <EditorialHero />
+        <EditorialTrustRail />
 
-        {/* 2. Authority & Trust Ticker */}
-        <AuthorityTicker />
-
-        {/* 3. Interactive Career Diagnostic Quiz */}
-        <CareerQuiz />
-
-        {/* 4. Interactive Before/After Visual Transformation Slider */}
+        {/* 02 — RESULTADO */}
         <BeforeAfterSlider />
 
-        {/* 5. Interactive Profit & ROI Simulator for Students */}
+        {/* 03 — ELIGE TU ESPECIALIDAD */}
+        <EditorialCourseShowcase />
+
+        {/* 04 — ASÍ APRENDES (MÉTODO FABY) */}
+        <MethodEditorial />
+
+        {/* 05 — DE APRENDER A EJERCER */}
+        <ProfessionalJourney />
         <ProfitSimulator />
 
-        {/* 6. Method Bento Grid (4 Core Pillars) */}
-        <MethodBentoGrid />
-
-        {/* 7. Official Course Catalog Cards (Installment plans) */}
-        <CourseCatalogCards />
-
-        {/* 8. Interactive Initial Materials Kit Calculator */}
-        <KitCalculator />
-
-        {/* 9. Masterclass Video Player Showcase */}
+        {/* 06 — ENTRA EN UNA CLASE */}
         <MasterclassShowcase />
 
-        {/* 10. Dynamic Verified Reviews & Stories Gallery */}
-        <ReviewsGallery />
+        {/* 07 — ALUMNAS REALES */}
+        <StudentStories />
 
-        {/* 11. Mastery Guarantee & Investment Safety */}
-        <MasteryGuarantee />
-
-        {/* 12. Physical Sedes in Madrid (Aluche & Vallecas) */}
-        <MadridSedesShowcase />
-
-        {/* 13. Founder Spotlight & Authority */}
+        {/* 08 — LA PROFESORA */}
         <FounderEditorial />
 
-        {/* 14. Comparison Matrix vs Traditional Academies */}
+        {/* 09 — MADRID (SEDES FÍSICAS) */}
+        <MadridSedesShowcase />
+
+        {/* 10 — CONFIANZA & ACREDITACIÓN */}
+        <MasteryCommitment />
+        <CertificateTrust />
         <ComparisonMatrix />
 
-        {/* 15. Interactive FAQ Accordion */}
+        {/* 11 — DECISIÓN & ORIENTACIÓN */}
+        <CareerPathQuiz />
+
+        {/* 12 — FAQ */}
         <FaqInteractive />
       </main>
 
       <PublicFooter />
 
-      {/* Floating Interactive WhatsApp Direct Contact */}
+      {/* Floating WhatsApp Action Button */}
       <FloatingWhatsApp />
     </div>
   );

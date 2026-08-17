@@ -3,52 +3,44 @@
 @tailwind utilities;
 
 :root {
-  --font-sans: 'Inter', sans-serif;
-  --font-display: 'Outfit', sans-serif;
+  --color-ivory: #F8F5F1;
+  --color-obsidian: #0A0A0D;
+  --color-noir: #111117;
+  --color-pink: #DD006B;
 }
 
 body {
-  background-color: #F8FAFC;
-  color: #0F172A;
-  font-family: var(--font-sans);
+  background-color: #F8F5F1;
+  color: #111117;
+  font-family: var(--font-sans), 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-.gradient-fabi-title {
-  background: linear-gradient(135deg, #0F172A 0%, #E11D48 60%, #BE185D 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* Editorial Title Utility */
+.font-editorial {
+  font-family: var(--font-editorial), 'Bodoni Moda', Georgia, serif;
 }
 
-.glass-card {
-  background-color: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+/* Editorial selection */
+::selection {
+  background-color: #DD006B;
+  color: #FFFFFF;
 }
 
-.glass-card-hover {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.glass-card-hover:hover {
-  transform: translateY(-2px);
-  border-color: #FECDD3;
-  box-shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.08), 0 4px 6px -4px rgba(225, 29, 72, 0.04);
-}
-
-/* Custom Clean Scrollbar */
+/* Custom Clean Editorial Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: #F8F5F1;
 }
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 4px;
+  background: #D8D4CE;
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #E11D48;
+  background: #DD006B;
 }

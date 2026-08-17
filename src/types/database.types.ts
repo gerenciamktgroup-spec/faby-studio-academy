@@ -113,13 +113,6 @@ export type Database = {
             referencedRelation: "modules"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "activity_events_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       ai_practice_reviews: {
@@ -471,6 +464,7 @@ export type Database = {
           enrollment_id: string
           hash_signature: string
           id: string
+          is_test_fixture: boolean
           issued_at: string | null
           metadata_snapshot: Json
           payload_version: string
@@ -487,6 +481,7 @@ export type Database = {
           enrollment_id: string
           hash_signature: string
           id?: string
+          is_test_fixture?: boolean
           issued_at?: string | null
           metadata_snapshot?: Json
           payload_version?: string
@@ -503,6 +498,7 @@ export type Database = {
           enrollment_id?: string
           hash_signature?: string
           id?: string
+          is_test_fixture?: boolean
           issued_at?: string | null
           metadata_snapshot?: Json
           payload_version?: string
@@ -542,7 +538,7 @@ export type Database = {
           granted_at: string | null
           id: string
           ip_hash: string
-          legal_version_id: string | null
+          legal_version_id: string
           user_agent: string | null
           user_id: string
           version: string
@@ -552,7 +548,7 @@ export type Database = {
           granted_at?: string | null
           id?: string
           ip_hash: string
-          legal_version_id?: string | null
+          legal_version_id: string
           user_agent?: string | null
           user_id: string
           version: string
@@ -562,7 +558,7 @@ export type Database = {
           granted_at?: string | null
           id?: string
           ip_hash?: string
-          legal_version_id?: string | null
+          legal_version_id?: string
           user_agent?: string | null
           user_id?: string
           version?: string
@@ -1366,6 +1362,54 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          attempts_count: number
+          bucket: string
+          bucket_key: string
+          id: string
+          updated_at: string
+          window_started_at: string
+        }
+        Insert: {
+          attempts_count?: number
+          bucket: string
+          bucket_key: string
+          id?: string
+          updated_at?: string
+          window_started_at?: string
+        }
+        Update: {
+          attempts_count?: number
+          bucket?: string
+          bucket_key?: string
+          id?: string
+          updated_at?: string
+          window_started_at?: string
+        }
+        Relationships: []
+      }
+      registration_rate_limits: {
+        Row: {
+          attempts: number
+          ip_hash: string
+          updated_at: string
+          window_started_at: string
+        }
+        Insert: {
+          attempts: number
+          ip_hash: string
+          updated_at?: string
+          window_started_at: string
+        }
+        Update: {
+          attempts?: number
+          ip_hash?: string
+          updated_at?: string
+          window_started_at?: string
+        }
+        Relationships: []
+      }
       session_logs: {
         Row: {
           course_id: string | null
@@ -1670,6 +1714,19 @@ export type Database = {
         Args: { target_student_id: string }
         Returns: boolean
       }
+      consume_generic_rate_limit: {
+        Args: {
+          p_bucket: string
+          p_key: string
+          p_max_attempts: number
+          p_window_seconds: number
+        }
+        Returns: boolean
+      }
+      consume_registration_rate_limit: {
+        Args: { p_ip_hash: string; p_limit?: number; p_window_seconds?: number }
+        Returns: Json
+      }
       get_forum_feed: {
         Args: { p_forum_id: string }
         Returns: {
@@ -1694,6 +1751,23 @@ export type Database = {
         Returns: boolean
       }
       is_auditor_or_admin: { Args: { user_id: string }; Returns: boolean }
+      issue_certificate_tx: {
+        Args: {
+          p_actor_id: string
+          p_code: string
+          p_course_title_snapshot: string
+          p_enrollment_id: string
+          p_hash_signature: string
+          p_ip_hash: string
+          p_issued_at: string
+          p_payload_version: string
+          p_student_name_snapshot: string
+          p_total_active_seconds: number
+          p_user_agent: string
+          p_verification_url: string
+        }
+        Returns: Json
+      }
       manage_user_role_tx: {
         Args: {
           p_action: string
@@ -1713,6 +1787,7 @@ export type Database = {
         }
         Returns: Json
       }
+      security_catalog_audit: { Args: never; Returns: Json }
       submit_assessment_attempt: {
         Args: { p_answers: Json; p_assessment_id: string }
         Returns: {

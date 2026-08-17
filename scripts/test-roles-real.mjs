@@ -106,7 +106,7 @@ const serviceKey = requireEnvironment('SUPABASE_SERVICE_ROLE_KEY', 40);
 requireEnvironment('AUDIT_IP_HASH_SALT', 32);
 requireEnvironment('CERTIFICATE_SIGNING_SECRET', 32);
 
-const baseUrl = (process.env.LIVE_APP_URL?.trim() || 'http://127.0.0.1:3100').replace(/\/$/, '');
+const baseUrl = (process.env.LIVE_APP_URL?.trim() || 'http://127.0.0.1:3188').replace(/\/$/, '');
 const admin = createClient(supabaseUrl, serviceKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
@@ -233,7 +233,17 @@ async function cleanup() {
     if (deleted.error) console.error(`Cleanup Auth ${userId}: ${deleted.error.message}`);
   }
 
-  if (application && application.exitCode === null) application.kill('SIGTERM');
+  if (application && application.pid) {
+    try {
+      if (process.platform === 'win32') {
+        spawn('taskkill', ['/pid', String(application.pid), '/f', '/t'], { stdio: 'ignore' });
+      } else {
+        application.kill('SIGTERM');
+      }
+    } catch {
+      // Cleanup de proceso completado
+    }
+  }
 }
 
 async function run() {
@@ -532,6 +542,104 @@ async function run() {
 
   const auditorRead = await auditor.client.from('activity_events').select('id').limit(1);
   check('Auditor puede leer la traza inmutable', !auditorRead.error && Array.isArray(auditorRead.data));
+
+  // --- COMPROBACIONES FASE 0 & FASE 1 (AUDITORÍA V3) ---
+  
+  // 1. Inversión de seguridad: Lista Blanca de Rutas Públicas
+  const publicAllowlist = [
+    '/',
+    '/cursos',
+    '/cursos/extensiones-de-pestanas',
+    '/cursos/unas-de-gel-y-acrilico',
+    '/cursos/cosmetologia-facial',
+    '/login',
+    '/registro',
+    '/recuperar-password',
+    '/actualizar-password',
+    '/verificar-certificado',
+    '/terminos',
+    '/privacidad',
+    '/sin-acceso',
+  ];
+  for (const p of publicAllowlist) {
+    const res = await fetch(`${baseUrl}${p}`, { redirect: 'manual' });
+    check(`Ruta pública permitida en lista blanca responde accesible: ${p}`, res.status < 400 || res.status === 404 && p.includes('['));
+  }
+
+  // 2. Ruta /demo devuelve 404 por defecto en entorno protegido
+  const demoCheck = await fetch(`${baseUrl}/demo`, { redirect: 'manual' });
+  check('Ruta /demo devuelve 404 Not Found cuando ENABLE_DEMO no está activo', demoCheck.status === 404);
+
+  // 3. Comprobación estática de superficie: Cero credenciales expuestas en código fuente de páginas
+  function scanPageCredentials(dir) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) {
+        scanPageCredentials(fullPath);
+      } else if (entry.name.endsWith('.tsx')) {
+        const content = fs.readFileSync(fullPath, 'utf8');
+        if (content.includes('Faby2026!Demo') && !fullPath.includes('api/auth')) {
+          throw new Error(`Credencial hardcodeada detectada en componente: ${fullPath}`);
+        }
+      }
+    }
+  }
+  let credentialScanOk = true;
+  try {
+    scanPageCredentials('src/app');
+  } catch (_err) {
+    credentialScanOk = false;
+  }
+  check('Comprobación de superficie: Cero contraseñas hardcodeadas en componentes UI', credentialScanOk);
+
+  // 4. Invariante de API: createAdminClient protegido por requireAuthPrincipal o lista blanca justificada
+  const apiRouteFiles = fs.readdirSync('src/app/api', { recursive: true })
+    .filter((f) => typeof f === 'string' && f.endsWith('route.ts'));
+  const allowedAdminApiRoutes = new Set([
+    'auth/register/route.ts',
+    'auth/demo-session/route.ts',
+    'audit/heartbeat/route.ts',
+    'certificates/route.ts',
+    'checkout/route.ts',
+  ]);
+  let apiInvariantsPass = true;
+  for (const relFile of apiRouteFiles) {
+    const normalized = relFile.replace(/\\/g, '/');
+    const content = fs.readFileSync(`src/app/api/${normalized}`, 'utf8');
+    if (content.includes('createAdminClient') || content.includes('SUPABASE_SERVICE_ROLE_KEY')) {
+      const hasAuthGuard = content.includes('requireAuthPrincipal') || allowedAdminApiRoutes.has(normalized);
+      if (!hasAuthGuard) {
+        apiInvariantsPass = false;
+        break;
+      }
+    }
+  }
+  check('Invariante de API: Todo uso de cliente administrativo cuenta con guarda de rol o lista blanca justificada', apiInvariantsPass);
+
+  // 5. Test de función genérica de rate limiting (consume_generic_rate_limit)
+  const rateLimitTestKey = `test-${runId}`;
+  const firstRateAttempt = await admin.rpc('consume_generic_rate_limit', {
+    p_bucket: 'test_bucket',
+    p_key: rateLimitTestKey,
+    p_max_attempts: 2,
+    p_window_seconds: 60,
+  });
+  const secondRateAttempt = await admin.rpc('consume_generic_rate_limit', {
+    p_bucket: 'test_bucket',
+    p_key: rateLimitTestKey,
+    p_max_attempts: 2,
+    p_window_seconds: 60,
+  });
+  const thirdRateAttempt = await admin.rpc('consume_generic_rate_limit', {
+    p_bucket: 'test_bucket',
+    p_key: rateLimitTestKey,
+    p_max_attempts: 2,
+    p_window_seconds: 60,
+  });
+  check('La infraestructura de limitación de frecuencia genérica (consume_generic_rate_limit) bloquea excedentes', 
+    firstRateAttempt.data === true && secondRateAttempt.data === true && thirdRateAttempt.data === false
+  );
 
   console.log(`\nRESULTADO LIVE: ${passed} comprobaciones reales superadas.`);
 }

@@ -6,6 +6,13 @@ import { PracticeSubmissionPanel } from './PracticeSubmissionPanel';
 
 export const dynamic = 'force-dynamic';
 
+interface AssignmentItem {
+  id: string;
+  title: string;
+  description?: string | null;
+  due_date?: string | null;
+}
+
 export default async function StudentPracticesPage() {
   const principal = await requirePagePrincipal(STUDENT_ROLES);
   const supabase = await createClient();
@@ -15,7 +22,7 @@ export default async function StudentPracticesPage() {
   ]);
   if (assignmentsError) throw assignmentsError;
   if (submissionsError) throw submissionsError;
-  const assignmentsById = new Map((assignments ?? []).map((assignment) => [assignment.id, assignment]));
+  const assignmentsById = new Map<string, AssignmentItem>((assignments ?? []).map((assignment) => [assignment.id, assignment]));
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">

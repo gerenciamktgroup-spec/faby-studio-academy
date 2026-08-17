@@ -21,7 +21,7 @@ export default async function TutoringPage() {
   ]);
   if (tutorsError) throw tutorsError;
   if (sessionsError) throw sessionsError;
-  const tutorsById = new Map((tutors ?? []).map((tutor) => [tutor.id, tutor.full_name]));
+  const tutorsById = new Map<string, string>((tutors ?? []).map((tutor: { id: string; full_name: string | null }) => [tutor.id, tutor.full_name ?? 'Tutora']));
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">

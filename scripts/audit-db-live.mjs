@@ -83,10 +83,21 @@ async function runLiveAudit() {
     '20260818020000',
     '20260818030000',
     '20260818040000',
+    '20260818050000',
   ];
   const migrations = catalog.migrations ?? [];
   const missingMigrations = expectedMigrations.filter((version) => !migrations.includes(version));
-  assertCheck(missingMigrations.length === 0, 'Las ocho migraciones están sincronizadas', missingMigrations.join(', '));
+  assertCheck(missingMigrations.length === 0, 'Las nueve migraciones están sincronizadas', missingMigrations.join(', '));
+
+  const indices = catalog.hot_path_indices ?? [];
+  const expectedIndices = [
+    'idx_session_logs_user_course',
+    'idx_lesson_progress_student_status_lesson',
+    'idx_assignment_submissions_student_assignment',
+    'idx_assessment_attempts_student_assessment',
+  ];
+  const missingIndices = expectedIndices.filter((idx) => !indices.includes(idx));
+  assertCheck(missingIndices.length === 0, 'Los cuatro índices de caminos calientes están creados', missingIndices.join(', '));
 
   const tables = catalog.public_tables ?? [];
   const withoutRls = tables.filter((table) => !table.rls).map((table) => table.table);

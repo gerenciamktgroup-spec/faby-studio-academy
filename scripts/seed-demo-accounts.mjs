@@ -23,8 +23,9 @@ const adminClient = createClient(supabaseUrl, serviceKey, {
 });
 
 const DEMO_PASSWORD = 'Faby2026!Demo';
+const includeAdmin = process.argv.includes('--with-admin') && (process.env.ALLOW_ADMIN_SEED === 'true' || env.ALLOW_ADMIN_SEED === 'true');
 
-const DEMO_USERS = [
+const BASE_DEMO_USERS = [
   {
     email: 'alumna@fabystudio.academy',
     fullName: 'Lucía Martínez',
@@ -41,6 +42,9 @@ const DEMO_USERS = [
     landingPage: '/profesor',
     description: 'Acceso docente: evaluación de prácticas con rúbrica, directorio de alumnas y tutorías.',
   },
+];
+
+const ADMIN_USERS = [
   {
     email: 'admin@fabystudio.academy',
     fullName: 'Valeria Directora',
@@ -67,9 +71,11 @@ const DEMO_USERS = [
   },
 ];
 
+const DEMO_USERS = includeAdmin ? [...BASE_DEMO_USERS, ...ADMIN_USERS] : BASE_DEMO_USERS;
+
 async function seedDemoUsers() {
   console.log('================================================================');
-  console.log('  SEEDING PERSISTENT DEMO ACCOUNTS IN SUPABASE STAGING');
+  console.log(`  SEEDING DEMO ACCOUNTS IN SUPABASE (${includeAdmin ? 'INCLUDING ADMIN' : 'SAFE DEMO ONLY'})`);
   console.log('================================================================\n');
 
   // 1. Fetch available courses
@@ -165,7 +171,7 @@ async function seedDemoUsers() {
   }
 
   console.log('\n================================================================');
-  console.log('  DEMO ACCOUNTS READY WITH PASSWORD: ' + DEMO_PASSWORD);
+  console.log('  DEMO SEED COMPLETE');
   console.log('================================================================\n');
 }
 

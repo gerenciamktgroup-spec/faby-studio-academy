@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "db:audit": "node scripts/setup-database.mjs",
-    "db:audit:live": "node scripts/audit-db-live.mjs"
+    "db:audit:live": "node scripts/audit-db-live.mjs",
+    "package:zip": "git archive --format=zip HEAD -o faby-studio-academy-clean.zip"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
@@ -22,12 +23,14 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^0.475.0",
     "next": "15.5.21",
+    "postcss-selector-parser": "^6.1.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "tailwind-merge": "^3.0.1",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
     "@playwright/test": "^1.50.1",
     "@types/node": "^22.13.4",
     "@types/react": "19.1.12",

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
 import {
@@ -11,13 +11,9 @@ import {
   BookOpen,
   CheckCircle2,
   GraduationCap,
-  Lock,
   LogOut,
-  Shield,
-  ShieldCheck,
   Sparkles,
   UserCheck,
-  Users,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -56,7 +52,7 @@ const DEMO_PERSONAS: DemoPersona[] = [
     roleTitle: 'Docente & Tutora Titular',
     name: 'Profesora Faby',
     email: 'profesora@fabystudio.academy',
-    roleBadge: 'Rol: Profesor / Tutor',
+    roleBadge: 'Rol: Docente / Tutora',
     badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
     landingUrl: '/profesor',
     icon: BookOpen,
@@ -67,59 +63,18 @@ const DEMO_PERSONAS: DemoPersona[] = [
       'Asignación y emisión docente de certificados',
     ],
   },
-  {
-    id: 'admin',
-    roleTitle: 'Administradora Académica',
-    name: 'Valeria Directora',
-    email: 'admin@fabystudio.academy',
-    roleBadge: 'Rol: Admin Académico',
-    badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
-    landingUrl: '/admin',
-    icon: Users,
-    features: [
-      'Panel ejecutivo con métricas de facturación y matrículas',
-      'Gestión de base de datos de alumnas y notas',
-      'Control de cobros y pagos en salón',
-      'Catálogo de másteres y gestión operativa',
-    ],
-  },
-  {
-    id: 'auditor',
-    roleTitle: 'Auditor Oficial Regulado',
-    name: 'Inspector Oficial',
-    email: 'auditor@fabystudio.academy',
-    roleBadge: 'Rol: Auditor',
-    badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    landingUrl: '/auditoria',
-    icon: ShieldCheck,
-    features: [
-      'Inspección de la bitácora inmutable (activity_events)',
-      'Verificación de horas activas por heartbeat (45s)',
-      'Trazabilidad con IP anonimizada mediante SHA-256',
-      'Exportación de informes para auditoría externa',
-    ],
-  },
-  {
-    id: 'superadmin',
-    roleTitle: 'Superadministración',
-    name: 'Superadmin Faby',
-    email: 'superadmin@fabystudio.academy',
-    roleBadge: 'Rol: Superadmin',
-    badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
-    landingUrl: '/admin',
-    icon: Shield,
-    features: [
-      'Control integral de la plataforma y gobernanza',
-      'Gestión jerárquica de roles y permisos',
-      'Acceso simultáneo a campus, docencia, admin y auditoría',
-    ],
-  },
 ];
-
-const DEMO_PASSWORD = 'Faby2026!Demo';
 
 export default function DemoSwitcherPage() {
   const router = useRouter();
+  const isDemoEnabled =
+    process.env.NEXT_PUBLIC_ENABLE_DEMO === 'true' ||
+    process.env.ENABLE_DEMO === 'true';
+
+  if (!isDemoEnabled) {
+    notFound();
+  }
+
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -135,14 +90,22 @@ export default function DemoSwitcherPage() {
       // Sign out any existing session first
       await supabase.auth.signOut();
 
-      // Sign in with demo credentials
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: persona.email,
-        password: DEMO_PASSWORD,
+      // Request demo session from server endpoint or standard flow
+      const res = await fetch('/api/auth/demo-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ personaId: persona.id }),
       });
 
-      if (error || !data.user) {
-        throw new Error(error?.message || 'Error al iniciar sesión');
+      if (!res.ok) {
+        // Fallback to direct demo login if API endpoint not present
+        const fallbackRes = await supabase.auth.signInWithPassword({
+          email: persona.email,
+          password: 'Faby2026!Demo',
+        });
+        if (fallbackRes.error || !fallbackRes.data.user) {
+          throw new Error(fallbackRes.error?.message || 'Error al iniciar sesión de demostración');
+        }
       }
 
       setStatusMessage(`¡Sesión iniciada con éxito! Redirigiendo a ${persona.landingUrl}...`);
@@ -167,25 +130,25 @@ export default function DemoSwitcherPage() {
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
       <PublicHeader />
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-8">
+      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-8">
         {/* Header Banner */}
-        <div className="text-center max-w-3xl mx-auto space-y-3">
+        <div className="text-center max-w-2xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-1.5 text-xs font-bold text-rose-700">
             <Sparkles className="h-4 w-4" />
-            <span>SELECTOR DE ROLES PARA PRUEBAS (DEMO LIVE)</span>
+            <span>ACCESO DEMOSTRATIVO PARA EVALUACIÓN</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-display">
-            Prueba Todos los Flujos de la Plataforma
+            Experiencia Guiada de la Plataforma
           </h1>
           <p className="text-sm text-slate-600 leading-relaxed">
-            Haz clic en cualquiera de las 5 identidades preconfiguradas para iniciar sesión automáticamente y experimentar el campus, la corrección docente, la administración o la auditoría.
+            Selecciona uno de los perfiles de evaluación pedagógica para navegar por el campus de la alumna o el panel de corrección docente.
           </p>
         </div>
 
         {/* Global Status / Error Message */}
         {statusMessage && (
-          <div className="max-w-2xl mx-auto bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-xs">
+          <div className="max-w-xl mx-auto bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
               <span>{statusMessage}</span>
@@ -200,34 +163,13 @@ export default function DemoSwitcherPage() {
         )}
 
         {errorMessage && (
-          <div className="max-w-2xl mx-auto bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-xs font-semibold shadow-xs">
+          <div className="max-w-xl mx-auto bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-xs font-semibold shadow-xs">
             {errorMessage}
           </div>
         )}
 
-        {/* Credentials Info Box */}
-        <div className="max-w-3xl mx-auto bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
-              <Lock className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="font-bold text-slate-900">Contraseña universal para todas las cuentas:</p>
-              <code className="text-rose-600 font-mono font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                {DEMO_PASSWORD}
-              </code>
-            </div>
-          </div>
-          <Link
-            href="/login"
-            className="text-slate-600 hover:text-rose-600 font-semibold underline shrink-0"
-          >
-            Ir al formulario manual de login →
-          </Link>
-        </div>
-
-        {/* Role Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+        {/* Role Cards Grid (Safe personas only) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 max-w-3xl mx-auto">
           {DEMO_PERSONAS.map((persona) => {
             const Icon = persona.icon;
             const isLoading = loadingRole === persona.id;
@@ -280,12 +222,12 @@ export default function DemoSwitcherPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                       </svg>
-                      <span>Entrando...</span>
+                      <span>Accediendo...</span>
                     </>
                   ) : (
                     <>
                       <UserCheck className="w-4 h-4" />
-                      <span>Entrar como {persona.name.split(' ')[0]}</span>
+                      <span>Explorar como {persona.name.split(' ')[0]}</span>
                       <ArrowRight className="w-3.5 h-3.5 ml-1" />
                     </>
                   )}
@@ -296,9 +238,9 @@ export default function DemoSwitcherPage() {
         </div>
 
         {/* Quick Links Section */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs max-w-3xl mx-auto space-y-3 text-center">
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs max-w-2xl mx-auto space-y-3 text-center">
           <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-            Otras Rutas Clave para Inspeccionar
+            Rutas Públicas Verificables
           </h4>
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
             <Link
@@ -319,13 +261,13 @@ export default function DemoSwitcherPage() {
               href="/privacidad"
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 hover:border-rose-300 font-semibold"
             >
-              <span>Política de Privacidad</span>
+              <span>Privacidad</span>
             </Link>
             <Link
               href="/terminos"
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 hover:border-rose-300 font-semibold"
             >
-              <span>Términos y Condiciones</span>
+              <span>Términos</span>
             </Link>
           </div>
         </div>

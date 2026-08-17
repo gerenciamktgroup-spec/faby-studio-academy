@@ -12,8 +12,11 @@ import {
   CheckCircle2,
   GraduationCap,
   LogOut,
+  ShieldCheck,
   Sparkles,
   UserCheck,
+  Settings,
+  FileCheck2,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -63,6 +66,38 @@ const DEMO_PERSONAS: DemoPersona[] = [
       'Asignación y emisión docente de certificados',
     ],
   },
+  {
+    id: 'admin',
+    roleTitle: 'Dirección & Administración',
+    name: 'Valeria Directora',
+    email: 'admin@fabystudio.academy',
+    roleBadge: 'Rol: Dirección Académica',
+    badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
+    landingUrl: '/admin',
+    icon: Settings,
+    features: [
+      'Gestión integral de base de datos de alumnas',
+      'Control de cobros, cuotas y pagos en salón',
+      'Administración de cupones y promociones',
+      'Catálogo de cursos y métricas de negocio',
+    ],
+  },
+  {
+    id: 'auditor',
+    roleTitle: 'Inspector / Auditor Oficial',
+    name: 'Inspector Oficial',
+    email: 'auditor@fabystudio.academy',
+    roleBadge: 'Rol: Auditor Normativo',
+    badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
+    landingUrl: '/auditoria',
+    icon: FileCheck2,
+    features: [
+      'Inspección de bitácora inmutable de eventos',
+      'Verificación criptográfica SHA-256',
+      'Trazabilidad cada 45s (Orden TMS/369/2019)',
+      'Exportación oficial en PDF y CSV',
+    ],
+  },
 ];
 
 export default function DemoSwitcherPage() {
@@ -82,7 +117,7 @@ export default function DemoSwitcherPage() {
   const handleQuickLogin = async (persona: DemoPersona) => {
     setLoadingRole(persona.id);
     setErrorMessage('');
-    setStatusMessage(`Autenticando como ${persona.name} (${persona.roleTitle})...`);
+    setStatusMessage(`Iniciando sesión segura como ${persona.name} (${persona.roleTitle})...`);
 
     try {
       const supabase = createClient();
@@ -90,7 +125,7 @@ export default function DemoSwitcherPage() {
       // Sign out any existing session first
       await supabase.auth.signOut();
 
-      // Request demo session from server endpoint or standard flow
+      // Request demo session credentials from server endpoint
       const res = await fetch('/api/auth/demo-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -98,11 +133,25 @@ export default function DemoSwitcherPage() {
       });
 
       if (!res.ok) {
-        throw new Error('El acceso de demostración requiere credenciales de prueba activas.');
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(
+          errorData.error || 'El acceso de demostración requiere credenciales de prueba activas.'
+        );
       }
 
-      setStatusMessage(`¡Sesión iniciada con éxito! Redirigiendo a ${persona.landingUrl}...`);
-      router.push(persona.landingUrl);
+      const { email, password, landingUrl } = await res.json();
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        throw new Error(signInError.message);
+      }
+
+      setStatusMessage(`¡Sesión iniciada! Redirigiendo a ${landingUrl || persona.landingUrl}...`);
+      router.push(landingUrl || persona.landingUrl);
       router.refresh();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error de autenticación';
@@ -123,19 +172,19 @@ export default function DemoSwitcherPage() {
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
       <PublicHeader />
 
-      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-8">
+      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-8">
         {/* Header Banner */}
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-1.5 text-xs font-bold text-rose-700">
             <Sparkles className="h-4 w-4" />
-            <span>ACCESO DEMOSTRATIVO PARA EVALUACIÓN</span>
+            <span>ACCESO DEMOSTRATIVO Y REVISIÓN DE MÓDULOS</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-display">
-            Experiencia Guiada de la Plataforma
+            Explora las Funciones de la Plataforma
           </h1>
           <p className="text-sm text-slate-600 leading-relaxed">
-            Selecciona uno de los perfiles de evaluación pedagógica para navegar por el campus de la alumna o el panel de corrección docente.
+            Haz clic en cualquiera de los perfiles para ingresar directamente y evaluar el funcionamiento del Campus, Corrección Docente, Administración o Auditoría.
           </p>
         </div>
 
@@ -161,8 +210,8 @@ export default function DemoSwitcherPage() {
           </div>
         )}
 
-        {/* Role Cards Grid (Safe personas only) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 max-w-3xl mx-auto">
+        {/* Role Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
           {DEMO_PERSONAS.map((persona) => {
             const Icon = persona.icon;
             const isLoading = loadingRole === persona.id;
@@ -207,7 +256,7 @@ export default function DemoSwitcherPage() {
                 <button
                   onClick={() => handleQuickLogin(persona)}
                   disabled={loadingRole !== null}
-                  className="w-full bg-gradient-to-r from-fabi-pink to-fabi-darkpink hover:from-fabi-darkpink hover:to-fabi-pink text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-rose-600/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-pink-600 hover:to-rose-600 text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-rose-600/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {isLoading ? (
                     <>
@@ -215,12 +264,12 @@ export default function DemoSwitcherPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                       </svg>
-                      <span>Accediendo...</span>
+                      <span>Accediendo a {persona.roleTitle}...</span>
                     </>
                   ) : (
                     <>
                       <UserCheck className="w-4 h-4" />
-                      <span>Explorar como {persona.name.split(' ')[0]}</span>
+                      <span>Ingresar y ver módulo ({persona.roleTitle})</span>
                       <ArrowRight className="w-3.5 h-3.5 ml-1" />
                     </>
                   )}
@@ -251,16 +300,11 @@ export default function DemoSwitcherPage() {
               <span>Catálogo de Cursos</span>
             </Link>
             <Link
-              href="/privacidad"
+              href="/login"
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 hover:border-rose-300 font-semibold"
             >
-              <span>Privacidad</span>
-            </Link>
-            <Link
-              href="/terminos"
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 hover:border-rose-300 font-semibold"
-            >
-              <span>Términos</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+              <span>Iniciar Sesión Estándar</span>
             </Link>
           </div>
         </div>

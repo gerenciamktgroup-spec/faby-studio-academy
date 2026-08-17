@@ -160,13 +160,29 @@ export default function LoginPage() {
 
         </form>
 
-        {/* Register link */}
-        <p className="text-center text-xs text-slate-500">
-          ¿Aún no tienes cuenta?{' '}
-          <Link href="/registro" className="font-bold text-rose-600 hover:underline">
-            Matricúlate aquí
-          </Link>
-        </p>
+        {/* Demo switcher and register links */}
+        <div className="space-y-3 text-center">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-4 text-xs">
+            <p className="font-bold text-rose-900">¿Deseas evaluar o presentar la plataforma?</p>
+            <p className="mt-1 text-[11px] text-rose-700">
+              Accede directamente con perfiles de Alumna, Docente, Administración o Auditoría.
+            </p>
+            <Link
+              href="/demo"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-rose-700 transition-colors"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Entrar a la Experiencia Demo (1 Clic)</span>
+            </Link>
+          </div>
+
+          <p className="text-xs text-slate-500">
+            ¿Aún no tienes cuenta?{' '}
+            <Link href="/registro" className="font-bold text-rose-600 hover:underline">
+              Matricúlate aquí
+            </Link>
+          </p>
+        </div>
       </main>
 
       <PublicFooter />

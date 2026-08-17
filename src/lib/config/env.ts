@@ -70,6 +70,9 @@ export function isPublicRegistrationEnabled(): boolean {
 }
 
 export function isDemoEnabled(): boolean {
-  return process.env.ENABLE_DEMO === 'true';
+  return (
+    process.env.ENABLE_DEMO === 'true' ||
+    process.env.NEXT_PUBLIC_ENABLE_DEMO === 'true'
+  );
 }
 

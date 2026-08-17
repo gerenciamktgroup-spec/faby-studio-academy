@@ -22,7 +22,7 @@ export default async function AuditPage() {
   const userIds = [...new Set((events ?? []).map((event) => event.user_id))];
   const { data: profiles, error: profilesError } = userIds.length ? await supabase.from('profiles').select('id, full_name').in('id', userIds) : { data: [], error: null };
   if (profilesError) throw profilesError;
-  const namesById = new Map((profiles ?? []).map((profile) => [profile.id, profile.full_name]));
+  const namesById = new Map<string, string | null>((profiles ?? []).map((profile) => [profile.id, profile.full_name] as [string, string | null]));
   const totalLoggedSeconds = (sessions ?? []).reduce((total, session) => total + (session.total_logged_seconds ?? 0), 0);
   const totalActiveSeconds = (sessions ?? []).reduce((total, session) => total + (session.total_active_seconds ?? 0), 0);
   const activeRatio = totalLoggedSeconds > 0 ? Math.round((totalActiveSeconds / totalLoggedSeconds) * 100) : 0;

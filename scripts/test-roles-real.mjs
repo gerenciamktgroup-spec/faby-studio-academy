@@ -562,13 +562,29 @@ async function run() {
     '/sin-acceso',
   ];
   for (const p of publicAllowlist) {
-    const res = await fetch(`${baseUrl}${p}`, { redirect: 'manual' });
-    check(`Ruta pública permitida en lista blanca responde accesible: ${p}`, res.status < 400 || res.status === 404 && p.includes('['));
+    let res;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        res = await fetch(`${baseUrl}${p}`, { redirect: 'manual' });
+        if (res.status < 500) break;
+      } catch {
+        // Retry on connection/compilation lock
+      }
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+    check(`Ruta pública permitida en lista blanca responde accesible: ${p}`, res && (res.status < 400 || res.status === 404 && p.includes('[')));
   }
 
   // 2. Ruta /demo devuelve 404 por defecto en entorno protegido
-  const demoCheck = await fetch(`${baseUrl}/demo`, { redirect: 'manual' });
-  check('Ruta /demo devuelve 404 Not Found cuando ENABLE_DEMO no está activo', demoCheck.status === 404);
+  let demoCheck;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      demoCheck = await fetch(`${baseUrl}/demo`, { redirect: 'manual' });
+      if (demoCheck.status !== 500) break;
+    } catch {}
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  check('Ruta /demo devuelve 404 Not Found cuando ENABLE_DEMO no está activo', demoCheck?.status === 404);
 
   // 3. Comprobación estática de superficie: Cero credenciales expuestas en código fuente de páginas
   function scanPageCredentials(dir) {

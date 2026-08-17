@@ -1,20 +1,38 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Public experience and fail-closed security', () => {
-  test('renders the public catalog and real authentication forms', async ({ page }) => {
+  test('renders the public catalog and dynamic course detail landings', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('header')).toContainText('FABY STUDIO');
     await expect(page.locator('h1')).toBeVisible();
 
+    // Verificación de páginas dinámicas de cursos unificadas
     await page.goto('/cursos/extensiones-de-pestanas');
-    await expect(page.locator('h1')).toContainText('Extensiones de Pestañas');
+    await expect(page.locator('h1')).toContainText(/pestañas/i);
+    await expect(page.getByRole('link', { name: /matricularme ahora/i })).toBeVisible();
 
+    await page.goto('/cursos/unas-de-gel-y-acrilico');
+    await expect(page.locator('h1')).toContainText(/uñas de gel/i);
+
+    await page.goto('/cursos/cosmetologia-facial');
+    await expect(page.locator('h1')).toContainText(/cosmetología facial/i);
+
+    // Verificación de autenticación limpia
     await page.goto('/login');
     await expect(page.getByRole('button', { name: /iniciar sesión/i })).toBeVisible();
     await expect(page.getByText(/credenciales de demo/i)).toHaveCount(0);
 
     await page.goto('/registro');
     await expect(page.getByRole('button', { name: /crear cuenta/i })).toBeVisible();
+
+    // Verificación pública de certificados
+    await page.goto('/verificar-certificado');
+    await expect(page.locator('h1')).toContainText(/verificación/i);
+  });
+
+  test('ensures /demo route returns 404 in protected environment', async ({ page }) => {
+    const response = await page.goto('/demo');
+    expect(response?.status()).toBe(404);
   });
 
   test('never allows anonymous mutations to report success', async ({ request }) => {

@@ -1,6 +1,25 @@
+import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { expect, test, type Page } from '@playwright/test';
+
+function loadLocalEnvironment() {
+  if (!fs.existsSync('.env.local')) return;
+  for (const rawLine of fs.readFileSync('.env.local', 'utf8').split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const separator = line.indexOf('=');
+    if (separator < 1) continue;
+    const key = line.slice(0, separator).trim();
+    let value = line.slice(separator + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    if (!process.env[key]) process.env[key] = value;
+  }
+}
+
+loadLocalEnvironment();
 
 const liveAuthentication = process.env.LIVE_AUTH_E2E === 'true';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

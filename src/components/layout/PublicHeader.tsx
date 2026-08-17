@@ -1,10 +1,45 @@
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, ShieldCheck, BookOpen, GraduationCap, LogIn, Award } from 'lucide-react';
+import { Sparkles, ShieldCheck, BookOpen, GraduationCap, LogIn, Award, MapPin, Phone, MessageCircle } from 'lucide-react';
 
 export function PublicHeader() {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
+      {/* Top Announcement Bar */}
+      <div className="bg-slate-900 text-white text-[11px] py-1.5 px-4 sm:px-6 lg:px-8 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1">
+          <div className="flex items-center space-x-3 text-slate-300 font-medium">
+            <span className="flex items-center text-rose-400">
+              <MapPin className="w-3 h-3 mr-1 text-rose-500" />
+              Madrid: Plaza Aluche & Puente de Vallecas
+            </span>
+            <span className="hidden md:inline text-slate-600">•</span>
+            <span className="hidden md:inline text-amber-400 font-semibold">
+              +15 Años de Experiencia • +80k Alumnas & Clientas
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <a
+              href="tel:+34614236200"
+              className="flex items-center text-slate-300 hover:text-white transition-colors"
+            >
+              <Phone className="w-3 h-3 mr-1 text-rose-400" />
+              <span>+34 614 23 62 00</span>
+            </a>
+            <a
+              href="https://wa.me/34614236200?text=Hola%20Faby%20Studio,%20quisiera%20informaci%C3%B3n%20sobre%20los%20cursos%20profesionales"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center text-emerald-400 hover:text-emerald-300 font-bold transition-colors"
+            >
+              <MessageCircle className="w-3 h-3 mr-1 fill-emerald-500 text-emerald-500" />
+              <span>WhatsApp Asesoría</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Brand Logo */}
@@ -17,7 +52,7 @@ export function PublicHeader() {
                 FABY STUDIO <span className="text-fabi-pink">ACADEMY</span>
               </span>
               <span className="block text-[9px] uppercase tracking-widest text-slate-500 font-semibold">
-                Beauty Education & Tech
+                Beauty Education & Tech • Madrid
               </span>
             </div>
           </Link>

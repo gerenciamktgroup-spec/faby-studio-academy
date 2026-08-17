@@ -24,48 +24,48 @@ export default function PrivacidadPage() {
           <div className="space-y-3 border-b border-slate-100 pb-6">
             <div className="inline-flex items-center space-x-2 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-emerald-800 font-bold">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>AVISO DE PRIVACIDAD DE LA PREVIEW</span>
+              <span>PROTECCIÓN DE DATOS (RGPD & LOPD-GDD)</span>
             </div>
             <h1 className="text-3xl font-extrabold font-display text-slate-900">
-              Aviso de Privacidad para Pruebas
+              Política de Privacidad & Protección de Datos
             </h1>
             <p className="text-slate-500">
-              Versión: 2026.2 • FABY STUDIO ACADEMY (Preview privada)
+              Conforme al Reglamento (UE) 2016/679 (RGPD) y Ley Orgánica 3/2018 (LOPD-GDD) • FABY STUDIO ACADEMY
             </p>
           </div>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">1. Alcance de esta preview</h2>
-            <p>
-              Este entorno se encuentra en validación técnica, está reservado a personas autorizadas y debe utilizarse exclusivamente con identidades y datos sintéticos. El registro público permanece deshabilitado.
-            </p>
-            <p>
-              Para consultas sobre los datos de prueba escriba a <a href="mailto:privacidad@fabystudio.academy" className="text-rose-600 font-semibold underline">privacidad@fabystudio.academy</a>.
-            </p>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">2. Finalidad de los datos de prueba</h2>
-            <p>Las cuentas sintéticas se utilizan únicamente para:</p>
-            <ul className="list-disc pl-5 space-y-1.5 text-slate-600">
-              <li>Verificar la autenticación y el control de acceso por roles.</li>
-              <li>Comprobar el cómputo técnico del tiempo de actividad.</li>
-              <li>Validar prácticas, trazas y certificados técnicos de prueba.</li>
-              <li>Detectar fallos de seguridad y funcionamiento antes del lanzamiento.</li>
+            <h2 className="text-base font-bold text-slate-900">1. Responsable del Tratamiento</h2>
+            <ul className="list-disc pl-5 space-y-1 text-slate-600">
+              <li><strong>Identidad:</strong> Leslie Fabiola Larico Zapana (FABYSTUDIO)</li>
+              <li><strong>Dirección:</strong> Av. de los Poblados 58, 28044 Madrid, España</li>
+              <li><strong>Teléfono:</strong> +34 614 23 62 00</li>
+              <li><strong>Correo Electrónico de Privacidad:</strong> fabileslie@gmail.com</li>
             </ul>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">3. Limitaciones</h2>
+            <h2 className="text-base font-bold text-slate-900">2. Finalidad del Tratamiento de Datos</h2>
+            <p>Tratamos los datos personales recabados con las siguientes finalidades:</p>
+            <ul className="list-disc pl-5 space-y-1.5 text-slate-600">
+              <li>Gestionar la matrícula y habilitar el acceso al Campus Virtual.</li>
+              <li>Registrar el cómputo de horas de aprendizaje activo y la entrega de prácticas para evaluación docente.</li>
+              <li>Emitir y verificar diplomas acreditativos con firma digital SHA-256.</li>
+              <li>Atender consultas académicas o citas presenciales en nuestras sedes de Madrid.</li>
+            </ul>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-base font-bold text-slate-900">3. Base Jurídica y Conservación</h2>
             <p>
-              Esta página no declara cumplimiento normativo, acreditación administrativa ni aptitud para procesar datos personales reales. La información legal pública se completará antes de habilitar el registro comercial.
+              La base legal para el tratamiento de sus datos es la ejecución del contrato de prestación de servicios educativos (matrícula) y el consentimiento explícito otorgado por la alumna. Los datos se conservarán durante la vigencia de la relación académica y los plazos legalmente exigidos.
             </p>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-base font-bold text-slate-900">4. Consultas y eliminación de pruebas</h2>
+            <h2 className="text-base font-bold text-slate-900">4. Ejercicio de Derechos (ARCO+)</h2>
             <p>
-              Las personas autorizadas pueden solicitar la revisión o eliminación de sus datos de validación escribiendo a <a href="mailto:privacidad@fabystudio.academy" className="text-rose-600 font-semibold underline">privacidad@fabystudio.academy</a>.
+              Usted tiene derecho a acceder a sus datos personales, solicitar la rectificación de datos inexactos o pedir su supresión cuando ya no sean necesarios. Para ejercer estos derechos, envíe una solicitud junto con copia de su documento de identidad a <a href="mailto:fabileslie@gmail.com" className="text-rose-600 font-semibold underline">fabileslie@gmail.com</a>.
             </p>
           </section>
         </div>

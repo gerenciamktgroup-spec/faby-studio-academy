@@ -68,3 +68,8 @@ export function getSupabaseServiceRoleKey(): string {
 export function isPublicRegistrationEnabled(): boolean {
   return process.env.ENABLE_PUBLIC_REGISTRATION === 'true';
 }
+
+export function isDemoEnabled(): boolean {
+  return process.env.ENABLE_DEMO === 'true';
+}
+

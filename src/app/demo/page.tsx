@@ -98,14 +98,7 @@ export default function DemoSwitcherPage() {
       });
 
       if (!res.ok) {
-        // Fallback to direct demo login if API endpoint not present
-        const fallbackRes = await supabase.auth.signInWithPassword({
-          email: persona.email,
-          password: 'Faby2026!Demo',
-        });
-        if (fallbackRes.error || !fallbackRes.data.user) {
-          throw new Error(fallbackRes.error?.message || 'Error al iniciar sesión de demostración');
-        }
+        throw new Error('El acceso de demostración requiere credenciales de prueba activas.');
       }
 
       setStatusMessage(`¡Sesión iniciada con éxito! Redirigiendo a ${persona.landingUrl}...`);

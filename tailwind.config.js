@@ -9,17 +9,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        fabi: {
-          pink: '#DD006B',       // Institutional Pink / Editorial Lipstick
-          darkpink: '#960046',   // Deep Berry
-          lightpink: '#FFF1F5',  // Very soft rose tint
-          ivory: '#F8F5F1',      // Warm Ivory
-          white: '#FFFFFF',      // Pure Editorial White
-          obsidian: '#0A0A0D',   // Deep Obsidian Noir
-          noir: '#111117',       // Editorial Deep Noir
-          champagne: '#C5A880',  // Muted Champagne Gold
-          border: '#E8E4DF',     // Subtle Ivory Border
-          subtext: '#6E6B68',    // Warm Editorial Grey
+        faby: {
+          pink: '#DD006B',         // Institutional Pink / Signature Editorial
+          'deep-pink': '#B70055',  // Deep Magenta Accent
+          blush: '#F6CADB',        // Soft Luxury Rose / Highlight Surface
+          powder: '#FBE8EF',       // Delicate Powder Rose
+          ivory: '#FAF6F3',        // Warm Editorial Base
+          white: '#FFFDFC',        // Pure Canvas White
+          noir: '#111114',         // Editorial Charcoal Black
+          obsidian: '#09090B',     // Deep Obsidian Black
+          cocoa: '#725244',        // Warm Cocoa Earth
+          nude: '#B98A70',         // Editorial Nude
+          champagne: '#C5A47C',    // Muted Champagne Gold
+          border: '#E8E2DA',       // Soft Luxury Divider Border
+          subtext: '#6E6763',      // Warm Editorial Body Grey
         },
       },
       fontFamily: {

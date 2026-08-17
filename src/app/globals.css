@@ -3,15 +3,22 @@
 @tailwind utilities;
 
 :root {
-  --color-ivory: #F8F5F1;
-  --color-obsidian: #0A0A0D;
-  --color-noir: #111117;
-  --color-pink: #DD006B;
+  --faby-pink: #DD006B;
+  --faby-deep-pink: #B70055;
+  --faby-blush: #F6CADB;
+  --faby-powder: #FBE8EF;
+  --faby-ivory: #FAF6F3;
+  --faby-white: #FFFDFC;
+  --faby-noir: #111114;
+  --faby-obsidian: #09090B;
+  --faby-cocoa: #725244;
+  --faby-nude: #B98A70;
+  --faby-champagne: #C5A47C;
 }
 
 body {
-  background-color: #F8F5F1;
-  color: #111117;
+  background-color: #FAF6F3;
+  color: #111114;
   font-family: var(--font-sans), 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -23,22 +30,22 @@ body {
   font-family: var(--font-editorial), 'Bodoni Moda', Georgia, serif;
 }
 
-/* Editorial selection */
+/* Editorial Glam selection */
 ::selection {
   background-color: #DD006B;
-  color: #FFFFFF;
+  color: #FFFDFC;
 }
 
-/* Custom Clean Editorial Scrollbar */
+/* Custom Editorial Scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #F8F5F1;
+  background: #FAF6F3;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D8D4CE;
+  background: #E8E2DA;
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {

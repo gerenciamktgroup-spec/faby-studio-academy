@@ -4,37 +4,35 @@ import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
 import { EditorialHero } from '@/components/landing/EditorialHero';
 import { EditorialTrustRail } from '@/components/landing/EditorialTrustRail';
-import { BeforeAfterSlider } from '@/components/landing/BeforeAfterSlider';
 import { EditorialCourseShowcase } from '@/components/landing/EditorialCourseShowcase';
 import { MethodEditorial } from '@/components/landing/MethodEditorial';
-import { ProfessionalJourney } from '@/components/landing/ProfessionalJourney';
-import { ProfitSimulator } from '@/components/landing/ProfitSimulator';
+import { FounderEditorial } from '@/components/landing/FounderEditorial';
+import { BeforeAfterSlider } from '@/components/landing/BeforeAfterSlider';
 import { MasterclassShowcase } from '@/components/landing/MasterclassShowcase';
 import { StudentStories } from '@/components/landing/StudentStories';
-import { FounderEditorial } from '@/components/landing/FounderEditorial';
 import { MadridSedesShowcase } from '@/components/landing/MadridSedesShowcase';
-import { MasteryCommitment } from '@/components/landing/MasteryCommitment';
 import { CertificateTrust } from '@/components/landing/CertificateTrust';
-import { ComparisonMatrix } from '@/components/landing/ComparisonMatrix';
 import { CareerPathQuiz } from '@/components/landing/CareerPathQuiz';
 import { FaqInteractive } from '@/components/landing/FaqInteractive';
+import { FinalCTA } from '@/components/landing/FinalCTA';
 import { FloatingWhatsApp } from '@/components/landing/FloatingWhatsApp';
 
 export const metadata: Metadata = {
   title: 'FABY STUDIO ACADEMY | Academia Profesional de Belleza en Madrid',
-  description: 'Formación profesional en uñas de gel, pestañas y estética facial con práctica sobre modelos reales, acompañamiento docente y dos sedes en Madrid.',
+  description: 'Formación profesional en uñas de gel, pestañas y estética facial con práctica real sobre modelos, acompañamiento de Leslie Fabiola y dos sedes en Madrid.',
   keywords: [
     'academia estetica madrid',
     'curso unas gel madrid',
     'curso extensiones pestanas madrid',
     'volumen ruso madrid',
     'faby studio',
+    'leslie fabiola',
     'manicura rusa',
     'hidrafacial madrid',
   ],
   openGraph: {
     title: 'FABY STUDIO ACADEMY • Madrid',
-    description: 'Aprende belleza. Domina la técnica. Hazla tu profesión. Academia profesional en Plaza Aluche y Puente de Vallecas.',
+    description: 'Aprende belleza. Domina la técnica. Hazla tu profesión. Formación profesional con Leslie Fabiola en Plaza Aluche y Puente de Vallecas.',
     url: 'https://faby-studio-academy.vercel.app',
     siteName: 'FABY STUDIO ACADEMY',
     locale: 'es_ES',
@@ -109,7 +107,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F5F1] flex flex-col text-[#111117] selection:bg-[#DD006B] selection:text-white">
+    <div className="min-h-screen bg-[#FAF6F3] flex flex-col text-[#111114] selection:bg-[#DD006B] selection:text-white">
       {/* Schema.org JSON-LD Structured Data */}
       <script
         type="application/ld+json"
@@ -119,50 +117,33 @@ export default function HomePage() {
       <PublicHeader />
 
       <main className="flex-1">
-        {/* 01 — ASPIRACIÓN */}
+        {/* ACTO I — QUIERO ESTO */}
         <EditorialHero />
         <EditorialTrustRail />
-
-        {/* 02 — RESULTADO */}
-        <BeforeAfterSlider />
-
-        {/* 03 — ELIGE TU ESPECIALIDAD */}
         <EditorialCourseShowcase />
 
-        {/* 04 — ASÍ APRENDES (MÉTODO FABY) */}
+        {/* ACTO II — PUEDO APRENDERLO */}
         <MethodEditorial />
-
-        {/* 05 — DE APRENDER A EJERCER */}
-        <ProfessionalJourney />
-        <ProfitSimulator />
-
-        {/* 06 — ENTRA EN UNA CLASE */}
+        <FounderEditorial />
+        <BeforeAfterSlider />
         <MasterclassShowcase />
 
-        {/* 07 — ALUMNAS REALES */}
+        {/* ACTO III — OTRAS YA LO HICIERON */}
         <StudentStories />
 
-        {/* 08 — LA PROFESORA */}
-        <FounderEditorial />
-
-        {/* 09 — MADRID (SEDES FÍSICAS) */}
+        {/* ACTO IV — ESTO EXISTE DE VERDAD */}
         <MadridSedesShowcase />
-
-        {/* 10 — CONFIANZA & ACREDITACIÓN */}
-        <MasteryCommitment />
         <CertificateTrust />
-        <ComparisonMatrix />
 
-        {/* 11 — DECISIÓN & ORIENTACIÓN */}
+        {/* ACTO V — ¿POR DÓNDE EMPIEZO? */}
         <CareerPathQuiz />
-
-        {/* 12 — FAQ */}
         <FaqInteractive />
+        <FinalCTA />
       </main>
 
       <PublicFooter />
 
-      {/* Floating WhatsApp Action Button */}
+      {/* Official WhatsApp Action Button */}
       <FloatingWhatsApp />
     </div>
   );

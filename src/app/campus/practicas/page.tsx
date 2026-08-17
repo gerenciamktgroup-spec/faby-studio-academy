@@ -22,7 +22,7 @@ export default async function StudentPracticesPage() {
   ]);
   if (assignmentsError) throw assignmentsError;
   if (submissionsError) throw submissionsError;
-  const assignmentsById = new Map<string, AssignmentItem>((assignments ?? []).map((assignment) => [assignment.id, assignment]));
+  const assignmentsById = new Map<string, AssignmentItem>((assignments ?? []).map((assignment) => [assignment.id, assignment] as [string, AssignmentItem]));
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">

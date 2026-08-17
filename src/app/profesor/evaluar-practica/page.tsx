@@ -39,8 +39,8 @@ export default async function PendingPracticesPage() {
     id: string;
     title: string;
   }
-  const profilesById = new Map<string, StudentProfile>((profiles ?? []).map((profile: StudentProfile) => [profile.id, profile]));
-  const assignmentsById = new Map<string, AssignmentRef>((assignments ?? []).map((assignment: AssignmentRef) => [assignment.id, assignment]));
+  const profilesById = new Map<string, StudentProfile>((profiles ?? []).map((profile: StudentProfile) => [profile.id, profile] as [string, StudentProfile]));
+  const assignmentsById = new Map<string, AssignmentRef>((assignments ?? []).map((assignment: AssignmentRef) => [assignment.id, assignment] as [string, AssignmentRef]));
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6">

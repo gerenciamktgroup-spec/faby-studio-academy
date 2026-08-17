@@ -4,7 +4,7 @@ import { WhatsAppAdmissionsWidget } from '@/components/shared/WhatsAppAdmissions
 
 export const metadata: Metadata = {
   title: 'FABY STUDIO ACADEMY | Formación Superior en Estética & Campus Virtual',
-  description: 'Academia oficial de formación avanzada en extensiones de pestañas, uñas de gel y cosmetología con tutorías 1 a 1 y certificación verificable SHA-256.',
+  description: 'Academia de formación avanzada en extensiones de pestañas, uñas de gel y cosmetología con tutorías 1 a 1 y certificación verificable SHA-256.',
   keywords: ['faby studio academy', 'curso extensiones de pestañas', 'master uñas de gel', 'campus virtual estetica', 'volumen ruso', 'formacion profesional belleza'],
   authors: [{ name: 'FABY STUDIO' }],
   metadataBase: new URL('https://fabystudio.academy'),
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'FABY STUDIO ACADEMY',
-    description: 'Formación profesional de alto nivel en estética y belleza con certificación digital inmutable.',
+    description: 'Formación profesional de alto nivel en estética y belleza con certificación digital verificable.',
   },
 };
 
@@ -57,7 +57,7 @@ export default function RootLayout({
               name: 'FABY STUDIO ACADEMY',
               url: 'https://fabystudio.academy',
               logo: 'https://fabystudio.academy/favicon.ico',
-              description: 'Academia oficial de formación avanzada en extensiones de pestañas, uñas de gel y estética con certificación verificable SHA-256.',
+              description: 'Academia de formación avanzada en extensiones de pestañas, uñas de gel y estética con certificación verificable SHA-256.',
               sameAs: [
                 'https://instagram.com/fabystudio',
                 'https://tiktok.com/@fabystudio',

@@ -27,7 +27,7 @@ export default async function CertificatePage() {
     <div className="space-y-8 max-w-5xl">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 print:hidden">
         <div>
-          <span className="text-xs font-bold text-emerald-700 uppercase tracking-widest">Acreditaciones verificables</span>
+          <span className="text-xs font-bold text-emerald-700 uppercase tracking-widest">Certificados verificables</span>
           <h1 className="text-2xl font-bold font-display text-slate-900 mt-1">Mis certificados</h1>
           <p className="text-xs text-slate-500">Cada certificado incluye una página pública y una huella criptográfica de integridad.</p>
         </div>

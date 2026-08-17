@@ -35,14 +35,14 @@ export default function PublicCertificateSearchPage() {
         <div className="text-center space-y-3">
           <div className="inline-flex items-center space-x-2 bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 rounded-full text-xs font-bold text-emerald-800">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>PORTAL OFICIAL DE VALIDACIÓN DE TÍTULOS — FABY STUDIO ACADEMY</span>
+            <span>PORTAL DE VALIDACIÓN DE CERTIFICADOS — FABY STUDIO ACADEMY</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold font-display text-slate-900">
             Verificación de Certificación Digital
           </h1>
           <p className="text-xs text-slate-500 max-w-xl mx-auto">
-            Comprobación pública e inalterable de diplomas y acreditaciones profesionales emitida con firma criptográfica SHA-256 y trazabilidad de horas reales activas.
+            Comprobación pública de diplomas y certificados formativos emitida con firma criptográfica SHA-256 y trazabilidad de horas de estudio activo.
           </p>
         </div>
 
@@ -92,7 +92,7 @@ export default function PublicCertificateSearchPage() {
             </div>
             <h4 className="font-bold text-slate-900">Firma Hash SHA-256</h4>
             <p className="text-[11px] text-slate-500 leading-relaxed">
-              Inmune a falsificaciones mediante sellado criptográfico en base de datos append-only.
+              Verificación de integridad mediante firma digital calculada sobre los datos emitidos del certificado.
             </p>
           </div>
 
@@ -100,9 +100,9 @@ export default function PublicCertificateSearchPage() {
             <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center font-bold">
               <Clock className="w-4 h-4" />
             </div>
-            <h4 className="font-bold text-slate-900">Horas Reales Auditadas</h4>
+            <h4 className="font-bold text-slate-900">Horas de Estudio Activo</h4>
             <p className="text-[11px] text-slate-500 leading-relaxed">
-              Cumple la Orden TMS/369/2019 con trazabilidad de tiempo activo verificado cada 45 segundos.
+              Trazabilidad técnica de sesiones de aprendizaje con comprobación periódica de presencia activa.
             </p>
           </div>
 
@@ -110,9 +110,9 @@ export default function PublicCertificateSearchPage() {
             <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
               <Award className="w-4 h-4" />
             </div>
-            <h4 className="font-bold text-slate-900">Rúbrica Docente Oficial</h4>
+            <h4 className="font-bold text-slate-900">Rúbrica Docente</h4>
             <p className="text-[11px] text-slate-500 leading-relaxed">
-              Acreditación respaldada por evaluación práctica en modelo real con nota superior a 70/100.
+              Certificación respaldada por evaluación práctica en modelo real con nota superior a 70/100.
             </p>
           </div>
         </div>

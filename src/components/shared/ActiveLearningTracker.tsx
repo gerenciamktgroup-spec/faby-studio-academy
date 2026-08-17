@@ -9,7 +9,6 @@ interface ActiveLearningTrackerProps {
 
 export function ActiveLearningTracker({ courseId, lessonId }: ActiveLearningTrackerProps) {
   const [isTabVisible, setIsTabVisible] = useState(true);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [activeSeconds, setActiveSeconds] = useState(0);
 
   const sessionIdRef = useRef<string>('');
@@ -39,8 +38,8 @@ export function ActiveLearningTracker({ courseId, lessonId }: ActiveLearningTrac
     };
 
     // Video play/pause detectors
-    const handleVideoPlay = () => { videoPlayingRef.current = true; setIsVideoPlaying(true); };
-    const handleVideoPause = () => { videoPlayingRef.current = false; setIsVideoPlaying(false); };
+    const handleVideoPlay = () => { videoPlayingRef.current = true; };
+    const handleVideoPause = () => { videoPlayingRef.current = false; };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('mousemove', handleUserInteraction);

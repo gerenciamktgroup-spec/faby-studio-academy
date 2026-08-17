@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import type { AppRole } from '@/types';
 import { createClient } from '@/lib/supabase/server';
 import { ConfigurationError } from '@/lib/config/env';
@@ -32,10 +33,12 @@ export class AuthorizationError extends Error {
 
 export async function getAuthPrincipal(): Promise<AuthPrincipal | null> {
   const supabase = await createClient();
+  const authorization = (await headers()).get('authorization');
+  const bearerToken = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser(bearerToken);
 
   if (authError || !user) return null;
 

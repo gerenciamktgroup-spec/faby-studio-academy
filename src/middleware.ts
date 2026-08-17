@@ -32,6 +32,15 @@ export async function middleware(request: NextRequest) {
   );
   const session = await updateSession(request);
 
+  if (pathname === '/demo' || pathname.startsWith('/demo/')) {
+    const isDemoEnabled =
+      process.env.NEXT_PUBLIC_ENABLE_DEMO === 'true' ||
+      process.env.ENABLE_DEMO === 'true';
+    if (!isDemoEnabled) {
+      return withSecurityHeaders(new NextResponse(null, { status: 404 }), false);
+    }
+  }
+
   if (!rule) return withSecurityHeaders(session.response, false);
 
   if (!session.configured) {

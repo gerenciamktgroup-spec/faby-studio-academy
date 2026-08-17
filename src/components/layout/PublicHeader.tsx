@@ -37,7 +37,11 @@ export function PublicHeader() {
             </Link>
             <Link href="/auditoria" className="hover:text-fabi-pink transition-colors flex items-center space-x-1.5">
               <ShieldCheck className="w-4 h-4 text-slate-500" />
-              <span>Auditoría TMS/369</span>
+              <span>Trazabilidad técnica</span>
+            </Link>
+            <Link href="/demo" className="text-rose-600 hover:text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center space-x-1">
+              <Sparkles className="w-3 h-3 text-rose-500" />
+              <span>Demo Roles</span>
             </Link>
           </nav>
 

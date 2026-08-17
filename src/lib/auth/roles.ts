@@ -1,5 +1,7 @@
 import type { AppRole } from '@/types';
 
+export type { AppRole };
+
 export const APP_ROLES: readonly AppRole[] = [
   'alumna',
   'tutor',

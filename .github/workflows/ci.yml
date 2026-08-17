@@ -1,19 +1,31 @@
-name: Quality Gate
+name: Quality Gate & Staging Verification
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
-    branches: [main]
+    branches:
+      - main
+      - codex/*
+      - antigravity/*
 
 jobs:
-  verify:
+  quality-gate:
+    name: Quality Gate (Static Analysis, Build & E2E)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://odsldktasbexyfjpijjg.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kc2xka3Rhc2JleHlmcGppampnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4OTYwMDAsImV4cCI6MjA1NDQ3MjAwMH0.test_anon_key_for_ci_pipeline_building_and_linting_32chars
+      SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kc2xka3Rhc2JleHlmcGppampnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczODg5NjAwMCwiZXhwIjoyMDU0NDcyMDAwfQ.test_service_key_for_ci_pipeline_building_and_linting_40chars_long
+      AUDIT_IP_HASH_SALT: ci_test_audit_ip_hash_salt_min_32_chars_long_12345
+      CERTIFICATE_SIGNING_SECRET: ci_test_certificate_signing_secret_min_32_chars_long_12345
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run lint

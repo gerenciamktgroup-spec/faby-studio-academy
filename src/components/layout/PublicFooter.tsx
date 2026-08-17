@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, ShieldCheck, Heart } from 'lucide-react';
+import { Sparkles, ShieldCheck } from 'lucide-react';
 
 export function PublicFooter() {
   return (
@@ -17,7 +17,7 @@ export function PublicFooter() {
               </span>
             </div>
             <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
-              Plataforma oficial de formación técnica avanzada en estética, pestañas, uñas y cosmetología. Metodología auditable con seguimiento de tiempo activo y certificación verificable.
+              Plataforma de formación técnica avanzada en estética, pestañas, uñas y cosmetología. Metodología auditable con seguimiento de tiempo activo y certificación verificable.
             </p>
           </div>
 
@@ -34,9 +34,10 @@ export function PublicFooter() {
           <div className="space-y-2 text-xs">
             <p className="font-bold text-slate-900 uppercase tracking-wider">Garantía & Legal</p>
             <ul className="space-y-1.5 text-slate-600">
+              <li><Link href="/demo" className="hover:text-fabi-pink font-semibold text-rose-600 transition-colors">Demo Switcher de Roles</Link></li>
               <li><Link href="/verificar-certificado" className="hover:text-fabi-pink transition-colors">Verificación de Diplomas</Link></li>
               <li><Link href="/auditoria" className="hover:text-fabi-pink transition-colors">Auditoría & Trazabilidad</Link></li>
-              <li><Link href="/privacidad" className="hover:text-fabi-pink transition-colors">Política de Privacidad (RGPD)</Link></li>
+              <li><Link href="/privacidad" className="hover:text-fabi-pink transition-colors">Aviso de privacidad de la preview</Link></li>
               <li><Link href="/terminos" className="hover:text-fabi-pink transition-colors">Términos y Condiciones</Link></li>
             </ul>
           </div>
@@ -46,7 +47,7 @@ export function PublicFooter() {
           <p>© {new Date().getFullYear()} FABY STUDIO ACADEMY. Todos los derechos reservados.</p>
           <div className="flex items-center space-x-2 text-emerald-600 font-semibold bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
             <ShieldCheck className="w-4 h-4" />
-            <span>Plataforma Oficial Verificada & Auditable</span>
+            <span>Plataforma Verificada & Auditable</span>
           </div>
         </div>
       </div>

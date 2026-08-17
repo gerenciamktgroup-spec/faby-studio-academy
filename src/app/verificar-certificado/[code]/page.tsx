@@ -27,7 +27,7 @@ export default async function VerifyCertificatePage({
       <main className="flex-1 max-w-3xl mx-auto px-4 py-12 w-full space-y-8">
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-800">
-            <ShieldCheck className="h-4 w-4" /> PORTAL OFICIAL DE VALIDACIÓN
+            <ShieldCheck className="h-4 w-4" /> PORTAL DE VALIDACIÓN TÉCNICA
           </div>
           <h1 className="text-3xl font-extrabold text-slate-900">Verificación de certificado</h1>
         </div>
@@ -64,9 +64,10 @@ export default async function VerifyCertificatePage({
             </div>
 
             <div>
-              <p className="mb-2 text-xs font-semibold text-slate-600">Huella criptográfica de integridad</p>
-              <p className="break-all rounded-xl border border-slate-200 bg-slate-50 p-3 font-mono text-[10px] text-slate-600">
-                {certificate.hash_signature}
+              <p className="mb-2 text-xs font-semibold text-slate-600">Estado de Autenticidad</p>
+              <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 font-medium text-xs text-emerald-800 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>Certificado verificado mediante firma criptográfica del servidor.</span>
               </p>
             </div>
           </section>

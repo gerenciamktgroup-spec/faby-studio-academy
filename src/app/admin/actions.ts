@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { ADMIN_ROLES } from '@/lib/auth/roles';
+import { ADMIN_ROLES, type AppRole } from '@/lib/auth/roles';
 import { requireAuthPrincipal } from '@/lib/auth/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -105,8 +105,9 @@ export async function inviteUserAction(
     const principal = await requireAuthPrincipal(ADMIN_ROLES);
     const payload = invitationSchema.safeParse(Object.fromEntries(formData));
     if (!payload.success) return errorState('Revisa nombre, correo y rol inicial.');
-    if (payload.data.role === 'admin_academico' && !principal.roles.includes('superadmin')) {
-      return errorState('Solo superadministración puede invitar otra cuenta administrativa.');
+    const elevatedRoles: AppRole[] = ['admin_academico', 'auditor', 'superadmin'];
+    if (elevatedRoles.includes(payload.data.role) && !principal.roles.includes('superadmin')) {
+      return errorState('Solo superadministración puede invitar cuentas administrativas o de auditoría.');
     }
 
     const admin = createAdminClient();
@@ -123,18 +124,32 @@ export async function inviteUserAction(
       throw inviteError ?? new Error('Supabase no devolvió la cuenta invitada.');
     }
 
-    const { error: roleError } = await admin.from('user_roles').upsert(
-      { user_id: data.user.id, role: payload.data.role },
-      { onConflict: 'user_id,role' }
-    );
-    if (roleError) throw roleError;
+    const { error: assignError } = await admin.rpc('manage_user_role_tx', {
+      p_actor_id: principal.id,
+      p_target_user_id: data.user.id,
+      p_target_role: payload.data.role,
+      p_action: 'ASSIGN',
+    });
+
+    if (assignError) {
+      console.error('[Admin] Failed to assign role on invited user, rolling back:', assignError);
+      const { error: rollbackError } = await admin.auth.admin.deleteUser(data.user.id);
+      if (rollbackError) {
+        console.error('[Admin] Failed rollback on invited user:', rollbackError);
+      }
+      return errorState(assignError.message || 'No fue posible asignar el rol inicial a la cuenta invitada.');
+    }
+
     if (payload.data.role !== 'alumna') {
-      const { error: removeStudentError } = await admin
-        .from('user_roles')
-        .delete()
-        .eq('user_id', data.user.id)
-        .eq('role', 'alumna');
-      if (removeStudentError) throw removeStudentError;
+      const { error: removeDefaultError } = await admin.rpc('manage_user_role_tx', {
+        p_actor_id: principal.id,
+        p_target_user_id: data.user.id,
+        p_target_role: 'alumna',
+        p_action: 'REMOVE',
+      });
+      if (removeDefaultError) {
+        console.warn('[Admin] Default alumna role cleanup notice:', removeDefaultError.message);
+      }
     }
 
     revalidatePath('/admin');
@@ -153,25 +168,27 @@ export async function assignRoleAction(
     const principal = await requireAuthPrincipal(ADMIN_ROLES);
     const payload = roleSchema.safeParse(Object.fromEntries(formData));
     if (!payload.success) return errorState('Selecciona un usuario y un rol válidos.');
-    if (['admin_academico', 'superadmin'].includes(payload.data.role) && !principal.roles.includes('superadmin')) {
-      return errorState('Solo superadministración puede asignar roles administrativos elevados.');
-    }
 
-    const supabase = await createClient();
-    const { error } = await supabase.from('user_roles').insert({
-      user_id: payload.data.userId,
-      role: payload.data.role,
+    const targetRole = payload.data.role;
+    const targetUserId = payload.data.userId;
+
+    const admin = createAdminClient();
+    const { error } = await admin.rpc('manage_user_role_tx', {
+      p_actor_id: principal.id,
+      p_target_user_id: targetUserId,
+      p_target_role: targetRole,
+      p_action: 'ASSIGN',
     });
+
     if (error) {
-      if (error.code === '23505') return errorState('La cuenta ya tiene ese rol.');
-      throw error;
+      return errorState(error.message || 'No fue posible asignar el rol.');
     }
 
     revalidatePath('/admin');
     return { status: 'success', message: 'Rol asignado correctamente.' };
   } catch (error) {
     console.error('[Admin] assign role:', error);
-    return errorState('No fue posible asignar el rol.');
+    return errorState(error instanceof Error ? error.message : 'No fue posible asignar el rol.');
   }
 }
 
@@ -183,20 +200,27 @@ export async function removeRoleAction(
     const principal = await requireAuthPrincipal(ADMIN_ROLES);
     const payload = removeRoleSchema.safeParse(Object.fromEntries(formData));
     if (!payload.success) return errorState('Selecciona una cuenta y un rol válidos.');
-    if (['admin_academico', 'superadmin'].includes(payload.data.role) && !principal.roles.includes('superadmin')) return errorState('Solo superadministración puede retirar roles administrativos elevados.');
-    if (payload.data.userId === principal.id && principal.roles.includes(payload.data.role)) return errorState('No puedes retirar tu propio rol desde esta sesión.');
 
-    const supabase = await createClient();
-    const { count, error: countError } = await supabase.from('user_roles').select('*', { count: 'exact', head: true }).eq('user_id', payload.data.userId);
-    if (countError) throw countError;
-    if ((count ?? 0) <= 1) return errorState('La cuenta debe conservar al menos un rol.');
-    const { error } = await supabase.from('user_roles').delete().eq('user_id', payload.data.userId).eq('role', payload.data.role);
-    if (error) throw error;
+    const targetRole = payload.data.role;
+    const targetUserId = payload.data.userId;
+
+    const admin = createAdminClient();
+    const { error } = await admin.rpc('manage_user_role_tx', {
+      p_actor_id: principal.id,
+      p_target_user_id: targetUserId,
+      p_target_role: targetRole,
+      p_action: 'REMOVE',
+    });
+
+    if (error) {
+      return errorState(error.message || 'No fue posible retirar el rol.');
+    }
+
     revalidatePath('/admin');
     return { status: 'success', message: 'Rol retirado correctamente.' };
   } catch (error) {
     console.error('[Admin] remove role:', error);
-    return errorState('No fue posible retirar el rol.');
+    return errorState(error instanceof Error ? error.message : 'No fue posible retirar el rol.');
   }
 }
 

@@ -4,18 +4,10 @@ import React, { useState } from 'react';
 import {
   Calculator,
   TrendingUp,
-  Euro,
-  DollarSign,
-  PieChart,
-  Download,
   Sparkles,
   CheckCircle2,
-  HelpCircle,
-  Clock,
   Briefcase,
   Store,
-  Layers,
-  ArrowRight,
   Printer,
 } from 'lucide-react';
 
@@ -234,18 +226,34 @@ export default function CalculadoraRentabilidadPage() {
                 </div>
               </div>
 
-              <div className="mt-3">
-                <label className="block font-bold text-slate-700 mb-1">
-                  Sueldo Neto Mensual Deseado (€)
-                </label>
-                <input
-                  type="number"
-                  step="100"
-                  min="500"
-                  value={targetMonthlySalary}
-                  onChange={(e) => setTargetMonthlySalary(parseFloat(e.target.value) || 1000)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-rose-500"
-                />
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Sueldo Neto Deseado (€)
+                  </label>
+                  <input
+                    type="number"
+                    step="100"
+                    min="500"
+                    value={targetMonthlySalary}
+                    onChange={(e) => setTargetMonthlySalary(parseFloat(e.target.value) || 1000)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-rose-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Margen de Seguridad (%)
+                  </label>
+                  <input
+                    type="number"
+                    min="10"
+                    max="90"
+                    value={targetMarginPct}
+                    onChange={(e) => setTargetMarginPct(parseInt(e.target.value) || 65)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-rose-500"
+                  />
+                </div>
               </div>
             </div>
           </div>

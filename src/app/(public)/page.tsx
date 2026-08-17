@@ -4,11 +4,15 @@ import { PublicHeader } from '@/components/layout/PublicHeader';
 import { PublicFooter } from '@/components/layout/PublicFooter';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { AuthorityTicker } from '@/components/landing/AuthorityTicker';
+import { CareerQuiz } from '@/components/landing/CareerQuiz';
 import { BeforeAfterSlider } from '@/components/landing/BeforeAfterSlider';
 import { ProfitSimulator } from '@/components/landing/ProfitSimulator';
 import { MethodBentoGrid } from '@/components/landing/MethodBentoGrid';
 import { CourseCatalogCards } from '@/components/landing/CourseCatalogCards';
+import { KitCalculator } from '@/components/landing/KitCalculator';
 import { MasterclassShowcase } from '@/components/landing/MasterclassShowcase';
+import { ReviewsGallery } from '@/components/landing/ReviewsGallery';
+import { MasteryGuarantee } from '@/components/landing/MasteryGuarantee';
 import { MadridSedesShowcase } from '@/components/landing/MadridSedesShowcase';
 import { FounderEditorial } from '@/components/landing/FounderEditorial';
 import { ComparisonMatrix } from '@/components/landing/ComparisonMatrix';
@@ -106,37 +110,49 @@ export default function HomePage() {
       <PublicHeader />
 
       <main className="flex-1">
-        {/* 1. Hero Section */}
+        {/* 1. Hero Section (50ms Luxury Hook) */}
         <HeroSection />
 
         {/* 2. Authority & Trust Ticker */}
         <AuthorityTicker />
 
-        {/* 3. Interactive Before/After Visual Transformation Slider */}
+        {/* 3. Interactive Career Diagnostic Quiz */}
+        <CareerQuiz />
+
+        {/* 4. Interactive Before/After Visual Transformation Slider */}
         <BeforeAfterSlider />
 
-        {/* 4. Interactive Profit & ROI Simulator for Students */}
+        {/* 5. Interactive Profit & ROI Simulator for Students */}
         <ProfitSimulator />
 
-        {/* 5. Method Bento Grid (4 Core Pillars) */}
+        {/* 6. Method Bento Grid (4 Core Pillars) */}
         <MethodBentoGrid />
 
-        {/* 6. Masterclass Video Player Showcase */}
-        <MasterclassShowcase />
-
-        {/* 7. Official Course Catalog Cards */}
+        {/* 7. Official Course Catalog Cards (Installment plans) */}
         <CourseCatalogCards />
 
-        {/* 8. Physical Sedes in Madrid (Aluche & Vallecas) */}
+        {/* 8. Interactive Initial Materials Kit Calculator */}
+        <KitCalculator />
+
+        {/* 9. Masterclass Video Player Showcase */}
+        <MasterclassShowcase />
+
+        {/* 10. Dynamic Verified Reviews & Stories Gallery */}
+        <ReviewsGallery />
+
+        {/* 11. Mastery Guarantee & Investment Safety */}
+        <MasteryGuarantee />
+
+        {/* 12. Physical Sedes in Madrid (Aluche & Vallecas) */}
         <MadridSedesShowcase />
 
-        {/* 9. Founder Spotlight & Authority */}
+        {/* 13. Founder Spotlight & Authority */}
         <FounderEditorial />
 
-        {/* 10. Comparison Matrix vs Traditional Academies */}
+        {/* 14. Comparison Matrix vs Traditional Academies */}
         <ComparisonMatrix />
 
-        {/* 11. Interactive FAQ Accordion */}
+        {/* 15. Interactive FAQ Accordion */}
         <FaqInteractive />
       </main>
 

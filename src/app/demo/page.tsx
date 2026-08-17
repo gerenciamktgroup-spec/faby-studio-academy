@@ -102,13 +102,6 @@ const DEMO_PERSONAS: DemoPersona[] = [
 
 export default function DemoSwitcherPage() {
   const router = useRouter();
-  const isDemoEnabled =
-    process.env.NEXT_PUBLIC_ENABLE_DEMO === 'true' ||
-    process.env.ENABLE_DEMO === 'true';
-
-  if (!isDemoEnabled) {
-    notFound();
-  }
 
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>('');

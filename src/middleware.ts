@@ -13,6 +13,15 @@ const PRIVATE_PAGE_RULES: Array<{ prefix: string; roles: readonly AppRole[] }> =
   { prefix: '/auditoria', roles: ['auditor', 'admin_academico', 'superadmin'] },
 ];
 
+const UNLOCKED_PUBLIC_PATHS = [
+  '/acceso-privado',
+  '/api/auth/private-unlock',
+  '/login',
+  '/recuperar-password',
+  '/actualizar-password',
+  '/auth/callback',
+];
+
 function withSecurityHeaders(response: NextResponse, isPrivate: boolean): NextResponse {
   if (isPrivate) response.headers.set('X-Robots-Tag', 'noindex, nofollow');
   response.headers.set('X-Frame-Options', 'SAMEORIGIN');
@@ -27,10 +36,47 @@ function withSecurityHeaders(response: NextResponse, isPrivate: boolean): NextRe
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const session = await updateSession(request);
+
+  // 1. Check if Private / Paused Mode is active (default active unless explicitly 'false')
+  const isPrivateMode = process.env.PRIVATE_MODE !== 'false';
+  const expectedKey = process.env.PRIVATE_ACCESS_KEY || 'faby2026';
+  const queryKey = request.nextUrl.searchParams.get('key');
+
+  // If visitor arrives with valid ?key=... URL parameter, grant access and set cookie
+  if (queryKey && queryKey === expectedKey) {
+    const cleanUrl = request.nextUrl.clone();
+    cleanUrl.searchParams.delete('key');
+    const response = NextResponse.redirect(cleanUrl);
+    response.cookies.set('faby_private_access', 'granted', {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+    return withSecurityHeaders(response, true);
+  }
+
+  const hasPrivateCookie = request.cookies.get('faby_private_access')?.value === 'granted';
+  const isAllowedPath = UNLOCKED_PUBLIC_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`)
+  );
+
+  // If in private mode and not authenticated and not unlocked by cookie, gate to /acceso-privado
+  if (isPrivateMode && !hasPrivateCookie && !session.user && !isAllowedPath) {
+    // Exclude API routes that might be needed by public forms
+    if (!pathname.startsWith('/api/')) {
+      const lockUrl = request.nextUrl.clone();
+      lockUrl.pathname = '/acceso-privado';
+      lockUrl.search = '';
+      return withSecurityHeaders(NextResponse.redirect(lockUrl), true);
+    }
+  }
+
+  // 2. Standard RBAC rules for internal portals (/campus, /profesor, /admin, /auditoria)
   const rule = PRIVATE_PAGE_RULES.find(
     ({ prefix }) => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
-  const session = await updateSession(request);
 
   if (!rule) return withSecurityHeaders(session.response, false);
 
